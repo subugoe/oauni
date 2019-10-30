@@ -1,11 +1,47 @@
 <!-- TOC -->
 
 - [Minutes of Meetings and Calls](#minutes-of-meetings-and-calls)
+  - [Minutes of Call 30 Oct 2019](#minutes-of-call-30-oct-2019)
   - [Minutes of Initiating Call 17 Oct 2019](#minutes-of-initiating-call-17-oct-2019)
 
 <!-- /TOC -->
 
 # Minutes of Meetings and Calls
+
+## Minutes of Call 30 Oct 2019
+
+Date
+-----
+
+30 October 2019
+
+Participants
+----------
+
+- Philipp
+- Neda
+- Najko
+- Anne
+
+Agenda
+------
+
+**Sector productivity**
+
+- queries shared in the joint repository ([https://github.com/subugoe/oa-german-inst/tree/master/productivity_sectors](https://github.com/subugoe/oa-german-inst/tree/master/productivity_sectors))
+- resulting numbers: [https://drive.google.com/file/d/1FgpCs6Ar91DvU8NsqHRyk_JG_AvivDg2/view](https://drive.google.com/file/d/1FgpCs6Ar91DvU8NsqHRyk_JG_AvivDg2/view)
+- potential additional sectors of 'Ressortforschung' have relatively low publication output
+
+**Open Questions**
+
+- Matching based purely on doi or additionally on title for increased precision?
+- Which institutions to select? In particular, including Ressortforschung or not?
+- Which research question(s) to focus on?
+
+**Next call**
+
+Next week Wednesday, depending on Niels' schedule
+
 
 ## Minutes of Initiating Call 17 Oct 2019
 
