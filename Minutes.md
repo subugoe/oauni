@@ -8,6 +8,46 @@
 
 # Minutes of Meetings and Calls
 
+## Minutes of Call 6 Nov 2019
+
+Date
+-----
+6 November 2019
+
+Participants
+------
+
+- Philipp
+- Masoud
+- Niels
+- Anne
+
+Agenda
+------
+
+**Sectors**
+- selection: 5 pillars + Ressortforschung
+- 2 cases that appear twice (in different sectors)
+  - include in analyses on the level of sectors, count them only for one sector in analyses on the national level
+- 5 pillars: number of institutions seem correct
+- Ressortforschung: include them in the dataset, maybe exclude them for the analyses later on
+
+**OA Types**
+- as agreed upon in the first call (see [below](#minutes-of-initiating-call-17-oct-2019)): own classification, implemented by Göttingen
+- ask Stephan again about making the Unpwaywall dataset available
+- start matching and classification in two to three weeks (hopefully with dataset in KB, if not other solution)
+
+**Research questions**
+- Focus on first one: OA shares
+- Citation analysis: Compare closed vs. gold or green vs. closed or gold vs. green ?
+- Collaboration analysis in a separate paper, but have an eye on average number of coauthors
+
+**Timeline**
+
+- complete until Status meeting in January
+- start literature review based on OASE-grant application (Philipp), add reviews of newer papers, Piwowar and so on (everybody)
+
+
 ## Minutes of Call 30 Oct 2019
 
 Date
