@@ -1,6 +1,7 @@
 <!-- TOC -->
 
 - [Minutes of Meetings and Calls](#minutes-of-meetings-and-calls)
+  - [Minutes of Call 20 Nov 2019](#minutes-of-call-20-nov-2019)
   - [Minutes of Call 6 Nov 2019](#minutes-of-call-6-nov-2019)
   - [Minutes of Call 30 Oct 2019](#minutes-of-call-30-oct-2019)
   - [Minutes of Initiating Call 17 Oct 2019](#minutes-of-initiating-call-17-oct-2019)
@@ -8,6 +9,38 @@
 <!-- /TOC -->
 
 # Minutes of Meetings and Calls
+
+## Minutes of Call 20 Nov 2019
+
+Date
+-----
+20 November 2019
+
+Participants
+-----
+- Philipp
+- Masoud
+- Najko
+- Anne
+
+Agenda
+-----
+
+**Unpaywall data**
+
+- Import is ongoing, should be finished these days
+- In future: DZHW will update, at least yearly
+
+**Research focus**
+
+- 5 pillars + 2
+- OA categories:
+  - done by Göttingen, types as stated below
+  - matching: Göttingen, UT list of german institution provided by GESIS
+- focus mainly on OA shares, perhaps add citation advantage
+
+**Next meeting**
+after matching is finished,exact date to be specified
 
 ## Minutes of Call 6 Nov 2019
 
