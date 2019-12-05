@@ -1,6 +1,7 @@
 <!-- TOC -->
 
 - [Minutes of Meetings and Calls](#minutes-of-meetings-and-calls)
+  - [Minutes of Call 4 Dec 2019](#minutes-of-call-4-dec-2019)
   - [Minutes of Call 20 Nov 2019](#minutes-of-call-20-nov-2019)
   - [Minutes of Call 6 Nov 2019](#minutes-of-call-6-nov-2019)
   - [Minutes of Call 30 Oct 2019](#minutes-of-call-30-oct-2019)
@@ -9,6 +10,32 @@
 <!-- /TOC -->
 
 # Minutes of Meetings and Calls
+
+## Minutes of Call 4 Dec 2019
+
+Date
+-----
+4 December 2019
+
+Participants
+-----
+- Philipp
+- Najko
+- Anne
+
+Agenda
+-----
+
+**Unpaywall data**
+- in KB infrastructure: April data set, contains errors: some publisher based entries are classified as repository based
+- use Big Query table with November 2019 snapshot to generate matching table
+
+**Journal**
+- submit final version at Scientometrics, publish preprint OA
+- second option: JASIST
+
+**Next Call**
+- next week after Status Call
 
 ## Minutes of Call 20 Nov 2019
 
