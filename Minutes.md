@@ -1,6 +1,7 @@
 <!-- TOC -->
 
 - [Minutes of Meetings and Calls](#minutes-of-meetings-and-calls)
+  - [Minutes of Call 11 Dec 2019](#minutes-of-call-11-dec-2019)
   - [Minutes of Call 4 Dec 2019](#minutes-of-call-4-dec-2019)
   - [Minutes of Call 20 Nov 2019](#minutes-of-call-20-nov-2019)
   - [Minutes of Call 6 Nov 2019](#minutes-of-call-6-nov-2019)
@@ -10,6 +11,59 @@
 <!-- /TOC -->
 
 # Minutes of Meetings and Calls
+
+## Minutes of Call 11 Dec 2019
+
+Date
+-----
+11 December 2019
+
+Participants
+-----
+- Philipp
+- Najko
+- Anne
+- Niels
+
+Agenda
+-----
+
+**Semanticscholar**
+- more than 20 % of full text links with host_type repository have domain "pdfs.semanticscholar.org"
+- significant effect on proportions of publisher-based, repository-based and overlapping categories
+- 3 options:
+  - exclude records with semanticscholar link
+  - keep them as repository-based records
+  - define a third category "semanticscholar" in addition to publisher based OA and repository based OA
+- go with 3rd option, homework: reflect on this
+
+**Full OA journals**
+- two options: use `journal_is_oa` field from Unpaywall or Bielefeld ISSN-Gold-OA list
+- about 1500 journals are in ISSN-Gold-OA list but not OA in Unpaywall, 129 vice versa
+- classify as OA journal any ISSN, which is in ISSN-Gold-OA list or Unpaywall list
+
+**Publication years**
+
+- publication years registered in WoS and Unpaywall differ, WoS up to two years later than Unpaywall, see [matching report](https://github.com/nicholasmfraser/wos_unpaywall_matching/blob/master/report.pdf).
+- Unpaywall tables in Big Query contain records with publication years 2008 onwards
+- restrict analysis to WoS records with publication year 2010 until 2018
+
+**Draft for paper**
+- [first draft](https://docs.google.com/document/d/1GZtq2jrPcmU9Bab6pKOSay7f_u-XE5E0-T6ElyF4ZhI/edit#) for the joint paper
+- start writing
+  - research questions: everybody, serves as orientation for data analysis
+  - Introduction and Background: mainly Philipp
+  - Methodology: Masoud, Niels, Najko, Anne
+  - Results: Najko, Anne; additional section on citation analysis ? (Masoud, Philipp)
+
+**Data schema**
+- data schema specified in [paper draft](https://docs.google.com/document/d/1GZtq2jrPcmU9Bab6pKOSay7f_u-XE5E0-T6ElyF4ZhI/edit#)
+- add oa information with that schema to table in WoS
+
+**Next call**
+
+Wednesday, 18 December, 9:30
+
 
 ## Minutes of Call 4 Dec 2019
 
