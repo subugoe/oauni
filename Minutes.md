@@ -1,6 +1,7 @@
 <!-- TOC -->
 
 - [Minutes of Meetings and Calls](#minutes-of-meetings-and-calls)
+  - [Minutes of Call 18 Dec 2019](#minutes-of-call-18-dec-2019)
   - [Minutes of Call 11 Dec 2019](#minutes-of-call-11-dec-2019)
   - [Minutes of Call 4 Dec 2019](#minutes-of-call-4-dec-2019)
   - [Minutes of Call 20 Nov 2019](#minutes-of-call-20-nov-2019)
@@ -11,6 +12,38 @@
 <!-- /TOC -->
 
 # Minutes of Meetings and Calls
+
+## Minutes of Call 18 Dec 2019
+
+Date
+-----
+18 December 2019
+
+Participants
+-----
+- Philipp
+- Niels
+- Najko
+- Anne
+
+Agenda
+-----
+
+**Duplikate durch Repositorienzuordnung**
+
+- Manche Repositorien haben dieselbe Domain (zB. opus4.kobv.de) und unterscheiden sich nur in der Subdomain. Jeder Unpaywalleintrag mit dieser Domain wird dann mit jedem Repositorium dieser Domain gematcht
+- Doppelungen im Unpaywalldatensatz
+- Lösung: Analyse basierend auf aggregierten Datensätzen, die jeden Artikel pro OA Typ und Aggregationslevel nur einfach zählen
+- 3 Aggregationslevel: Institution - Sektor - National
+
+**Forschungsfragen**
+- Analyse auf Instutionenebene: zeitliche Entwicklung, Vergleiche
+- Analyse auf Sektorenebene: Nullhypothese, dass OA Anteile über alle Sektoren gleich sind, widerlegbar?
+- Philipp und Niels: genauere Festlegung und Formulierung im gemeinsamen [Google Doc](https://docs.google.com/document/d/1GZtq2jrPcmU9Bab6pKOSay7f_u-XE5E0-T6ElyF4ZhI/edit#)
+
+**Next Call**
+
+8 Januar 2020, 10 Uhr
 
 ## Minutes of Call 11 Dec 2019
 
