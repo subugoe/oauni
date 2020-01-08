@@ -13,6 +13,44 @@
 
 # Minutes of Meetings and Calls
 
+## Minutes of Call 8 January 2019
+
+Participants
+-----
+- Philipp
+- Niels
+- Masoud
+- Anne
+
+Agenda
+-----
+
+**Preliminary results**
+
+- shown some first figures for development of numbers of articles on the national level, sectoral level and institutional level
+- figures for national and sectoral level are promising; institutional level has to be discussed in more detail (see section below)
+
+**Publishing of aggregated table on the institutional level**
+
+- aggregation on the institutional level leaves many fields with just 1 publication, question: are we allowed to publish such a table? (answer: probably yes, because it is just a counting result, does not contain identifiers)
+- which analyses to conduct exactly: which institution to choose for visualisation, which criteria? what comparisons are interesting?
+- orientation: [recent report](https://pub.uni-bielefeld.de/download/2912807/2912864/OA-Gold-Report.pdf) by Niels and others, grouping of institutions according to
+  - total publication output
+  - OA share
+  - OA growth
+- include total publication output, OA share and OA growth in tables to publish (might be interesting for individual institutions)
+
+**Next steps/homework**
+
+- Anne: send around brief report with presented results
+- Anne: produce aggregated tables to publish and some analysis results to choose from (which to include in the paper or appendix);
+- everybody: contribute to text, contributions to chapters more or less according to comments in the document
+
+**Next Call**
+
+on Thursday, 16th at 10:00
+
+
 ## Minutes of Call 18 Dec 2019
 
 Date
