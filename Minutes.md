@@ -1,6 +1,7 @@
 <!-- TOC -->
 
 - [Minutes of Meetings and Calls](#minutes-of-meetings-and-calls)
+  - [Minutes of Call 8 January 2019](#minutes-of-call-8-january-2019)
   - [Minutes of Call 18 Dec 2019](#minutes-of-call-18-dec-2019)
   - [Minutes of Call 11 Dec 2019](#minutes-of-call-11-dec-2019)
   - [Minutes of Call 4 Dec 2019](#minutes-of-call-4-dec-2019)
