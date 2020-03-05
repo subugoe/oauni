@@ -1,7 +1,8 @@
 <!-- TOC -->
 
 - [Minutes of Meetings and Calls](#minutes-of-meetings-and-calls)
-  - [Minutes of Call 8 January 2019](#minutes-of-call-8-january-2019)
+  - [Minutes of Call 5 March 2020](#minutes-of-call-5-march-2020)
+  - [Minutes of Call 8 January 2020](#minutes-of-call-8-january-2020)
   - [Minutes of Call 18 Dec 2019](#minutes-of-call-18-dec-2019)
   - [Minutes of Call 11 Dec 2019](#minutes-of-call-11-dec-2019)
   - [Minutes of Call 4 Dec 2019](#minutes-of-call-4-dec-2019)
@@ -14,7 +15,28 @@
 
 # Minutes of Meetings and Calls
 
-## Minutes of Call 8 January 2019
+## Minutes of Call 5 March 2020
+
+Participants
+-----
+- Philipp
+- Niels
+- Anne
+
+Agenda
+-----
+
+- shown an example of the type of graphic that can be used in discussion to critically reflect on categorisation
+- Next steps:
+  - Niels will elaborate on literature review
+  - Anne will include some results by the end of the week
+  - Philipp will work on it on Monday
+- Deadline: agree upon authors, title etc. by end of March, have preprint ready by end of April
+
+Next meeting: Thursday, 12 March
+
+
+## Minutes of Call 8 January 2020
 
 Participants
 -----
