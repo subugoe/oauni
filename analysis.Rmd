@@ -1,0 +1,30 @@
+---
+title: "Analysis of German publication output"
+author: "Anne Hobert"
+date: "3/6/2020"
+output: github_document
+---
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+knitr::opts_chunk$set(
+  comment = "#>",
+  collapse = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  echo = FALSE,
+  fig.width = 6,
+  fig.asp = 0.618,
+  out.width = "70%",
+  fig.align = "center",
+  dpi = 300
+)
+```
+
+```{r}
+library(tidyverse)
+library(urltools)
+library(cowplot)
+library(viridis)
+```
+
+In this document we describe the analysis of our sample of publications from German research institutions. We work with the dataset `pubs_cat` generated in [data_gathering.Rmd](data_gathering.Rmd).
