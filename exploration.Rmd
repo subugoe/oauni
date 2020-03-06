@@ -1,0 +1,177 @@
+---
+title: "Some preliminary data exploration"
+author: "Anne Hobert"
+output: github_document
+---
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+knitr::opts_chunk$set(
+  comment = "#>",
+  collapse = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  echo = TRUE,
+  fig.width = 6,
+  fig.asp = 0.618,
+  out.width = "70%",
+  fig.align = "center",
+  dpi = 300
+)
+```
+
+```{r}
+library(tidyverse)
+library(urltools)
+library(cowplot)
+```
+
+
+Here, we perform some preliminary exploration of the generated datasets. We obtain tibbles `pubs_wos`, `upw_evidence`, the matched data frame `pubs_wos_upw`, and the final dataframe `pubs_cat` as described in [data_gathering.Rmd](data_gathering.Rmd).
+
+## How many publications are there? How many can be matched to Unpaywall?
+
+There are `r pubs_wos %>% summarise(n = n_distinct(PK_ITEMS)) %>% .$n` different articles in our sample (differentiated by pk_items). `r pubs_wos %>% filter(is.na(DOI)) %>% summarise(n = n_distinct(PK_ITEMS)) %>% .$n` of them do not have any DOI information. `r pubs_wos %>% group_by(DOI) %>%   summarise(n = n_distinct(PK_ITEMS)) %>% filter(n==2) %>% count() %>% .$n` DOIs appear twice, that is, they are associated with two different `PK_ITEMS`. The remaining DOIs are linked to a unique `PK_ITEMS`. In total, there are `r pubs_wos %>% filter(!is.na(DOI)) %>% summarise(n=n_distinct(DOI)) %>% .$n` distinct DOIs within the sample. Of these, `r upw_evidence %>% filter(!is.na(upw_doi)) %>% summarise(n = n_distinct(wos_doi)) %>% .$n` are matched to Unpaywall records, whereas `r upw_evidence %>% filter(is.na(upw_doi)) %>% summarise(n = n_distinct(wos_doi)) %>% .$n`, or `r round(upw_evidence %>% filter(is.na(upw_doi)) %>% summarise(n = n_distinct(wos_doi)) %>% .$n/(upw_evidence %>% summarise(n = n_distinct(wos_doi)) %>% .$n), 2)*100` %, did not correspond to any of the DOIs in our Unpaywall dataset.
+
+
+Briefly evaluate the matching procedure of matching WoS and Unpaywall: The following table shows the number of articles from WoS that have no DOI information (`no_doi`), articles that have DOI information in WoS but could not be matched to any record in the Unpwaywall dataset we used (`unmatched`), articles matched to Unpaywall for which Unpaywall did not find any open version (`upw_closed`) and articles with OA evidence in Unpaywall (`OA`).
+```{r}
+pubs_wos_upw %>% 
+  mutate(matched_oa = case_when(
+    is.na(DOI) ~ 'no_doi',
+    is.na(upw_doi) ~ 'unmatched',
+    !is_oa ~ 'upw_closed',
+    TRUE ~ 'OA'
+  )) %>% 
+  group_by(matched_oa) %>% 
+  summarise(n = n_distinct(PK_ITEMS)) %>% 
+  # filter(!matched_oa %in% c('unmatched', 'no_doi')) %>% 
+  mutate(prop = n / sum(n))%>% 
+  knitr::kable()
+```
+
+## Number of Full-Text links per OA Article 
+```{r}
+oa_fxt_count <- pubs_wos_upw %>% 
+  filter(!is.na(host_type)) %>%
+  group_by(DOI) %>%
+  mutate(n_oa_versions = n()) %>%
+  ungroup() %>%
+  group_by(DOI, n_oa_versions, host_type) %>%
+  summarise(ftxt_n = n()) %>%
+  ungroup()
+```
+
+```{r}
+oa_fxt_count %>%
+  distinct(DOI, n_oa_versions) %>%
+  ggplot(aes(x = n_oa_versions)) +
+  geom_histogram(binwidth = 1, fill="#56B4E9", alpha=0.5, color = "#56B4E9") +
+  geom_vline(aes(xintercept = mean(n_oa_versions, na.rm = T)),
+             colour = "#E69F00", linetype ="dashed", size = .8) +
+  geom_vline(aes(xintercept = median(n_oa_versions, na.rm = T)),
+             colour = "red", linetype ="dashed", size = .8) +
+  theme_minimal_hgrid(12) +
+  labs(x = "Number of Full-Text Links",
+       y = "German OA Articles")
+```
+
+### per host type
+
+```{r}
+# compute densities for full text numbers lengths
+oa_fxt_count %>%
+  #filter(!is.na(host_type)) %>% 
+  #distinct() %>% 
+  ggplot(aes(x = ftxt_n, fill = host_type, color = host_type)) +
+  geom_histogram(binwidth = 1, alpha=0.5) +
+  facet_grid(~ host_type, scales = "free_x") +
+  theme_minimal_hgrid(12) +
+  labs(x = "Number of Full-Text Links",
+       y = "German OA Articles") 
+```
+
+## Number of OA Articles per Host Type
+
+```{r}
+oa_fxt_count %>% 
+  group_by(DOI) %>%
+  mutate(n_host_type = n()) %>%
+  mutate(host_type = ifelse(n_host_type == 2, "publisher & repository", host_type)) %>%
+  ungroup() %>%
+  group_by(host_type) %>%
+  summarise(n = n_distinct(DOI)) %>%
+  mutate(prop = n / sum(n)) %>%
+  knitr::kable()
+```
+
+### Repository analysis using OpenDOAR
+
+```{r}
+ repo_df <- pubs_wos_upw %>% 
+  distinct() %>%
+  filter(host_type == "repository") %>%
+  mutate(url_domain = domain(url_for_pdf)) %>%
+  mutate(url_domain = gsub("www.", "", url_domain)) %>%
+  mutate(landing_domain = domain(url_for_landing_page)) %>%
+  mutate(landing_domain = gsub("www.", "", url_domain))
+```
+
+```{r}
+opendoar <- readr::read_csv("data/opendoar_data_tidier.csv") %>%
+  mutate(repo_domain = domain(repo_url)) %>%
+  mutate(repo_domain = gsub("www.", "", repo_domain))
+```
+
+
+#### Number of self-archived full-texts by repository type
+
+```{r}
+repo_df %>% 
+  distinct(DOI, url_domain, landing_domain) %>% 
+  left_join(opendoar,  by = c("url_domain" = "repo_domain", "landing_domain" = "repo_domain")) %>% 
+  ungroup() %>% 
+  group_by(repo_type) %>% 
+  summarise(n = n()) %>% 
+  arrange(desc(n)) %>% 
+  mutate(prop = n / sum(n)) %>%
+  knitr::kable()
+```
+
+without "pdfs.semanticscholar.org".
+
+```{r}
+repo_df %>% 
+  distinct(DOI, url_domain, landing_domain) %>% 
+  filter(url_domain != "pdfs.semanticscholar.org") %>%
+  left_join(opendoar,  by = c("url_domain" = "repo_domain", "landing_domain" = "repo_domain")) %>% 
+  ungroup() %>% 
+  group_by(repo_type) %>% 
+  summarise(n = n()) %>% 
+  arrange(desc(n)) %>% 
+  mutate(prop = n / sum(n)) %>%
+  knitr::kable()
+```
+
+### Top Repository Domains
+
+```{r}
+repo_df %>%
+  group_by(url_domain) %>%
+  summarise(n = n()) %>%
+  mutate(prop = n / sum(n) * 100) %>%
+  arrange(desc(n)) %>%
+  head(20) %>%
+  knitr::kable()
+```
+
+```{r}
+repo_df %>% 
+  distinct(url_domain, landing_domain) %>% 
+  left_join(opendoar,  by = c("url_domain" = "repo_domain", "landing_domain" = "repo_domain"))
+
+repo_df %>% 
+  distinct(FK_ITEMS, DOI, url_domain, landing_domain) %>% 
+  left_join(opendoar,  by = c("url_domain" = "repo_domain", "landing_domain" = "repo_domain")) %>% 
+  ungroup() %>% 
+  write_csv("data/german_unis_url_matching.csv")
+```
