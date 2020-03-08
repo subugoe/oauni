@@ -198,3 +198,55 @@ outliers %>%
   arrange(desc(n))
 ```
 Schloss Dagstuhl with just one publication, that is OA. 2nd one is Heidelberg Graduate School of Fundamental Physics with 56 publications, 55 of which are published in the journal Astronomy and Astrophysics. Most of these publications are tagged as publisher based OA but are also deposited in various repositories.
+
+### Highest / lowest OA shares
+
+Which institutions have the highest OA shares (apart from the two just discussed ones)?
+```{r}
+oa_shares %>% 
+  select(INST_NAME, oa_share) %>%
+  top_n(15) %>% 
+  arrange(desc(oa_share))
+```
+
+Mostly (astro-)physics-related MP institutes, but also Leibniz-Institut für Astrophysik, some computer science / biology related institutes.
+
+Lowest shares?
+
+```{r}
+oa_shares %>% 
+  select(INST_NAME, n_total, oa_share) %>% 
+  filter(oa_share == 0)
+```
+OA share zero mostly for institutions with few publications in data set (less then 10 in total), exceptions: "Staatliche Hochschule für Musik Freiburg im Breisgau" (39 pubs), "Herder-Institut für historische Ostmitteleuropaforschung"(14 pubs). 
+
+Distribution of OA shares?
+
+```{r}
+oa_shares %>% 
+  ggplot(aes(x = oa_share)) +
+    geom_histogram(binwidth = 1) +
+    geom_vline(aes(xintercept = 7), col = "red")
+```
+
+### Total publication output
+
+Publication output of sectors/institutions?
+```{r}
+pubs_cat %>% 
+  group_by(sector) %>% 
+  summarise(n = n_distinct(PK_ITEMS)) %>% 
+  ggplot(aes(x = sector, y = n)) +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1)) +
+  geom_col()
+pubs_cat %>% 
+  group_by(INST_NAME) %>% 
+  summarise(n = n_distinct(PK_ITEMS)) %>% 
+  filter(n < 10000) %>% 
+  ggplot(aes(x =n)) +
+  geom_histogram(bins = 150) +
+  # geom_vline(xintercept = 35000, color = "red")+
+  # geom_vline(xintercept = 21000, color = "red")+
+  # geom_vline(xintercept = 10000, color = "red")+
+   geom_vline(xintercept = 6000, color = "red")
+```

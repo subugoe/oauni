@@ -14,7 +14,7 @@ knitr::opts_chunk$set(
   echo = FALSE,
   fig.width = 6,
   fig.asp = 0.618,
-  out.width = "70%",
+  out.width = "90%",
   fig.align = "center",
   dpi = 300
 )
@@ -126,7 +126,6 @@ pubs_cat %>%
     #     axis.text = element_text(size = 14),
     #     legend.text = element_text(size = 14),
     #     legend.title = element_text(size = 16))
-#ggsave(filename = "national_oa_share.png", dpi = 300, width = 15)
 ```
 
 As faceted graph:
@@ -242,7 +241,7 @@ Next, we go one level down and look at how the separate sectors developed.
 
 Number of OA articles per sector in comparison to all articles published within the sector:
 
-```{r}
+```{r, fig.asp=1}
 pubs_cat %>% 
   mutate(oa_category = fct_relevel(factor(oa_category), "full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa")) %>% 
   mutate(oa_category = fct_collapse(oa_category,
@@ -254,7 +253,7 @@ pubs_cat %>%
   ggplot(aes(x = PUBYEAR, y = number_of_articles)) +
     geom_area(aes(fill = fct_rev(oa_category), group = fct_rev(oa_category)),  alpha = 0.8) +
     scale_fill_manual(values = c("#b3b3b3a0", "#56B4E9"), name = "Is OA?", labels = c("Not OA", "OA"))+
-    facet_wrap(~ sector, scales = "free") +
+    facet_wrap(~ sector, scales = "free", ncol = 2) +
     labs(x = "Publication Year", y = "Number of Articles", title = "Number of OA Articles (level of sectors)") +
     theme(legend.position = "right")
 ```
@@ -263,7 +262,7 @@ pubs_cat %>%
 
 The first figure depicts the number of publications per host type category over time for each sector.
 
-```{r, fig.height=6}
+```{r, fig.asp=1}
 #, fig.asp=1.5}
 pubs_cat %>% 
   mutate(oa_category = factor(oa_category, levels = c("full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa"))) %>% 
@@ -276,14 +275,14 @@ pubs_cat %>%
   summarise(number_of_articles = n_distinct(PK_ITEMS)) %>%
   ggplot(aes(x = PUBYEAR, y = number_of_articles)) +
     geom_col(aes(fill = oa_category), position = "dodge") +
-    facet_wrap(~ sector, scales = "free") +
+    facet_wrap(~ sector, scales = "free", ncol = 2) +
     scale_fill_viridis(end = 0.95, discrete = TRUE, direction = -1, name = "OA category", labels = c("OA (publisher)", "OA (repository)", "Not OA")) +
     labs(x = "Publication Year", y = "Number of Articles", title = "Number of Articles per OA host type (level of sectors)", color = "oa_category") +
-    theme(legend.position = "bottom")
+    theme(legend.position = "right")
 ```
 
 Looking at proportions:
-```{r, fig.height=6}
+```{r, fig.asp=1}
 #, fig.asp=1.5}
 pubs_cat %>%
   group_by(PUBYEAR, sector) %>% 
@@ -308,7 +307,7 @@ pubs_cat %>%
 
 Facet grid:
 
-```{r, fig.width=10, fig.asp=1}
+```{r, fig.asp=1}
 pubs_cat_abbr <- pubs_cat %>% 
   mutate(sector = case_when(
     sector == "Hochschulen" ~ "HS",
@@ -345,7 +344,7 @@ pubs_cat_abbr %>%
 
 Distinguishing all the single OA categories:
 
-```{r, fig.width=10, fig.asp=1}
+```{r, fig.asp=1}
 pubs_cat %>%
   mutate(oa_category = factor(oa_category, levels = c("full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa"))) %>% 
   group_by(sector, PUBYEAR, oa_category) %>% 
@@ -360,7 +359,7 @@ pubs_cat %>%
 
 Looking at proportions:
 
-```{r, fig.width=10, fig.asp=1}
+```{r, fig.asp=1}
 pubs_cat %>%
   group_by(PUBYEAR, sector) %>% 
   mutate(n_total = n_distinct(PK_ITEMS)) %>% 
@@ -380,7 +379,7 @@ pubs_cat %>%
 
 Facet grid:
 
-```{r, fig.width=10, fig.asp=1}
+```{r, fig.asp=1.2}
 pubs_cat_abbr <- pubs_cat %>% 
   mutate(sector = case_when(
     sector == "Hochschulen" ~ "HS",
@@ -434,7 +433,7 @@ oa_shares <- pubs_cat %>%
 
 We now display the variability among institutions per sector with respect to the total publication output.
 
-```{r}
+```{r, fig.asp=1}
 pubs_cat %>%
   mutate(oa_category = factor(oa_category, levels = c("full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa"))) %>% 
   mutate(oa_category = fct_collapse(oa_category,
@@ -454,3 +453,46 @@ pubs_cat %>%
     theme(legend.position = "right")
 ```
 
+Sectorwise comparison of OA shares
+
+```{r, fig.asp=0.8}
+pubs_cat %>%
+  left_join(oa_shares, by = 'INST_NAME') %>%
+  group_by(INST_NAME, sector, oa_share, n_total) %>% 
+  summarise() %>% 
+  group_by(sector) %>% 
+  summarise_at(vars(n_total, oa_share), funs(min, max, mean, median,sd)) %>% 
+  select(sector, starts_with('oa_share'), starts_with('n_total'))
+
+n_fun <- function(x){
+  return(data.frame(y = 105,
+                    label = paste ("n=", length(x))))
+}
+
+pubs_cat %>%
+  group_by(sector) %>% 
+  mutate(n_sector = n_distinct(PK_ITEMS),
+         sector_cat = case_when(
+           n_sector > 500000 ~ 'high_n_pubs',
+           n_sector > 50000 ~ 'middle_n_pubs',
+           TRUE ~ 'low_n_pubs'
+         )) %>% 
+  ungroup() %>% 
+  left_join(oa_shares, by = 'INST_NAME') %>%
+  group_by(INST_NAME, sector, oa_share, sector_cat) %>% 
+  summarise() %>% 
+  ggplot(aes(x = sector, y = oa_share)) + 
+    geom_boxplot(aes(color = sector_cat), varwidth = TRUE, size = 1) +
+#    geom_boxplot() +
+ #   stat_summary(fun.data = n_fun, geom = "text", hjust = 0.5) +
+    geom_jitter(alpha = 0.1) +
+    scale_color_viridis(end = 0.8, labels = c("high", "medium", "low"), discrete = TRUE, direction = -1, option = "plasma")+
+    theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+    labs(title = "OA shares of institutions per sector", x = "", y = "OA share (in %)", color = "Publication output",
+         caption = "Widths of the boxes corresponds to the number of institutions per sector,\n gray points display oa shares for individual institutions.") 
+      # theme(axis.title = element_text(size = 24),
+      #   plot.title = element_text(size = 36),
+      #   axis.text = element_text(size = 21),
+      #   legend.text = element_text(size = 21),
+      #   legend.title = element_text(size = 24))
+```
