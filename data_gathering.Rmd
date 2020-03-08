@@ -73,7 +73,12 @@ The general outline of the steps undertaken for gathering the needed information
 We now describe in more detail the procedure to obtain the dataset we then want to [analyse](analysis.Rmd). The query used to collect all publications to be considered here from WoS-KB is stored as file [create_pubs_german_pillars.sql](data_gathering_preprocessing/create_pubs_german_pillars.sql). We load the data into a tibble. DOIs are converted to lowercase in order to facilitate matching with Unpaywall data later on. We only need subsector-distinction for the federal and state institutions, which is why we transform the sector names accordingly and then ignore the subsector column.
 
 ```{r}
-pubs_wos <- DBI::dbGetQuery(con_kb, read_file("data_gathering_preprocessing/gather_pubs_german_pillars.sql"))
+if(file.exists("data/pubs_wos.csv")){
+  pubs_wos <- readr::read_csv("data/pubs_wos.csv", col_types = "dcccdcdccdc")
+} else {
+  pubs_wos <- DBI::dbGetQuery(con_kb, read_file("data_gathering_preprocessing/gather_pubs_german_pillars.sql"))
+  readr::write_csv(pubs_wos, "data/pubs_wos.csv")
+}
 
 pubs_wos <- pubs_wos %>% 
   mutate(DOI = tolower(DOI))
@@ -89,65 +94,61 @@ pubs_wos <-pubs_wos %>%
   distinct()
 ```
 
-We then extract DOI information from this publication list in order to obtain the open access status from our instance of the most recent Unpaywall data dump from November 2019.
+We then extract DOI information from this publication list in order to obtain the open access status from our instance of the most recent Unpaywall data dump from November 2019. We write this doi list as a table into the BigQuery environment we use for OA information from Unpaywall (see [our blog post on Unpaywall evidence](https://subugoe.github.io/scholcomm_analytics/posts/unpaywall_evidence/) for details on how we use BigQuery). The schema has to be specified. We do it by predefining an (empty table) in BigQuery with fitting schema and calling this from BigQuery before writing dois. In order to then obtain the OA information for these articles that is contained in Unpaywall, we create a corresponding table in BigQuery by running [create_oa_german_inst_upw_evidence.sql](data_gathering_preprocessing/create_oa_german_inst_upw_evidence.sql). We then load the data and match it to the publication list drawn from WoS-KB.
 
 ```{r}
-dois_wos <- pubs_wos %>% 
+if(file.exists("data/upw_evidence.csv")){
+  upw_evidence <- readr::read_csv("data/upw_evidence.csv", col_types = "ccllllccccclccc")
+} else {
+  ## extract DOIs from pubs_wos
+  dois_wos <- pubs_wos %>% 
   select(DOI) %>%
   filter(!is.na(DOI))%>% 
-#  mutate(DOI = tolower(DOI)) %>% 
   distinct()
-```
-
-We write this doi list as a table into the BigQuery environment we use for OA information from Unpaywall (see [our blog post on Unpaywall evidence](https://subugoe.github.io/scholcomm_analytics/posts/unpaywall_evidence/) for details on how we use BigQuery). The schema has to be specified. We do it by predefining an (empty table) in BigQuery with fitting schema and calling this from BigQuery before writing dois.
-
-```{r}
-dois_wos_bq <- bigrquery::bq_table(project = "api-project-764811344545",
+  
+  ## load DOIs into BQ environment for matching
+  dois_wos_bq <- bigrquery::bq_table(project = "api-project-764811344545",
                             dataset = "oadoi_full",
                             table = "oa_german_inst_dois")
-
-dois_wos_bq_schema <- dois_wos_bq %>% 
-  bigrquery::bq_table_fields()
-
-dois_wos_bq %>% 
-  bigrquery::bq_table_delete()
-
-dois_wos_bq %>%
-  bigrquery::bq_table_upload(values = dois_wos, fields = dois_wos_bq_schema)
-
-#alternatively
-#bigrquery::bq_table_upload("api-project-764811344545.oadoi_full.oa_german_inst_dois", values = dois_wos, fields = dois_wos_bq_schema)
-
-#or using DBI 
-#DBI::dbWriteTable(con_bq, "oa_german_inst_dois", dois_wos, overwrite = TRUE, fields =  dois_wos_bq_schema)
-```
-
-In order to then obtain the OA information for these articles that is contained in Unpaywall, we create a corresponding table in BigQuery by running [create_oa_german_inst_upw_evidence.sql](data_gathering_preprocessing/create_oa_german_inst_upw_evidence.sql). We then load the data and match it to the publication list drawn from WoS-KB.
-
-```{r}
-upw_evidence_bq <- bigrquery::bq_table(project = "api-project-764811344545",
+  dois_wos_bq_schema <- dois_wos_bq %>% 
+    bigrquery::bq_table_fields()
+  dois_wos_bq %>% 
+    bigrquery::bq_table_delete()
+  dois_wos_bq %>%
+    bigrquery::bq_table_upload(values = dois_wos, fields = dois_wos_bq_schema)
+  ## alternatively
+  #bigrquery::bq_table_upload("api-project-764811344545.oadoi_full.oa_german_inst_dois", values = dois_wos, fields = dois_wos_bq_schema)
+  ## or using DBI 
+  #DBI::dbWriteTable(con_bq, "oa_german_inst_dois", dois_wos, overwrite = TRUE, fields =  dois_wos_bq_schema)
+  
+  ## match DOIs with Unpaywall dataset and download matched records
+  ## use create_*.sql to also create the table in BQ, gather_*.sql to just load the entries
+  upw_evidence_bq <- bigrquery::bq_table(project = "api-project-764811344545",
                             dataset = "oadoi_full",
                             table = "oa_german_inst_upw_evidence")
-upw_evidence_bq %>%
-  bigrquery::bq_table_delete()
-
-#use create_*.sql to also create the table in BQ, gather_*.sql to just load the entries
-
-#using bq_*
-upw_evidence_bq_table <- bigrquery::bq_project_query("api-project-764811344545", query = read_file("create_oa_german_inst_upw_evidence.sql")) 
-upw_evidence <- bq_table_download(upw_evidence_bq_table)
-
-#alternatively with DBI:
-#upw_evidence <- DBI::dbGetQuery(con_bq, read_file("gather_oa_german_inst_upw_evidence.sql"))
-rm(dois_wos, dois_wos_bq, dois_wos_bq_schema, upw_evidence_bq, upw_evidence_bq_table)
+  upw_evidence_bq_table <- bigrquery::bq_project_query("api-project-764811344545", query = read_file("data_gathering_preprocessing/gather_oa_german_inst_upw_evidence.sql")) 
+  upw_evidence <- bq_table_download(upw_evidence_bq_table)
+  ## alternatively with create table statement
+  #upw_evidence_bq %>%
+  #  bigrquery::bq_table_delete()
+  #upw_evidence_bq_table <- bigrquery::bq_project_query("api-project-764811344545", query = read_file("data_gathering_preprocessing/create_oa_german_inst_upw_evidence.sql")) 
+  ## or using DBI:
+  #upw_evidence <- DBI::dbGetQuery(con_bq, read_file("gather_oa_german_inst_upw_evidence.sql"))
+  
+  readr::write_csv(upw_evidence, "data/upw_evidence.csv")
+  rm(dois_wos, dois_wos_bq, dois_wos_bq_schema, upw_evidence_bq, upw_evidence_bq_table)
+}
 ```
 
-We now join the tables from WoS and BigQuery and thereby add the OA information to the publication list of German research institutions obtained from WoS.
+We now join the tables from WoS and BigQuery and thereby add the OA information to the publication list of German research institutions obtained from WoS. We further eliminate the `r upw_evidence %>% filter(is_paratext ==TRUE) %>% summarise(n = n_distinct(upw_doi)) %>% .$n` documents which were identified as paratext by Unpaywall.
 
 ```{r}
 pubs_wos_upw <- pubs_wos %>% 
   left_join(upw_evidence, by = c("DOI" = "wos_doi"))
-pubs_wos_upw
+pubs_wos_upw <- pubs_wos_upw %>% 
+  mutate(upw_matched = ifelse(is.na(upw_doi), FALSE, TRUE)) %>% 
+  filter(is_paratext == FALSE | is.na(is_paratext))
+  rm(pubs_wos, upw_evidence)
 ```
 
 
@@ -180,7 +181,7 @@ bie_oa <- readr::read_csv(u) %>%
 pubs_wos_upw_gold <- pubs_wos_upw_issnl %>%
   mutate(issn_gold = `ISSN-L` %in% bie_oa$`ISSN_L`) %>% 
   distinct()
-rm(issn_l, bie_oa, pubs_wos_upw_issnl, u)
+rm(issn_l, bie_oa, pubs_wos_upw_issnl, u, pubs_wos_upw)
 ```
 
 As a result of matching with the ISSN-Gold-OA list we can compare the number of journals indexed as OA in Unpaywall, the ISSN-Gold-OA list, both, or none of them. This is done in the following table: Comparison of OA journals as Unpaywall-gold OA and ISSN-Gold-OA list
@@ -205,7 +206,7 @@ opendoar <- readr::read_csv("data/opendoar_data_tidier.csv") %>%
 ```
 
 ```{r}
-pubs_wos_upw_repo <- pubs_wos_upw_gold %>% 
+pubs_wos_upw_gold_repo <- pubs_wos_upw_gold %>% 
   mutate(url_domain = domain(url_for_pdf)) %>%
   mutate(url_domain = gsub("www.", "", url_domain)) %>%
   mutate(landing_domain = domain(url_for_landing_page)) %>%
@@ -223,11 +224,10 @@ Entries without matching Unpaywall record can be identified by having `NA` in `u
 Both types will be classified as `not_oa`, meaning that we don't have an OA location for them (Positivnachweis): all entries with evidence are OA, others have unknown OA state (including articles which are not openly accessible but also records without DOI or articles, for which the open version was not found by Unpaywall). Remaining articles are OA and classified according to the schema in the paper.
 
 ```{r}
-pubs_cat <- pubs_wos_upw_repo %>% 
+pubs_wos_upw_cat <- pubs_wos_upw_gold_repo %>% 
   mutate(oa_category = case_when(
     is.na(upw_doi) ~ "not_oa",
     !is_oa ~ "not_oa",
-    url_domain == "pdfs.semanticscholar.org" ~ 'semantic_scholar',
     host_type == 'publisher' & (issn_gold == TRUE | journal_is_oa == TRUE) ~ 'full_oa_journal',
     host_type == 'publisher' ~ 'other_oa_journal',
     repo_type == 'institutional' ~ 'opendoar_inst',
@@ -236,10 +236,10 @@ pubs_cat <- pubs_wos_upw_repo %>%
     TRUE ~ 'other_repo'
   )) %>% 
   distinct()
-rm(pubs_wos_upw_repo)
-#pubs_cat %>%
-#  select(FK_ITEMS, DOI, ISSN, DOCTYPE_WOS, PUBYEAR_WOS, FK_KB_SECTOR, INST_NAME, PK_KB_INST, oa_category, `ISSN-L`, issn_gold, journal_is_oa, url, url_for_landing_page, repo_url, doar_uri,SECTOR) %>%
-#  write_csv("data/oa_categories_export.csv")
+rm(pubs_wos_upw_gold_repo)
+pubs_wos_upw_cat %>%
+  select(PK_ITEMS, DOI, PUBYEAR, INST_NAME, sector, upw_matched, url_domain, oa_category) %>%
+  readr::write_csv("data/pubs_cat.csv")
 ```
 
 

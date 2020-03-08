@@ -27,4 +27,320 @@ library(cowplot)
 library(viridis)
 ```
 
+## Data
+
 In this document we describe the analysis of our sample of publications from German research institutions. We work with the dataset `pubs_cat` generated in [data_gathering.Rmd](data_gathering.Rmd).
+
+```{r}
+pubs_cat <- readr::read_csv("data/pubs_cat.csv", col_types = "dcdcclcc")
+```
+
+The goal is to answer the three research questions 
+
+1) Has the OA fraction of the publication output of German universities and research institutions increased constantly over time?
+2) Which OA type is the most prevalent OA approach and can we identify different patterns of adoption to OA?
+3) Can we observe differences between the research sectors of the German science system? Are there obvious explanations for this (like different missions or subject profiles?
+
+
+## National level
+
+First, we look at the highest aggregation level, namely the national level. Here, publications of all institutions of the selected sectors (5+2) are counted per year and category. 
+
+### by host type
+
+The first figure shows the development over time of the total number of publications per host type, that is, we collate all articles where access is provided via a publisher based platform as `OA (publisher)`, all repository based OA is collated as `OA (repository)`, and all remaining articles are labelled as `Not OA`.
+
+```{r}
+pubs_cat %>% 
+  mutate(oa_category = fct_relevel(factor(oa_category), "full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa")) %>% 
+  mutate(oa_category = fct_collapse(oa_category,
+    journal_oa = c("full_oa_journal", "other_oa_journal"),
+    repo_oa = c("opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo")
+  )) %>% 
+  group_by(PUBYEAR, oa_category) %>% 
+  summarise(number_of_articles = n_distinct(PK_ITEMS)) %>% 
+  ggplot(aes(x = PUBYEAR, y = number_of_articles)) +
+    #geom_line(aes(color = oa_category)) +
+    geom_col(aes(fill = oa_category), position = "dodge") +
+    # geom_bar(aes(fill = oa_category), stat = "identity", position = "dodge") +
+    #scale_color_viridis(end = 0.85, discrete = TRUE, direction = -1) +
+    scale_fill_viridis(end = 0.95, discrete = TRUE, direction = -1, name = "OA Categories", labels = c("OA (publisher)", "OA (repository)", "Not OA")) +
+    labs(x = "Publication Year", y = "Number of Articles", title = "Number of Articles per OA host type (national level)") +
+    theme(legend.position = "bottom")
+```
+
+In comparison to all articles published:
+
+```{r}
+all_articles <- pubs_cat%>% 
+  group_by(PUBYEAR) %>% 
+  summarise(number_of_articles = n_distinct(PK_ITEMS))
+
+pubs_cat %>% 
+  mutate(oa_category = fct_relevel(factor(oa_category), "full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa")) %>% 
+  mutate(oa_category = fct_collapse(oa_category,
+    journal_oa = c("full_oa_journal", "other_oa_journal"),
+    repo_oa = c("opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo"),
+    not_oa = "not_oa"
+  ))  %>% 
+  group_by(PUBYEAR, oa_category) %>% 
+  summarise(number_of_articles = n_distinct(PK_ITEMS)) %>% 
+#  .$oa_category %>% levels()
+  ggplot(aes(x = PUBYEAR, y = number_of_articles)) +
+    geom_col(data = all_articles, aes(color = "All Articles"), fill = "#b3b3b3", size = 0.05) +
+    scale_color_manual(values = "#ffffff", name = "", labels = "All Articles") +
+    geom_col(aes(fill = oa_category)) +
+    scale_fill_viridis(end = 0.95, discrete = TRUE, direction = -1, name = "", labels = c("OA (publisher)", "OA (repository)", "Not OA"))+
+    facet_wrap(~ oa_category, nrow = 1) +
+    theme(strip.text.x = element_blank()) +
+    labs(x = "Publication Year", y = "Number of Articles", title = "Number of Articles per OA host type (national level)") +
+    theme(legend.position = "bottom")
+```
+
+
+Looking at proportions:
+
+```{r}
+pubs_cat %>% 
+  group_by(PUBYEAR) %>% 
+  mutate(n_total = n_distinct(PK_ITEMS)) %>% 
+  ungroup() %>% 
+  mutate(oa_category = fct_relevel(factor(oa_category), "full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa")) %>% 
+  mutate(oa_category = fct_collapse(oa_category,
+    journal_oa = c("full_oa_journal", "other_oa_journal"),
+    repo_oa = c("opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo")
+  )) %>% 
+  group_by(PUBYEAR, oa_category, n_total) %>% 
+  summarise(number_of_articles = n_distinct(PK_ITEMS)) %>%
+  mutate(prop = number_of_articles / n_total * 100) %>% 
+  ggplot(aes(x = PUBYEAR, y = prop)) +
+    #geom_line(aes(color = oa_category)) +
+    geom_col(aes(fill = oa_category), position = "dodge") +
+    # geom_bar(aes(fill = oa_category), stat = "identity", position = "dodge") +
+    #scale_color_viridis(end = 0.85, discrete = TRUE, direction = -1) +
+    scale_fill_viridis(end = 0.95, discrete = TRUE, labels = c("OA (publisher)", "OA (repository)", "Not OA"), direction = -1) +
+    labs(x = "Publication Year", y = "Proportion of Articles (in %)", title = "Proportion of Articles per OA host type", fill = "OA Category") +
+    theme(legend.position = "right") 
+    # theme(axis.title = element_text(size = 16),
+    #     plot.title = element_text(size = 24),
+    #     axis.text = element_text(size = 14),
+    #     legend.text = element_text(size = 14),
+    #     legend.title = element_text(size = 16))
+#ggsave(filename = "national_oa_share.png", dpi = 300, width = 15)
+```
+
+As faceted graph:
+
+```{r}
+pubs_cat %>% 
+  group_by(PUBYEAR) %>% 
+  mutate(n_total = n_distinct(PK_ITEMS)) %>% 
+  ungroup() %>% 
+  mutate(oa_category = fct_relevel(factor(oa_category), "full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa")) %>% 
+  mutate(oa_category = fct_collapse(oa_category,
+    journal_oa = c("full_oa_journal", "other_oa_journal"),
+    repo_oa = c("opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo")
+  )) %>% 
+  group_by(PUBYEAR, oa_category, n_total) %>% 
+  summarise(number_of_articles = n_distinct(PK_ITEMS)) %>%
+  mutate(prop = number_of_articles / n_total * 100) %>% 
+  ggplot(aes(x = PUBYEAR, y = prop)) +
+    #geom_line(aes(color = oa_category)) +
+    geom_col(aes(fill = oa_category)) +
+    scale_fill_viridis(end = 0.95, discrete = TRUE, labels = c("OA (publisher)", "OA (repository)", "Not OA"), direction = -1) +
+    facet_wrap(~ oa_category, nrow = 1) +
+    theme(strip.text.x = element_blank()) +
+    labs(x = "Publication Year", y = "Proportion of Articles (in %)", title = "Proportion of Articles per OA host type", fill = "OA Category") +
+    theme(legend.position = "bottom")
+```
+
+### by OA category
+
+The following figure shows very similar data as the one before - only that here, all OA categories from the schema are shown individually, that is, publisher based and repository based OA are further distinguished into subgroups.
+
+```{r}
+pubs_cat %>% 
+  group_by(PUBYEAR, oa_category) %>% 
+  summarise(number_of_articles = n_distinct(PK_ITEMS)) %>% 
+  mutate(oa_category = fct_relevel(factor(oa_category), "full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa")) %>% 
+  ggplot(aes(x = PUBYEAR, y = number_of_articles)) +
+    geom_line(aes(color = oa_category), size = 1) +
+    #geom_col(aes(fill = oa_category), position = "dodge") +
+    # geom_bar(aes(fill = oa_category), stat = "identity", position = "dodge") +
+    #scale_fill_viridis(end = 0.95, discrete = TRUE, direction = -1) +
+    scale_color_viridis(end = 0.95, discrete = TRUE, direction = -1, name= "OA category") +
+    labs(x = "Publication Year", y = "Number of Articles", title = "Number of Articles per OA category (national level)") +
+    theme(legend.position = "right")
+```
+
+In comparison to all articles published:
+
+```{r}
+all_articles <- pubs_cat%>% 
+  group_by(PUBYEAR) %>% 
+  summarise(number_of_articles = n_distinct(PK_ITEMS))
+
+pubs_cat %>% 
+  mutate(oa_category = fct_relevel(factor(oa_category), "full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa")) %>% 
+  group_by(PUBYEAR, oa_category) %>% 
+  summarise(number_of_articles = n_distinct(PK_ITEMS)) %>% 
+#  .$oa_category %>% levels()
+  ggplot(aes(x = PUBYEAR, y = number_of_articles)) +
+    geom_col(data = all_articles, aes(color = "All Articles"), fill = "#b3b3b3", size = 0.05) +
+    scale_color_manual(values = "#ffffff", name = "", labels = "All Articles") +
+    geom_col(aes(fill = oa_category)) +
+    scale_fill_viridis(end = 0.95, discrete = TRUE, direction = -1, name = "OA categories")+
+    facet_wrap(~ oa_category, ncol = 2) +
+    theme(strip.text.x = element_blank()) +
+    labs(x = "Publication Year", y = "Number of Articles", title = "Number of Articles per OA host type (national level)") +
+    theme(legend.position = "right")
+```
+
+Looking at proportions, we get:
+
+```{r}
+pubs_cat %>% 
+  group_by(PUBYEAR) %>% 
+  mutate(n_total = n_distinct(PK_ITEMS)) %>% 
+  ungroup() %>% 
+  mutate(oa_category = fct_relevel(factor(oa_category), "full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa")) %>% 
+  group_by(PUBYEAR, oa_category, n_total) %>% 
+  summarise(number_of_articles = n_distinct(PK_ITEMS)) %>% 
+  mutate(prop = number_of_articles / n_total * 100) %>% 
+  ggplot(aes(x = PUBYEAR, y = prop)) +
+    #geom_line(aes(color = oa_category), size = 1) +
+    geom_col(aes(fill = oa_category), position = "dodge") +
+    scale_fill_viridis(end = 0.95, discrete = TRUE, direction = -1, name = "OA category") +
+    labs(x = "Publication Year", y = "Proportion of Articles (in %)", title = "Proportion of Articles per OA category (national level)") +
+    theme(legend.position = "bottom")
+```
+
+As faceted graph:
+
+```{r}
+pubs_cat %>% 
+  group_by(PUBYEAR) %>% 
+  mutate(n_total = n_distinct(PK_ITEMS)) %>% 
+  ungroup() %>% 
+  mutate(oa_category = fct_relevel(factor(oa_category), "full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa")) %>% 
+  group_by(PUBYEAR, oa_category, n_total) %>% 
+  summarise(number_of_articles = n_distinct(PK_ITEMS)) %>%
+  mutate(prop = number_of_articles / n_total * 100) %>% 
+  ggplot(aes(x = PUBYEAR, y = prop)) +
+    #geom_line(aes(color = oa_category)) +
+    geom_col(aes(fill = oa_category)) +
+    scale_fill_viridis(end = 0.95, discrete = TRUE, direction = -1, name = "OA category") +
+    facet_wrap(~ oa_category, ncol = 2) +
+    theme(strip.text.x = element_blank()) +
+    labs(x = "Publication Year", y = "Proportion of Articles (in %)", title = "Proportion of Articles per OA host type", fill = "OA Category") +
+    theme(legend.position = "right")
+```
+
+## Sectoral level
+
+Next, we go one level down and look at how the separate sectors developed.
+
+Number of OA articles per sector in comparison to all articles published within the sector:
+
+```{r}
+pubs_cat %>% 
+  mutate(oa_category = fct_relevel(factor(oa_category), "full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa")) %>% 
+  mutate(oa_category = fct_collapse(oa_category,
+    is_oa = c("full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo"),
+    not_oa = "not_oa"
+  ))  %>%
+  group_by(sector, PUBYEAR, oa_category) %>% 
+  summarise(number_of_articles = n_distinct(PK_ITEMS)) %>% 
+  ggplot(aes(x = PUBYEAR, y = number_of_articles)) +
+    geom_area(aes(fill = fct_rev(oa_category), group = fct_rev(oa_category)),  alpha = 0.8) +
+    scale_fill_manual(values = c("#b3b3b3a0", "#56B4E9"), name = "Is OA?", labels = c("Not OA", "OA"))+
+    facet_wrap(~ sector, scales = "free") +
+    labs(x = "Publication Year", y = "Number of Articles", title = "Number of OA Articles (level of sectors)") +
+    theme(legend.position = "right")
+```
+
+### by host type
+
+The first figure depicts the number of publications per host type category over time for each sector.
+
+```{r, fig.height=6}
+#, fig.asp=1.5}
+pubs_cat %>% 
+  mutate(oa_category = factor(oa_category, levels = c("full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa"))) %>% 
+  mutate(oa_category = fct_collapse(oa_category,
+    journal_oa = c("full_oa_journal", "other_oa_journal"),
+    repo_oa = c("opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo"),
+    not_oa = "not_oa"
+  )) %>% 
+  group_by(sector, PUBYEAR, oa_category) %>% 
+  summarise(number_of_articles = n_distinct(PK_ITEMS)) %>%
+  ggplot(aes(x = PUBYEAR, y = number_of_articles)) +
+    geom_col(aes(fill = oa_category), position = "dodge") +
+    facet_wrap(~ sector, scales = "free") +
+    scale_fill_viridis(end = 0.95, discrete = TRUE, direction = -1, name = "OA category", labels = c("OA (publisher)", "OA (repository)", "Not OA")) +
+    labs(x = "Publication Year", y = "Number of Articles", title = "Number of Articles per OA host type (level of sectors)", color = "oa_category") +
+    theme(legend.position = "bottom")
+```
+
+Looking at proportions:
+```{r, fig.height=6}
+#, fig.asp=1.5}
+pubs_cat %>%
+  group_by(PUBYEAR, sector) %>% 
+  mutate(n_total = n_distinct(PK_ITEMS)) %>% 
+  ungroup() %>% 
+  mutate(oa_category = factor(oa_category, levels = c("full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa"))) %>% 
+  mutate(oa_category = fct_collapse(oa_category,
+    journal_oa = c("full_oa_journal", "other_oa_journal"),
+    repo_oa = c("opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo"),
+    not_oa = "not_oa"
+  )) %>% 
+  group_by(sector, PUBYEAR, oa_category, n_total) %>% 
+  summarise(number_of_articles = n_distinct(PK_ITEMS)) %>%
+  mutate(prop = number_of_articles / n_total *100) %>% 
+  ggplot(aes(x = PUBYEAR, y = prop)) +
+    geom_col(aes(fill = oa_category), position = "dodge") +
+    facet_wrap(~ sector, scales = "free") +
+    scale_fill_viridis(end = 0.95, discrete = TRUE, direction = -1, name = "OA category", labels = c("OA (publisher)", "OA (repository)", "Not OA")) +
+    labs(x = "Publication Year", y = "Proportion of Articles (in %)", title = "Proportion of Articles per OA host type (level of sectors)", color = "oa_category") +
+    theme(legend.position = "bottom")
+```
+
+Facet grid:
+
+```{r, fig.width=10, fig.asp=1}
+pubs_cat_abbr <- pubs_cat %>% 
+  mutate(sector = case_when(
+    sector == "Hochschulen" ~ "HS",
+    sector == "Leibniz-Gemeinschaft" ~ "LG",
+    sector == "Helmholtz-Gemeinschaft" ~ "HG",
+    sector == "Max-Planck-Gesellschaft" ~ "MPG",
+    sector == "Ressortforschung-Bund" ~ "R-B",
+    sector == "Ressortforschung-Länder" ~ "R-L",
+    sector == "Fraunhofer-Gesellschaft" ~ "FG"
+  ))
+pubs_cat_abbr %>%
+  group_by(PUBYEAR, sector) %>% 
+  mutate(n_total = n_distinct(PK_ITEMS)) %>% 
+  ungroup() %>% 
+  mutate(oa_category = factor(oa_category, levels = c("full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa"))) %>%
+    mutate(oa_category = fct_collapse(oa_category,
+    journal_oa = c("full_oa_journal", "other_oa_journal"),
+    repo_oa = c("opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo"),
+    not_oa = "not_oa"
+  )) %>% 
+  group_by(sector, PUBYEAR, oa_category, n_total) %>% 
+  summarise(number_of_articles = n_distinct(PK_ITEMS)) %>%
+  mutate(prop = number_of_articles / n_total * 100) %>% 
+  ggplot(aes(x = PUBYEAR, y = prop)) +
+    geom_col(aes(fill = oa_category)) +
+    facet_grid(sector ~ oa_category) +
+    theme(strip.text.x = element_blank()) +
+    scale_fill_viridis(end = 0.95, discrete = TRUE, direction = -1, name = "OA category", labels = c("OA (publisher)", "OA (repository)", "Not OA")) +
+    labs(x = "Publication Year", y = "Proportion of Articles (in %)", title = "Proportion of Articles per OA host type (level of sectors)", color = "oa_category") +
+    theme(legend.position = "bottom")
+```
+
+Distinguishing all the single OA categories:
+
+
