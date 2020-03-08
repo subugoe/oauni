@@ -236,7 +236,7 @@ pubs_cat %>%
     theme(legend.position = "right")
 ```
 
-## Sectoral level
+## Level of sectors
 
 Next, we go one level down and look at how the separate sectors developed.
 
@@ -341,6 +341,116 @@ pubs_cat_abbr %>%
     theme(legend.position = "bottom")
 ```
 
+### by OA category
+
 Distinguishing all the single OA categories:
 
+```{r, fig.width=10, fig.asp=1}
+pubs_cat %>%
+  mutate(oa_category = factor(oa_category, levels = c("full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa"))) %>% 
+  group_by(sector, PUBYEAR, oa_category) %>% 
+  summarise(number_of_articles = n_distinct(PK_ITEMS)) %>%
+  ggplot(aes(x = PUBYEAR, y = number_of_articles)) +
+    geom_col(aes(fill = oa_category), position = "dodge") +
+    facet_wrap(~ sector, scales = "free", ncol = 2) +
+    scale_fill_viridis(end = 0.95, discrete = TRUE, direction = -1, name = "OA category") +
+    labs(x = "Publication Year", y = "Number of Articles", title = "Number of Articles per OA category (level of sectors)", color = "oa_category") +
+    theme(legend.position = "bottom")
+```
+
+Looking at proportions:
+
+```{r, fig.width=10, fig.asp=1}
+pubs_cat %>%
+  group_by(PUBYEAR, sector) %>% 
+  mutate(n_total = n_distinct(PK_ITEMS)) %>% 
+  ungroup() %>% 
+  mutate(oa_category = factor(oa_category, levels = c("full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa"))) %>% 
+  group_by(sector, PUBYEAR, oa_category, n_total) %>% 
+  summarise(number_of_articles = n_distinct(PK_ITEMS)) %>%
+  mutate(prop = number_of_articles / n_total * 100) %>% 
+  ggplot(aes(x = PUBYEAR, y = prop)) +
+    geom_col(aes(fill = oa_category), position = "dodge") +
+    facet_wrap(~ sector, scales = "free", ncol = 2) +
+    scale_fill_viridis(end = 0.95, discrete = TRUE, direction = -1, name = "OA category") +
+    labs(x = "Publication Year", y = "Proportion of Articles (in %)", title = "Proportion of Articles per OA category (level of sectors)", color = "oa_category") +
+    theme(legend.position = "bottom")
+```
+
+
+Facet grid:
+
+```{r, fig.width=10, fig.asp=1}
+pubs_cat_abbr <- pubs_cat %>% 
+  mutate(sector = case_when(
+    sector == "Hochschulen" ~ "HS",
+    sector == "Leibniz-Gemeinschaft" ~ "LG",
+    sector == "Helmholtz-Gemeinschaft" ~ "HG",
+    sector == "Max-Planck-Gesellschaft" ~ "MPG",
+    sector == "Ressortforschung-Bund" ~ "R-B",
+    sector == "Ressortforschung-Länder" ~ "R-L",
+    sector == "Fraunhofer-Gesellschaft" ~ "FG"
+  ))
+pubs_cat_abbr %>%
+  group_by(PUBYEAR, sector) %>% 
+  mutate(n_total = n_distinct(PK_ITEMS)) %>% 
+  ungroup() %>% 
+  mutate(oa_category = factor(oa_category, levels = c("full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa"))) %>%
+  group_by(sector, PUBYEAR, oa_category, n_total) %>% 
+  summarise(number_of_articles = n_distinct(PK_ITEMS)) %>%
+  mutate(prop = number_of_articles / n_total * 100) %>% 
+  ggplot(aes(x = PUBYEAR, y = prop)) +
+    geom_col(aes(fill = oa_category)) +
+    facet_grid(sector ~ oa_category) +
+    theme(strip.text.x = element_blank()) +
+    scale_fill_viridis(end = 0.95, discrete = TRUE, direction = -1, name = "OA category") +
+    labs(x = "Publication Year", y = "Proportion of Articles (in %)", title = "Proportion of Articles per OA category (level of sectors)", color = "oa_category") +
+    theme(legend.position = "bottom")
+```
+
+## Institutional level
+
+Lastly, we go down to the institutional level. Since there are more than 400 institutions in the dataset, we do not want to present figures for individual institutions. Instead, we want to show the variety of open access shares and strategies. To this end, we first calculate the individual OA shares.
+
+```{r}
+oa_shares <- pubs_cat %>%
+  mutate(oa_category = factor(oa_category, levels = c("full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa"))) %>% 
+  mutate(oa_category = fct_collapse(oa_category,
+    is_oa = c("full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo"),
+    not_oa = "not_oa"
+  )) %>% 
+  group_by(INST_NAME) %>% 
+  mutate(n_total = n_distinct(PK_ITEMS)) %>% 
+  ungroup() %>%
+  group_by(INST_NAME, oa_category, n_total) %>% 
+  summarise(n_cat = n_distinct(PK_ITEMS)) %>% 
+  pivot_wider(names_from = oa_category,
+              values_from = n_cat,
+              values_fill = list(n_cat = 0)) %>% 
+  mutate(oa_share = is_oa/n_total *100) %>%
+  rename(n_oa = is_oa, n_not_oa = not_oa) %>% 
+  ungroup()
+```
+
+We now display the variability among institutions per sector with respect to the total publication output.
+
+```{r}
+pubs_cat %>%
+  mutate(oa_category = factor(oa_category, levels = c("full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa"))) %>% 
+  mutate(oa_category = fct_collapse(oa_category,
+    journal_oa = c("full_oa_journal", "other_oa_journal"),
+    repo_oa = c("opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo"),
+    not_oa = "not_oa"
+  )) %>% 
+  left_join(oa_shares, by = 'INST_NAME') %>% 
+  group_by(sector, INST_NAME, n_total, oa_share) %>%
+  summarise() %>% 
+  ggplot(aes(x = n_total, y = oa_share)) +
+    geom_point(aes(color = sector)) + 
+    scale_x_log10() + 
+    scale_color_viridis(end = 0.95, direction = -1, option = "plasma", discrete = TRUE, name = "Sectors")+
+    facet_wrap(~ sector, ncol = 2) +
+    labs(x = "Total publication output (logarithmic scale)", y = "OA share (in %)", title = "Open Access shares of research institutions in Germany") +
+    theme(legend.position = "right")
+```
 

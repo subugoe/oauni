@@ -175,3 +175,26 @@ repo_df %>%
   ungroup() %>% 
   write_csv("data/german_unis_url_matching.csv")
 ```
+
+## Institutional level
+
+### Outliers with all OA publications
+
+Investigate, which institutions are the outliers with only open access articles.
+
+```{r}
+outliers <- pubs_cat %>%
+  filter(INST_NAME %in% c("Heidelberg Graduate School of Fundamental Physics", "Schloss Dagstuhl - Leibniz-Zentrum für Informatik GmbH (LZI)"))
+outliers %>%
+  group_by(INST_NAME) %>% 
+  summarise(n = n_distinct(PK_ITEMS))
+outliers %>% 
+  group_by(INST_NAME, oa_category) %>% 
+  summarise(n = n_distinct(PK_ITEMS)) %>% 
+  arrange(INST_NAME, desc(n))
+outliers %>%
+  group_by(INST_NAME, url_domain, oa_category) %>%
+  summarise(n = n_distinct(PK_ITEMS)) %>% 
+  arrange(desc(n))
+```
+Schloss Dagstuhl with just one publication, that is OA. 2nd one is Heidelberg Graduate School of Fundamental Physics with 56 publications, 55 of which are published in the journal Astronomy and Astrophysics. Most of these publications are tagged as publisher based OA but are also deposited in various repositories.
