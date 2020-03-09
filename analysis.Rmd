@@ -35,18 +35,178 @@ In this document we describe the analysis of our sample of publications from Ger
 pubs_cat <- readr::read_csv("data/pubs_cat.csv", col_types = "dcdcclcc")
 ```
 
+
+## Investigation of research questions
+
 The goal is to answer the three research questions 
 
 1) Has the OA fraction of the publication output of German universities and research institutions increased constantly over time?
-2) Which OA type is the most prevalent OA approach and can we identify different patterns of adoption to OA?
-3) Can we observe differences between the research sectors of the German science system? Are there obvious explanations for this (like different missions or subject profiles?
+2) Can we observe differences between the research sectors of the German science system? Are there obvious explanations for this (like different missions or subject profiles?
+3) Which OA type is the most prevalent OA approach and can we identify different patterns of adoption to OA?
 
+### OA fraction of the German publication output
 
-## National level
+ - plot of oa numbers on national level (Is OA? plot) over time
+ - possibly scatterplot with all insitutions, publication output vs. oa share
+ 
+ First, we look at how the overall OA share developed over time. The following figure displays the number of publications associated with one of the German research institutions we considered and highlights they part that is freely accessible online according to Unpaywall over the considered time period from 2010 until 2018.
+ 
+```{r, fig.cap="Open access to journal articles from German research institutions according to Unpaywall. Blue area represents journal articles with at least one freely available full-text, grey area represents toll-access articles."}
+pubs_cat %>% 
+  mutate(oa_category = fct_relevel(factor(oa_category), "full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa")) %>% 
+  mutate(oa_category = fct_collapse(oa_category,
+    is_oa = c("full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo"),
+    not_oa = "not_oa"
+  ))  %>%
+  group_by(PUBYEAR, oa_category) %>% 
+  summarise(number_of_articles = n_distinct(PK_ITEMS)) %>% 
+  ggplot(aes(x = PUBYEAR, y = number_of_articles)) +
+    geom_area(aes(fill = fct_rev(oa_category), group = fct_rev(oa_category)),  alpha = 0.8) +
+    scale_fill_manual(values = c("#b3b3b3a0", "#56B4E9"), name = "Is OA?", labels = c("Not OA", "OA"))+
+    labs(x = "Publication Year", y = "Number of Articles", title = "Total number of OA Articles") +
+    theme(legend.position = "right")
+```
+
+As can be seen, the total number of articles, as well as the part that is OA increases constantly over time. The number of articles that are not openly available, is quite stable with a slow increase from `r pubs_cat %>% filter(oa_category == "not_oa") %>% group_by(PUBYEAR) %>% summarise(n = n_distinct(PK_ITEMS)) %>% filter(PUBYEAR == 2010) %>% .$n` in 2010 to `r pubs_cat %>% filter(oa_category == "not_oa") %>% group_by(PUBYEAR) %>% summarise(n = n_distinct(PK_ITEMS)) %>% filter(PUBYEAR == 2013) %>% .$n` in 2013, and decreasing again continuously from that point onwards to `r pubs_cat %>% filter(oa_category == "not_oa") %>% group_by(PUBYEAR) %>% summarise(n = n_distinct(PK_ITEMS)) %>% filter(PUBYEAR == 2018) %>% .$n`  publications in 2018. Since the number of OA articles increases continuously from `r pubs_cat %>% filter(oa_category != "not_oa") %>% group_by(PUBYEAR) %>% summarise(n = n_distinct(PK_ITEMS)) %>% filter(PUBYEAR == 2010) %>% .$n` publications in 2010 to `r pubs_cat %>% filter(oa_category != "not_oa") %>% group_by(PUBYEAR) %>% summarise(n = n_distinct(PK_ITEMS)) %>% filter(PUBYEAR == 2018) %>% .$n` in 2018, the relative proportion of OA articles rises significantly from `r round(pubs_cat %>% filter(oa_category != "not_oa") %>% group_by(PUBYEAR) %>% summarise(n = n_distinct(PK_ITEMS)) %>% filter(PUBYEAR == 2010) %>% .$n/pubs_cat %>% group_by(PUBYEAR) %>% summarise(n = n_distinct(PK_ITEMS)) %>% filter(PUBYEAR == 2010) %>% .$n, 4)*100` % in 2010 to `r round(pubs_cat %>% filter(oa_category != "not_oa") %>% group_by(PUBYEAR) %>% summarise(n = n_distinct(PK_ITEMS)) %>% filter(PUBYEAR == 2018) %>% .$n/pubs_cat %>% group_by(PUBYEAR) %>% summarise(n = n_distinct(PK_ITEMS)) %>% filter(PUBYEAR == 2018) %>% .$n, 4)*100` % in 2018.
+
+```{r}
+pubs_cat %>% 
+  mutate(oa_category = fct_relevel(factor(oa_category), "full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa")) %>% 
+  mutate(oa_category = fct_collapse(oa_category,
+    is_oa = c("full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo"),
+    not_oa = "not_oa"
+  ))  %>%
+  group_by(PUBYEAR, oa_category) %>% 
+  summarise(number_of_articles = n_distinct(PK_ITEMS)) %>%
+  mutate(oa_category = ifelse(oa_category == "not_oa", "Not OA", "OA")) %>% 
+  knitr::kable(
+    col.names = c(
+      "Publication Year",
+      "Is OA ?",
+      "Number of Articles"
+    ),
+    big.mark = ",",
+    caption = "Number of articles that are openly accessible (OA) or not (Not OA) per year."
+  )
+```
+
+### Differences between sectors
+
+- plot of oa numbers on sectoral level (Is OA? plot), faceted, sort by pub. output
+- faceted scatterplot publication output vs. OA share, sort by pub output
+- boxplot oa shares per sector
+
+In order to investigate what role the different sectors play in OA publishing in Germany and how they contribute to the OA development/overall OA shares, we distplay the development over time of the number of OA articles for each sector in the following figure. Note that scales for the `y-axes` are not the same, since the total publication output varies significantly among sectors.
+
+```{r, fig.asp=1, fig.cap="Open access to journal articles per sector according to Unpaywall. Blue area represents journal articles with at least one freely available full-text, grey area represents toll-access articles. Sectors are ordered by publication output with the highest output top left and lowest at the bottom."}
+pubs_cat %>% 
+  mutate(oa_category = fct_relevel(factor(oa_category), "full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa")) %>% 
+  mutate(oa_category = fct_collapse(oa_category,
+    is_oa = c("full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo"),
+    not_oa = "not_oa"
+  ))  %>%
+  group_by(sector) %>% 
+  mutate(n_total = n_distinct(PK_ITEMS)) %>% 
+  ungroup() %>% 
+  group_by(sector, PUBYEAR, oa_category, n_total) %>% 
+  summarise(number_of_articles = n_distinct(PK_ITEMS)) %>% 
+  ggplot(aes(x = PUBYEAR, y = number_of_articles)) +
+    geom_area(aes(fill = fct_rev(oa_category), group = fct_rev(oa_category)),  alpha = 0.8) +
+    scale_fill_manual(values = c("#b3b3b3a0", "#56B4E9"), name = "Is OA?", labels = c("Not OA", "OA"))+
+    facet_wrap(~ fct_rev(fct_reorder(sector, n_total)), scales = "free", ncol = 2) +
+    labs(x = "Publication Year", y = "Number of Articles", title = "Number of OA Articles per sector") +
+    theme(legend.position = "right")
+```
+some text to the second figure here.
+
+In order to investigate the variability of OA publishing within the sectors, we now go one level deeper and examine OA shares of individual institutions, grouped by the sector they belong to. To this end, we first calculate the individual OA shares.
+
+```{r}
+oa_shares <- pubs_cat %>%
+  mutate(oa_category = factor(oa_category, levels = c("full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa"))) %>% 
+  mutate(oa_category = fct_collapse(oa_category,
+    is_oa = c("full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo"),
+    not_oa = "not_oa"
+  )) %>% 
+  group_by(INST_NAME) %>% 
+  mutate(n_total = n_distinct(PK_ITEMS)) %>% 
+  ungroup() %>%
+  group_by(INST_NAME, oa_category, n_total) %>% 
+  summarise(n_cat = n_distinct(PK_ITEMS)) %>% 
+  pivot_wider(names_from = oa_category,
+              values_from = n_cat,
+              values_fill = list(n_cat = 0)) %>% 
+  mutate(oa_share = is_oa/n_total *100) %>%
+  rename(n_oa = is_oa, n_not_oa = not_oa) %>% 
+  ungroup()
+```
+The following figure displays scatterplots where the OA share of an institution over the whole time period is shown with respect to its publication output.
+
+```{r, fig.asp=1, fig.cap="Open Access shares of research institutions in Germany with respect to their total publication output grouped by the sector they belong to."}
+pubs_cat %>%
+  mutate(oa_category = factor(oa_category, levels = c("full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa"))) %>% 
+  mutate(oa_category = fct_collapse(oa_category,
+    journal_oa = c("full_oa_journal", "other_oa_journal"),
+    repo_oa = c("opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo"),
+    not_oa = "not_oa"
+  )) %>% 
+  group_by(sector) %>% 
+  mutate(n_total_sec = n_distinct(PK_ITEMS)) %>% 
+  ungroup() %>%
+  left_join(oa_shares, by = 'INST_NAME') %>% 
+  group_by(sector, INST_NAME, n_total, oa_share, n_total_sec) %>%
+  summarise() %>% 
+  ggplot(aes(x = n_total, y = oa_share)) +
+    geom_point(aes(color = sector)) + 
+    scale_x_log10() + 
+    scale_color_viridis(end = 0.95, direction = -1, option = "plasma", discrete = TRUE, name = "Sectors")+
+    facet_wrap(~ fct_rev(fct_reorder(sector, n_total_sec)), ncol = 2) +
+    labs(x = "Total publication output (logarithmic scale)", y = "OA share (in %)", title = "Open Access shares of research institutions in Germany") +
+    theme(legend.position = "bottom")
+```
+The most striking observations from this figure are the high OA shares of most of the Max-Planck-institutes and the very low OA fractions of almost all of the state and federal institutes as well as the ones from the Fraunhofer Society. Universities and Leibniz-Society have many institutes with OA shares close to one half. We can further see very well that the universities have by far the largest publication volumes, followed by the Helmholtz-Society.
+
+The following box plot quantifies the observations regarding the variability of OA shares within sectors made before.
+
+```{r, fig.asp=0.8, fig.cap="OA shares of German research institutions per sector. The color of the boxes corresponds to the total publication output of the sector, their widths to the number of institutions per sector. Gray points display the OA shares for individual institutions."}
+pubs_cat %>%
+  group_by(sector) %>% 
+  mutate(n_sector = n_distinct(PK_ITEMS),
+         sector_cat = case_when(
+           n_sector > 500000 ~ 'high_n_pubs',
+           n_sector > 50000 ~ 'middle_n_pubs',
+           TRUE ~ 'low_n_pubs'
+         )) %>% 
+  ungroup() %>% 
+  left_join(oa_shares, by = 'INST_NAME') %>%
+  group_by(INST_NAME, sector, oa_share, sector_cat) %>% 
+  summarise() %>% 
+  ggplot(aes(x = sector, y = oa_share)) + 
+    geom_boxplot(aes(color = sector_cat), varwidth = TRUE, size = 1) +
+    geom_jitter(alpha = 0.1) +
+    scale_color_viridis(end = 0.8, labels = c("high", "medium", "low"), discrete = TRUE, direction = -1, option = "plasma")+
+    theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+    labs(title = "OA shares of institutions per sector", x = "", y = "OA share (in %)", color = "Publication output") 
+```
+
+### Prevalences of OA categories
+
+- oa categories on the national level (relative numbers); faceted / doged / lines ?
+- oa vs. green (or other type): scatterplots
+  - 1 point per sector (size of point according to pub output?)
+  - faceted with all institutions per sector
+  
+### Discussion
+
+ - Upset plot of overlapping evidence categories to show influence of semantic scholar, webscraping.
+
+## Exemplary analytics on national, sectoral and institutional level
+
+### National level
 
 First, we look at the highest aggregation level, namely the national level. Here, publications of all institutions of the selected sectors (5+2) are counted per year and category. 
 
-### by host type
+#### by host type
 
 The first figure shows the development over time of the total number of publications per host type, that is, we collate all articles where access is provided via a publisher based platform as `OA (publisher)`, all repository based OA is collated as `OA (repository)`, and all remaining articles are labelled as `Not OA`.
 
@@ -153,7 +313,7 @@ pubs_cat %>%
     theme(legend.position = "bottom")
 ```
 
-### by OA category
+#### by OA category
 
 The following figure shows very similar data as the one before - only that here, all OA categories from the schema are shown individually, that is, publisher based and repository based OA are further distinguished into subgroups.
 
@@ -235,7 +395,7 @@ pubs_cat %>%
     theme(legend.position = "right")
 ```
 
-## Level of sectors
+### Level of sectors
 
 Next, we go one level down and look at how the separate sectors developed.
 
@@ -258,7 +418,7 @@ pubs_cat %>%
     theme(legend.position = "right")
 ```
 
-### by host type
+#### by host type
 
 The first figure depicts the number of publications per host type category over time for each sector.
 
@@ -340,7 +500,7 @@ pubs_cat_abbr %>%
     theme(legend.position = "bottom")
 ```
 
-### by OA category
+#### by OA category
 
 Distinguishing all the single OA categories:
 
@@ -407,7 +567,7 @@ pubs_cat_abbr %>%
     theme(legend.position = "bottom")
 ```
 
-## Institutional level
+### Institutional level
 
 Lastly, we go down to the institutional level. Since there are more than 400 institutions in the dataset, we do not want to present figures for individual institutions. Instead, we want to show the variety of open access shares and strategies. To this end, we first calculate the individual OA shares.
 
