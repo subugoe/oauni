@@ -3,9 +3,8 @@ title: "Analysis of German publication output"
 author: "Anne Hobert"
 date: "3/6/2020"
 output:
-  word_document:
-    fig_caption: yes
   github_document:
+  word_document:
     fig_caption: yes
 urlcolor: blue
 ---

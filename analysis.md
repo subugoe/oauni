@@ -71,12 +71,6 @@ year.
 
 ### Differences between sectors
 
-  - plot of oa numbers on sectoral level (Is OA? plot), faceted, sort by
-    pub. output
-  - faceted scatterplot publication output vs. OA share, sort by pub
-    output
-  - boxplot oa shares per sector
-
 In order to investigate what role the different sectors play in OA
 publishing in Germany and how they contribute to the OA
 development/overall OA shares, we distplay the development over time of
@@ -116,10 +110,52 @@ before.
 ### Prevalences of OA categories
 
   - oa categories on the national level (relative numbers); faceted /
-    doged / lines ?
+    dodged / lines ?
   - oa vs. green (or other type): scatterplots
       - 1 point per sector (size of point according to pub output?)
       - faceted with all institutions per sector
+
+As mentioned in the previous chapters, there are several ways of
+providing open access to scientific journal articles. In this section,
+we want to investigate the prevalence of the most widespread OA routes:
+Green OA and Gold OA. We further distinguish these two main categories
+as described in the methodology section (see Table 1) according to
+whether the journal is fully OA (Gold OA), and into deposition on
+disciplinary, institutional, or OpenDOAR-listed repositories (Green OA).
+First, we visualise the number of articles per category on the national
+level, that is, not differentiated by sector. Note that, as mentioned
+before, the OA categories are not exclusive, that is, an article might
+be counted for several categories and numbers not necessarily sum up to
+the total number of articles
+published.
+
+<img src="analysis_files/figure-gfm/unnamed-chunk-10-1.png" title="Development of the total number of journal articles over time per OA category. Categories are non-exclusive." alt="Development of the total number of journal articles over time per OA category. Categories are non-exclusive." width="90%" style="display: block; margin: auto;" />
+Observations:
+
+  - drop in disciplinary repos, maybe because of green embargoes /
+    post-publish self-archiving
+  - drop in other oa journal -\> Delayed OA
+  - apart from this: all OA categories increase, not oa decreases
+  - most prevalent category: other repo, i.e. not further specified
+    green OA, followed closely by disciplinary
+
+Or as
+barplot?
+
+<img src="analysis_files/figure-gfm/unnamed-chunk-11-1.png" title="Development of the total number of journal articles over time per OA category. Categories are non-exclusive." alt="Development of the total number of journal articles over time per OA category. Categories are non-exclusive." width="90%" style="display: block; margin: auto;" />
+
+Faceted?
+
+<img src="analysis_files/figure-gfm/unnamed-chunk-12-1.png" title="Development of the number of journal articles per OA category in comparison to the total number of journal articles published by the considered institutions over time. Categories are non-exclusive." alt="Development of the number of journal articles per OA category in comparison to the total number of journal articles published by the considered institutions over time. Categories are non-exclusive." width="90%" style="display: block; margin: auto;" />
+
+Again, we go one step further and look at insitution specific OA
+proportions. In a first step, we calculate the category-specific OA
+shares of each
+institution.
+
+<img src="analysis_files/figure-gfm/unnamed-chunk-14-1.png" title="OA shares per sector. Shown is the relationship between Green OA shares and total OA shares. Point sizes correspond to total publication output." alt="OA shares per sector. Shown is the relationship between Green OA shares and total OA shares. Point sizes correspond to total publication output." width="90%" style="display: block; margin: auto;" />
+
+<img src="analysis_files/figure-gfm/unnamed-chunk-15-1.png" title="OA shares per sector. Shown is the relationship between OA shares of individual OA categories and overall OA share. Point sizes correspond to total publication output." alt="OA shares per sector. Shown is the relationship between OA shares of individual OA categories and overall OA share. Point sizes correspond to total publication output." width="90%" style="display: block; margin: auto;" />
 
 ### Discussion
 
@@ -143,22 +179,22 @@ all repository based OA is collated as `OA (repository)`, and all
 remaining articles are labelled as `Not
 OA`.
 
-<img src="analysis_files/figure-gfm/unnamed-chunk-10-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="analysis_files/figure-gfm/unnamed-chunk-16-1.png" width="90%" style="display: block; margin: auto;" />
 
 In comparison to all articles
 published:
 
-<img src="analysis_files/figure-gfm/unnamed-chunk-11-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="analysis_files/figure-gfm/unnamed-chunk-17-1.png" width="90%" style="display: block; margin: auto;" />
 
 Looking at
 proportions:
 
-<img src="analysis_files/figure-gfm/unnamed-chunk-12-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="analysis_files/figure-gfm/unnamed-chunk-18-1.png" width="90%" style="display: block; margin: auto;" />
 
 As faceted
 graph:
 
-<img src="analysis_files/figure-gfm/unnamed-chunk-13-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="analysis_files/figure-gfm/unnamed-chunk-19-1.png" width="90%" style="display: block; margin: auto;" />
 
 #### by OA category
 
@@ -168,22 +204,22 @@ that is, publisher based and repository based OA are further
 distinguished into
 subgroups.
 
-<img src="analysis_files/figure-gfm/unnamed-chunk-14-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="analysis_files/figure-gfm/unnamed-chunk-20-1.png" width="90%" style="display: block; margin: auto;" />
 
 In comparison to all articles
 published:
 
-<img src="analysis_files/figure-gfm/unnamed-chunk-15-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="analysis_files/figure-gfm/unnamed-chunk-21-1.png" width="90%" style="display: block; margin: auto;" />
 
 Looking at proportions, we
 get:
 
-<img src="analysis_files/figure-gfm/unnamed-chunk-16-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="analysis_files/figure-gfm/unnamed-chunk-22-1.png" width="90%" style="display: block; margin: auto;" />
 
 As faceted
 graph:
 
-<img src="analysis_files/figure-gfm/unnamed-chunk-17-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="analysis_files/figure-gfm/unnamed-chunk-23-1.png" width="90%" style="display: block; margin: auto;" />
 
 ### Level of sectors
 
@@ -194,7 +230,7 @@ Number of OA articles per sector in comparison to all articles published
 within the
 sector:
 
-<img src="analysis_files/figure-gfm/unnamed-chunk-18-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="analysis_files/figure-gfm/unnamed-chunk-24-1.png" width="90%" style="display: block; margin: auto;" />
 
 #### by host type
 
@@ -202,32 +238,32 @@ The first figure depicts the number of publications per host type
 category over time for each
 sector.
 
-<img src="analysis_files/figure-gfm/unnamed-chunk-19-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="analysis_files/figure-gfm/unnamed-chunk-25-1.png" width="90%" style="display: block; margin: auto;" />
 
 Looking at proportions:
-<img src="analysis_files/figure-gfm/unnamed-chunk-20-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="analysis_files/figure-gfm/unnamed-chunk-26-1.png" width="90%" style="display: block; margin: auto;" />
 
 Facet
 grid:
 
-<img src="analysis_files/figure-gfm/unnamed-chunk-21-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="analysis_files/figure-gfm/unnamed-chunk-27-1.png" width="90%" style="display: block; margin: auto;" />
 
 #### by OA category
 
 Distinguishing all the single OA
 categories:
 
-<img src="analysis_files/figure-gfm/unnamed-chunk-22-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="analysis_files/figure-gfm/unnamed-chunk-28-1.png" width="90%" style="display: block; margin: auto;" />
 
 Looking at
 proportions:
 
-<img src="analysis_files/figure-gfm/unnamed-chunk-23-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="analysis_files/figure-gfm/unnamed-chunk-29-1.png" width="90%" style="display: block; margin: auto;" />
 
 Facet
 grid:
 
-<img src="analysis_files/figure-gfm/unnamed-chunk-24-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="analysis_files/figure-gfm/unnamed-chunk-30-1.png" width="90%" style="display: block; margin: auto;" />
 
 ### Institutional level
 
@@ -241,7 +277,7 @@ We now display the variability among institutions per sector with
 respect to the total publication
 output.
 
-<img src="analysis_files/figure-gfm/unnamed-chunk-26-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="analysis_files/figure-gfm/unnamed-chunk-32-1.png" width="90%" style="display: block; margin: auto;" />
 
 Sectorwise comparison of OA shares
 
@@ -259,4 +295,4 @@ Sectorwise comparison of OA shares
     #> #   n_total_max <int>, n_total_mean <dbl>, n_total_median <dbl>,
     #> #   n_total_sd <dbl>
 
-<img src="analysis_files/figure-gfm/unnamed-chunk-27-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="analysis_files/figure-gfm/unnamed-chunk-33-1.png" width="90%" style="display: block; margin: auto;" />
