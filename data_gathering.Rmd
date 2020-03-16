@@ -89,11 +89,12 @@ pubs_wos <- pubs_wos %>%
   mutate(DOI = tolower(DOI))
 
 pubs_wos <- pubs_wos %>% 
-  mutate(sector = case_when(
-    PK_KB_SECTORS == 7 ~ SUBSECTOR,
-    PK_KB_SECTORS == 8 ~ SUBSECTOR,
-    TRUE ~ SECTOR
-  )) %>% 
+  # mutate(sector = case_when(
+  #   PK_KB_SECTORS == 7 ~ SUBSECTOR,
+  #   PK_KB_SECTORS == 8 ~ SUBSECTOR,
+  #   TRUE ~ SECTOR
+  # )) %>% 
+  mutate(sector = SECTOR) %>% 
   select(-SECTOR, -SUBSECTOR)
 pubs_wos <-pubs_wos %>% 
   distinct()

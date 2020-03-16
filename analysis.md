@@ -23,10 +23,6 @@ The goal is to answer the three research questions
 
 ### OA fraction of the German publication output
 
-  - plot of oa numbers on national level (Is OA? plot) over time
-  - possibly scatterplot with all insitutions, publication output vs. oa
-    share
-
 First, we look at how the overall OA share developed over time. The
 following figure displays the number of publications associated with one
 of the German research institutions we considered and highlights they
@@ -45,30 +41,6 @@ increases continuously from 28993 publications in 2010 to 55031 in 2018,
 the relative proportion of OA articles rises significantly from 34.7 %
 in 2010 to 51.33 % in 2018.
 
-| Publication Year | Is OA ? | Number of Articles |
-| ---------------: | :------ | -----------------: |
-|             2010 | OA      |              28993 |
-|             2010 | Not OA  |              54567 |
-|             2011 | OA      |              32399 |
-|             2011 | Not OA  |              55647 |
-|             2012 | OA      |              35964 |
-|             2012 | Not OA  |              55871 |
-|             2013 | OA      |              39440 |
-|             2013 | Not OA  |              56323 |
-|             2014 | OA      |              41344 |
-|             2014 | Not OA  |              55458 |
-|             2015 | OA      |              45034 |
-|             2015 | Not OA  |              54775 |
-|             2016 | OA      |              50915 |
-|             2016 | Not OA  |              52798 |
-|             2017 | OA      |              53777 |
-|             2017 | Not OA  |              52509 |
-|             2018 | OA      |              55031 |
-|             2018 | Not OA  |              52184 |
-
-Number of articles that are openly accessible (OA) or not (Not OA) per
-year.
-
 ### Differences between sectors
 
 In order to investigate what role the different sectors play in OA
@@ -79,8 +51,7 @@ that scales for the `y-axes` are not the same, since the total
 publication output varies significantly among
 sectors.
 
-<img src="analysis_files/figure-gfm/unnamed-chunk-6-1.png" title="Open access to journal articles per sector according to Unpaywall. Blue area represents journal articles with at least one freely available full-text, grey area represents toll-access articles. Sectors are ordered by publication output with the highest output top left and lowest at the bottom." alt="Open access to journal articles per sector according to Unpaywall. Blue area represents journal articles with at least one freely available full-text, grey area represents toll-access articles. Sectors are ordered by publication output with the highest output top left and lowest at the bottom." width="90%" style="display: block; margin: auto;" />
-some text to the second figure here.
+<img src="analysis_files/figure-gfm/unnamed-chunk-6-1.png" title="Open access to journal articles per sector according to Unpaywall. Blue area represents journal articles with at least one freely available full-text, grey area represents toll-access articles. Sectors are ordered by publication output with the highest output top left and lowest at the bottom. Note that scales for the `y-axes` are not the same, since the total publication output varies significantly among sectors." alt="Open access to journal articles per sector according to Unpaywall. Blue area represents journal articles with at least one freely available full-text, grey area represents toll-access articles. Sectors are ordered by publication output with the highest output top left and lowest at the bottom. Note that scales for the `y-axes` are not the same, since the total publication output varies significantly among sectors." width="90%" style="display: block; margin: auto;" />
 
 In order to investigate the variability of OA publishing within the
 sectors, we now go one level deeper and examine OA shares of individual
@@ -199,138 +170,3 @@ visualise the overlapping evidence
 categories.
 
 <img src="analysis_files/figure-gfm/unnamed-chunk-20-1.png" width="90%" style="display: block; margin: auto;" />
-
-## Exemplary analytics on national, sectoral and institutional level
-
-### National level
-
-First, we look at the highest aggregation level, namely the national
-level. Here, publications of all institutions of the selected sectors
-(5+2) are counted per year and category.
-
-#### by host type
-
-The first figure shows the development over time of the total number of
-publications per host type, that is, we collate all articles where
-access is provided via a publisher based platform as `OA (publisher)`,
-all repository based OA is collated as `OA (repository)`, and all
-remaining articles are labelled as `Not
-OA`.
-
-<img src="analysis_files/figure-gfm/unnamed-chunk-21-1.png" width="90%" style="display: block; margin: auto;" />
-
-In comparison to all articles
-published:
-
-<img src="analysis_files/figure-gfm/unnamed-chunk-22-1.png" width="90%" style="display: block; margin: auto;" />
-
-Looking at
-proportions:
-
-<img src="analysis_files/figure-gfm/unnamed-chunk-23-1.png" width="90%" style="display: block; margin: auto;" />
-
-As faceted
-graph:
-
-<img src="analysis_files/figure-gfm/unnamed-chunk-24-1.png" width="90%" style="display: block; margin: auto;" />
-
-#### by OA category
-
-The following figure shows very similar data as the one before - only
-that here, all OA categories from the schema are shown individually,
-that is, publisher based and repository based OA are further
-distinguished into
-subgroups.
-
-<img src="analysis_files/figure-gfm/unnamed-chunk-25-1.png" width="90%" style="display: block; margin: auto;" />
-
-In comparison to all articles
-published:
-
-<img src="analysis_files/figure-gfm/unnamed-chunk-26-1.png" width="90%" style="display: block; margin: auto;" />
-
-Looking at proportions, we
-get:
-
-<img src="analysis_files/figure-gfm/unnamed-chunk-27-1.png" width="90%" style="display: block; margin: auto;" />
-
-As faceted
-graph:
-
-<img src="analysis_files/figure-gfm/unnamed-chunk-28-1.png" width="90%" style="display: block; margin: auto;" />
-
-### Level of sectors
-
-Next, we go one level down and look at how the separate sectors
-developed.
-
-Number of OA articles per sector in comparison to all articles published
-within the
-sector:
-
-<img src="analysis_files/figure-gfm/unnamed-chunk-29-1.png" width="90%" style="display: block; margin: auto;" />
-
-#### by host type
-
-The first figure depicts the number of publications per host type
-category over time for each
-sector.
-
-<img src="analysis_files/figure-gfm/unnamed-chunk-30-1.png" width="90%" style="display: block; margin: auto;" />
-
-Looking at proportions:
-<img src="analysis_files/figure-gfm/unnamed-chunk-31-1.png" width="90%" style="display: block; margin: auto;" />
-
-Facet
-grid:
-
-<img src="analysis_files/figure-gfm/unnamed-chunk-32-1.png" width="90%" style="display: block; margin: auto;" />
-
-#### by OA category
-
-Distinguishing all the single OA
-categories:
-
-<img src="analysis_files/figure-gfm/unnamed-chunk-33-1.png" width="90%" style="display: block; margin: auto;" />
-
-Looking at
-proportions:
-
-<img src="analysis_files/figure-gfm/unnamed-chunk-34-1.png" width="90%" style="display: block; margin: auto;" />
-
-Facet
-grid:
-
-<img src="analysis_files/figure-gfm/unnamed-chunk-35-1.png" width="90%" style="display: block; margin: auto;" />
-
-### Institutional level
-
-Lastly, we go down to the institutional level. Since there are more than
-400 institutions in the dataset, we do not want to present figures for
-individual institutions. Instead, we want to show the variety of open
-access shares and strategies. To this end, we first calculate the
-individual OA shares.
-
-We now display the variability among institutions per sector with
-respect to the total publication
-output.
-
-<img src="analysis_files/figure-gfm/unnamed-chunk-37-1.png" width="90%" style="display: block; margin: auto;" />
-
-Sectorwise comparison of OA shares
-
-    #> # A tibble: 7 x 11
-    #>   sector oa_share_min oa_share_max oa_share_mean oa_share_median
-    #>   <chr>         <dbl>        <dbl>         <dbl>           <dbl>
-    #> 1 Fraun…         4.55         75            27.1            22.8
-    #> 2 Helmh…         0            82.8          55.9            61.9
-    #> 3 Hochs…         0           100            34.9            37.5
-    #> 4 Leibn…         0           100            39.7            40.1
-    #> 5 Max-P…         7.84         97.8          62.6            64.9
-    #> 6 Resso…         0           100            33.4            33.3
-    #> 7 Resso…         0            50            23.4            22.2
-    #> # … with 6 more variables: oa_share_sd <dbl>, n_total_min <int>,
-    #> #   n_total_max <int>, n_total_mean <dbl>, n_total_median <dbl>,
-    #> #   n_total_sd <dbl>
-
-<img src="analysis_files/figure-gfm/unnamed-chunk-38-1.png" width="90%" style="display: block; margin: auto;" />
