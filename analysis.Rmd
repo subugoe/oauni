@@ -455,6 +455,8 @@ upw_ev_cat_n <- upw_ev_cat %>%
   summarise(n = n_distinct(upw_doi))
 upw_ev_cat_n %>% 
   arrange(desc(n))
+# upw_ev_cat_n %>% 
+#   readr::write_csv("data/upw_ev_cat.csv")
 ```
 We now prepare the data for plotting with the UpSetR package and visualise the overlapping evidence categories.
 
