@@ -212,6 +212,10 @@ opendoar <- readr::read_csv("data/opendoar_data_tidier.csv") %>%
   mutate(repo_domain = domain(repo_url)) %>%
   mutate(repo_domain = gsub("www.", "", repo_domain)) %>% 
   filter(!is.na(repo_domain))
+repo_domain_df <- opendoar %>% 
+  mutate(r_domain = repo_domain) %>% 
+  select(r_domain, repo_domain) %>% 
+  distinct()
 ```
 
 ```{r}
@@ -220,14 +224,22 @@ pubs_wos_upw_gold_repo <- pubs_wos_upw_gold %>%
   mutate(url_domain = gsub("www.", "", url_domain)) %>%
   mutate(landing_domain = domain(url_for_landing_page)) %>%
   mutate(landing_domain = gsub("www.", "", landing_domain)) %>% 
-  left_join(opendoar,  by = c("url_domain" = "repo_domain", "landing_domain" = "repo_domain")) %>% 
-  distinct()
-rm(opendoar, pubs_wos_upw_gold)
+  left_join(repo_domain_df,  by = c("url_domain" = "r_domain")) %>%
+  left_join(repo_domain_df, by = c("landing_domain" = "r_domain")) %>% 
+  mutate(
+    repo_domain.x = ifelse(is.na(repo_domain.x), repo_domain.y, repo_domain.x),
+    repo_domain.y = ifelse(is.na(repo_domain.y), repo_domain.x, repo_domain.y)
+  ) %>% 
+  pivot_longer(cols = c(repo_domain.x, repo_domain.y), names_to = "n_join", values_to = "repo_domain") %>% 
+  select(-n_join) %>% 
+  distinct() %>% 
+  left_join(opendoar, by = "repo_domain")
+rm(opendoar, pubs_wos_upw_gold, repo_domain_df)
 ```
 
 ### Classification according to schema
 
-Having collected the necessary information we now want to proceed to assiging an OA category to each record in the publication dataset according to the schema described in the methodology section of our paper.
+Having collected the necessary information we now want to proceed to assiging an OA category to each record in the publication dataset according to the schema described in the methodology section of our paper. 
 
 Entries without matching Unpaywall record can be identified by having `NA` in `upw_doi` field. Entries without open copy found can be identified by `is_oa` field taking the value `FALSE`.
 Both types will be classified as `not_oa`, meaning that we don't have an OA location for them (Positivnachweis): all entries with evidence are OA, others have unknown OA state (including articles which are not openly accessible but also records without DOI or articles, for which the open version was not found by Unpaywall). Remaining articles are OA and classified according to the schema in the paper.
