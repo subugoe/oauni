@@ -219,7 +219,7 @@ pubs_wos_upw_gold_repo <- pubs_wos_upw_gold %>%
   mutate(url_domain = domain(url_for_pdf)) %>%
   mutate(url_domain = gsub("www.", "", url_domain)) %>%
   mutate(landing_domain = domain(url_for_landing_page)) %>%
-  mutate(landing_domain = gsub("www.", "", url_domain)) %>% 
+  mutate(landing_domain = gsub("www.", "", landing_domain)) %>% 
   left_join(opendoar,  by = c("url_domain" = "repo_domain", "landing_domain" = "repo_domain")) %>% 
   distinct()
 rm(opendoar, pubs_wos_upw_gold)
@@ -249,6 +249,8 @@ rm(pubs_wos_upw_gold_repo)
 pubs_wos_upw_cat %>%
   select(PK_ITEMS, DOI, PUBYEAR, INST_NAME, sector, upw_matched, url_domain, oa_category) %>%
   readr::write_csv("data/pubs_cat.csv")
+pubs_wos_upw_cat %>% 
+  readr::write_csv("data/pubs_cat_details.csv")
 ```
 
 
