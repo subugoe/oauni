@@ -108,7 +108,7 @@ be counted for several categories and numbers not necessarily sum up to
 the total number of articles
 published.
 
-<img src="analysis_files/figure-gfm/unnamed-chunk-10-1.png" title="Development of the total number of journal articles over time per OA category (as per schema in Table 1). Categories are non-exclusive, that is some articles may be counted for a journal and a repository category." alt="Development of the total number of journal articles over time per OA category (as per schema in Table 1). Categories are non-exclusive, that is some articles may be counted for a journal and a repository category." width="90%" style="display: block; margin: auto;" />
+<img src="analysis_files/figure-gfm/unnamed-chunk-10-1.png" title="Development of the total number of journal articles over time per OA category (as per schema in Table 1). Categories are non-exclusive, that is some articles may be counted for a journal and a repository category. Colors correspond to the OA category, linetypes to whether a publication is not OA (dotted), or is available through a repository (dashed) or a publisher (solid)." alt="Development of the total number of journal articles over time per OA category (as per schema in Table 1). Categories are non-exclusive, that is some articles may be counted for a journal and a repository category. Colors correspond to the OA category, linetypes to whether a publication is not OA (dotted), or is available through a repository (dashed) or a publisher (solid)." width="90%" style="display: block; margin: auto;" />
 Observations:
 
   - drop in other oa journal -\> Delayed OA
