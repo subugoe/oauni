@@ -174,7 +174,8 @@ pubs_cat %>%
            n_sector > 500000 ~ 'high_n_pubs',
            n_sector > 50000 ~ 'middle_n_pubs',
            TRUE ~ 'low_n_pubs'
-         )) %>% 
+         )) %>%
+  mutate(sector_cat = factor(sector_cat, levels = c("high_n_pubs", "middle_n_pubs", "low_n_pubs"))) %>% 
   ungroup() %>% 
   left_join(oa_shares, by = 'INST_NAME') %>%
   group_by(INST_NAME, sector, oa_share, sector_cat) %>% 
@@ -182,9 +183,21 @@ pubs_cat %>%
   ggplot(aes(x = sector, y = oa_share)) + 
     geom_boxplot(aes(color = sector_cat), varwidth = TRUE, size = 1) +
     geom_jitter(alpha = 0.1) +
-    scale_color_viridis(end = 0.8, labels = c("high", "medium", "low"), discrete = TRUE, direction = -1, option = "plasma")+
+    scale_color_viridis(end = 0.8, labels = c("> 500 000", "> 50 000", "<= 50 000"), discrete = TRUE, direction = -1, option = "plasma")+
     theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-    labs(title = "OA shares of institutions per sector", x = "", y = "OA share (in %)", color = "Publication output") 
+    labs(title = "OA shares of institutions per sector", x = "", y = "OA share (in %)", color = "Total number\n of publications") 
+```
+
+```{r, fig.asp=0.8, fig.cap="OA shares of German research institutions per sector. The width of the boxes corresponds to the number of institutions per sector. Gray points display the OA shares for individual institutions."}
+pubs_cat %>%
+  left_join(oa_shares, by = 'INST_NAME') %>%
+  group_by(INST_NAME, sector, oa_share) %>% 
+  summarise() %>% 
+  ggplot(aes(x = sector, y = oa_share)) + 
+    geom_boxplot(color = "#333333", varwidth = TRUE, size = 1) +
+    geom_jitter(alpha = 0.1) +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+    labs(title = "OA shares of institutions per sector", x = "", y = "OA share (in %)") 
 ```
 
 ### Prevalences of OA categories
