@@ -3,9 +3,9 @@ title: "Analysis of German publication output"
 author: "Anne Hobert"
 date: "3/6/2020"
 output:
+  github_document:
   word_document:
     fig_caption: yes
-  github_document:
 urlcolor: blue
 ---
 
@@ -197,7 +197,7 @@ pubs_cat %>%
   
 As mentioned in the previous chapters, there are several ways of providing open access to scientific journal articles. In this section, we want to investigate the prevalence of the most widespread OA routes: Green OA and Gold OA. We further distinguish these two main categories as described in the methodology section (see Table 1) according to whether the journal is fully OA (Gold OA), and into deposition on disciplinary, institutional, or OpenDOAR-listed repositories (Green OA). First, we visualise the number of articles per category on the national level, that is, not differentiated by sector. Note that, as mentioned before, the OA categories are not exclusive, that is, an article might be counted for several categories and numbers not necessarily sum up to the total number of articles published.
 
-```{r, fig.asp=0.5, fig.cap="Development of the total number of journal articles over time per OA category (as per schema in Table 1). Categories are non-exclusive, that is some articles may be counted for a journal and a repository category."}
+```{r, fig.asp=0.5, fig.cap="Development of the total number of journal articles over time per OA category (as per schema in Table 1). Categories are non-exclusive, that is some articles may be counted for a journal and a repository category. Colors correspond to the OA category, linetypes to whether a publication is not OA (dotted), or is available through a repository (dashed) or a publisher (solid)."}
 pubs_cat %>% 
   group_by(PUBYEAR, oa_category) %>% 
   summarise(number_of_articles = n_distinct(PK_ITEMS)) %>% 
@@ -208,10 +208,11 @@ pubs_cat %>%
     not_oa = "not_oa"
   )) %>%
   ggplot(aes(x = PUBYEAR, y = number_of_articles, group = oa_category)) +
-    geom_line(aes(color = oa_category, linetype = oa_category), size = 0.7) +
+#    geom_line(aes(color = oa_category, linetype = oa_category), size = 0.7) +
+    geom_line(aes(color = oa_category, linetype = oa_host), size = 0.7) +
 #    geom_point(aes(color = oa_category)) +
     scale_color_OkabeIto(name= "OA Category", order = c(4,1, 2, 3, 5, 7, 6)) +
-    scale_linetype_manual(name = "OA Category", values = c(1, 1, 2, 2, 2, 2, 3)) +
+    scale_linetype_manual(name = "OA Host type", values = c(1, 2, 3), labels = c("OA (publisher)", "OA (repository)", " Not OA")) +
     labs(x = "Publication Year", y = "Number of Articles", title = "Number of Articles per OA category (national level)") +
     theme(legend.position = "right")
 ```
