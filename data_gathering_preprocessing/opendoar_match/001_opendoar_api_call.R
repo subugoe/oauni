@@ -1,4 +1,4 @@
-#OpenDoar Client
+# OpenDoar Client, script works from top-level of this project
 library(httr)
 library(tidyverse)
 opendoar_api <- function(query) {
