@@ -27,8 +27,7 @@ First, we look at how the overall OA share developed over time. The
 following figure displays the number of publications associated with one
 of the German research institutions we considered and highlights they
 part that is freely accessible online according to Unpaywall over the
-considered time period from 2010 until
-2018.
+considered time period from 2010 until 2018.
 
 <img src="analysis_files/figure-gfm/unnamed-chunk-4-1.png" title="Open access to journal articles from German research institutions according to Unpaywall. Blue area represents journal articles with at least one freely available full-text, grey area represents toll-access articles." alt="Open access to journal articles from German research institutions according to Unpaywall. Blue area represents journal articles with at least one freely available full-text, grey area represents toll-access articles." width="90%" style="display: block; margin: auto;" />
 
@@ -48,8 +47,7 @@ publishing in Germany and how they contribute to the OA
 development/overall OA shares, we distplay the development over time of
 the number of OA articles for each sector in the following figure. Note
 that scales for the `y-axes` are not the same, since the total
-publication output varies significantly among
-sectors.
+publication output varies significantly among sectors.
 
 <img src="analysis_files/figure-gfm/unnamed-chunk-6-1.png" title="Open access to journal articles per sector according to Unpaywall. Blue area represents journal articles with at least one freely available full-text, grey area represents toll-access articles. Sectors are ordered by publication output with the highest output top left and lowest at the bottom. Note that scales for the `y-axes` are not the same, since the total publication output varies significantly among sectors." alt="Open access to journal articles per sector according to Unpaywall. Blue area represents journal articles with at least one freely available full-text, grey area represents toll-access articles. Sectors are ordered by publication output with the highest output top left and lowest at the bottom. Note that scales for the `y-axes` are not the same, since the total publication output varies significantly among sectors." width="90%" style="display: block; margin: auto;" />
 
@@ -65,8 +63,7 @@ individual OA shares.
 
 The following figure displays scatterplots where the OA share of an
 institution over the whole time period is shown with respect to its
-publication
-output.
+publication output.
 
 <img src="analysis_files/figure-gfm/unnamed-chunk-8-1.png" title="Open Access shares of research institutions in Germany with respect to their total publication output grouped by the sector they belong to. Only institutions with at least 100 publications are shown. Blue points correspond to single insitutions, gray lines are obained by linear regression within the sector, gray areas are pointwise symmetric 95% t-distribution confidence bands. Scales of the x-axes vary across subplots in order to adapt to the different publication volumes." alt="Open Access shares of research institutions in Germany with respect to their total publication output grouped by the sector they belong to. Only institutions with at least 100 publications are shown. Blue points correspond to single insitutions, gray lines are obained by linear regression within the sector, gray areas are pointwise symmetric 95% t-distribution confidence bands. Scales of the x-axes vary across subplots in order to adapt to the different publication volumes." width="90%" style="display: block; margin: auto;" />
 The most striking observations from this figure are the high OA shares
@@ -80,8 +77,7 @@ publication volume implying higher OA shares is most distinctive for the
 university sector (narrowest confidence bands).
 
 The following box plot quantifies the observations regarding the
-variability of OA shares within sectors made
-before.
+variability of OA shares within sectors made before.
 
 <img src="analysis_files/figure-gfm/unnamed-chunk-9-1.png" title="OA shares of German research institutions per sector. The color of the boxes corresponds to the total publication output of the sector, their widths to the number of institutions per sector. Gray points display the OA shares for individual institutions." alt="OA shares of German research institutions per sector. The color of the boxes corresponds to the total publication output of the sector, their widths to the number of institutions per sector. Gray points display the OA shares for individual institutions." width="90%" style="display: block; margin: auto;" />
 
@@ -107,8 +103,7 @@ First, we visualise the number of articles per category on the national
 level, that is, not differentiated by sector. Note that, as mentioned
 before, the OA categories are not exclusive, that is, an article might
 be counted for several categories and numbers not necessarily sum up to
-the total number of articles
-published.
+the total number of articles published.
 
 <img src="analysis_files/figure-gfm/unnamed-chunk-11-1.png" title="Development of the total number of journal articles over time per OA category (as per schema in Table 1). Categories are non-exclusive, that is some articles may be counted for a journal and a repository category. Colors correspond to the OA category, linetypes to whether a publication is not OA (dotted), or is available through a repository (dashed) or a publisher (solid)." alt="Development of the total number of journal articles over time per OA category (as per schema in Table 1). Categories are non-exclusive, that is some articles may be counted for a journal and a repository category. Colors correspond to the OA category, linetypes to whether a publication is not OA (dotted), or is available through a repository (dashed) or a publisher (solid)." width="90%" style="display: block; margin: auto;" />
 Observations:
@@ -122,8 +117,7 @@ Observations:
 
 relative numbers?
 
-Or as
-barplot?
+Or as barplot?
 
 <img src="analysis_files/figure-gfm/unnamed-chunk-12-1.png" title="Development of the total number of journal articles over time per OA category (as per schema in Table 1). Categories are non-exclusive, that is some articles may be counted for a journal and a repository category." alt="Development of the total number of journal articles over time per OA category (as per schema in Table 1). Categories are non-exclusive, that is some articles may be counted for a journal and a repository category." width="90%" style="display: block; margin: auto;" />
 
@@ -142,8 +136,7 @@ in facet titles); similar to above bar/line plots faceted by sector
 (with/without yearly development)
 
 Lookin at the institutional level, we, again, only consider institutions
-with at least 100 publications in the observed time period of 9
-years.
+with at least 100 publications in the observed time period of 9 years.
 
 <img src="analysis_files/figure-gfm/unnamed-chunk-16-1.png" title="OA shares per OA category for individual research institutions. The relationship between OA shares of individual OA categories (as per schema in Table 1) and overall OA share is shown." alt="OA shares per OA category for individual research institutions. The relationship between OA shares of individual OA categories (as per schema in Table 1) and overall OA share is shown." width="90%" style="display: block; margin: auto;" />
 
@@ -160,23 +153,5 @@ Unpaywall, we load the original, non-categorized Unpaywall data:
 We now determine the evidence combinations for all matched DOIs and then
 calculate the frequency of each combination found.
 
-    #> # A tibble: 538 x 2
-    #>    evidence                                                               n
-    #>    <chr>                                                              <int>
-    #>  1 oa repository (via OAI-PMH doi match)                              53074
-    #>  2 oa journal (via doaj)&oa repository (semantic scholar lookup)&oa … 23061
-    #>  3 oa repository (via OAI-PMH title and first author match)           22519
-    #>  4 oa journal (via doaj)&oa repository (via OAI-PMH doi match)&oa re… 20293
-    #>  5 open (via free pdf)                                                19599
-    #>  6 oa repository (semantic scholar lookup)&oa repository (via OAI-PM… 13971
-    #>  7 oa repository (via OAI-PMH doi match)&oa repository (via pmcid lo… 12709
-    #>  8 oa repository (semantic scholar lookup)                            12377
-    #>  9 oa repository (via OAI-PMH doi match)&oa repository (via OAI-PMH … 11312
-    #> 10 oa repository (via OAI-PMH doi match)&oa repository (via pmcid lo… 10513
-    #> # … with 528 more rows
-
 We now prepare the data for plotting with the UpSetR package and
-visualise the overlapping evidence
-categories.
-
-<img src="analysis_files/figure-gfm/unnamed-chunk-20-1.png" width="90%" style="display: block; margin: auto;" />
+visualise the overlapping evidence categories.
