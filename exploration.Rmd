@@ -288,6 +288,35 @@ sample_rows %>%
   readr::write_csv("data/sample_manual_check_2.csv")
 ```
 
+## Comparison of matching strategies
+
+After the first validation we updated the matching strategy regarding OpenDOAR information. Here, we want to briefly investigate the effects of this change in procedure.
+
+```{r}
+pubs_cat_update %>% 
+  mutate(new_cat = ifelse(oa_category == oa_category_old, FALSE, TRUE)) %>% 
+  group_by(new_cat) %>% 
+  summarise(n = n_distinct(PK_ITEMS))
+pubs_cat_update %>% 
+  mutate(new_cat = ifelse(oa_category == oa_category_old, FALSE, TRUE)) %>%
+  filter(new_cat == TRUE) %>% 
+  group_by(oa_category, oa_category_old) %>% 
+  summarise(n = n_distinct(PK_ITEMS))
+pubs_cat_update %>% 
+  mutate(new_cat = ifelse(oa_category == oa_category_old, FALSE, TRUE)) %>%
+  filter(new_cat == TRUE) %>% 
+  group_by(repository_institution, pdf_domain, landing_domain, oa_category, oa_category_old) %>% 
+  summarise(n = n_distinct(PK_ITEMS)) %>% 
+  arrange(desc(n)) %>% View()
+pubs_cat_update %>% 
+  mutate(new_cat = ifelse(oa_category == oa_category_old, FALSE, TRUE)) %>%
+  filter(new_cat == TRUE) %>% 
+  group_by(pdf_domain == landing_domain) %>% 
+  summarise(n = n_distinct(PK_ITEMS)) %>% 
+  arrange(desc(n))
+```
+
+
 ## Exemplary analytics on national, sectoral and institutional level
 
 ### National level
