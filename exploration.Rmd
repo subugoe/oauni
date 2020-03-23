@@ -268,7 +268,7 @@ pubs_cat %>%
 Extract sample DOIs of the matched records in order to manually check the OA categorisation:
 
 ```{r}
-sample_rows <- pubs_wos_upw %>% 
+sample_rows <- pubs_cat_update %>% 
   filter(upw_matched == TRUE) %>% 
   select(upw_doi) %>% 
   distinct() %>% 
@@ -276,8 +276,8 @@ sample_rows <- pubs_wos_upw %>%
 sample_rows <- sample_rows %>% 
   select(upw_doi) %>% 
   distinct() %>% 
-  left_join(pubs_wos_upw_cat, by = "upw_doi")
-sample_rows %>% group_by(oa_category) %>% summarise(n = n_distinct(upw_doi)) %>% arrange(desc(n))
+  left_join(pubs_cat_update, by = "upw_doi")
+sample_rows %>% group_by(oa_category, oa_category_old) %>% summarise(n = n_distinct(upw_doi)) %>% arrange(desc(n))
 sample_rows %>% 
   select(upw_doi) %>% 
   distinct() %>% 
@@ -285,7 +285,7 @@ sample_rows %>%
 sample_rows %>% 
   select(upw_doi, oa_category, evidence, host_type, repository_institution, url_for_landing_page, url_for_pdf) %>% 
   distinct() %>% 
-  readr::write_csv("data/sample_manual_check.csv")
+  readr::write_csv("data/sample_manual_check_2.csv")
 ```
 
 ## Exemplary analytics on national, sectoral and institutional level
