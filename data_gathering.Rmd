@@ -220,11 +220,11 @@ repo_domain_df <- opendoar %>%
 
 ```{r}
 pubs_wos_upw_gold_repo <- pubs_wos_upw_gold %>% 
-  mutate(url_domain = domain(url_for_pdf)) %>%
-  mutate(url_domain = gsub("www.", "", url_domain)) %>%
+  mutate(pdf_domain = domain(url_for_pdf)) %>%
+  mutate(pdf_domain = gsub("www.", "", pdf_domain)) %>%
   mutate(landing_domain = domain(url_for_landing_page)) %>%
   mutate(landing_domain = gsub("www.", "", landing_domain)) %>% 
-  left_join(repo_domain_df,  by = c("url_domain" = "r_domain")) %>%
+  left_join(repo_domain_df,  by = c("pdf_domain" = "r_domain")) %>%
   left_join(repo_domain_df, by = c("landing_domain" = "r_domain")) %>% 
   mutate(
     repo_domain.x = ifelse(is.na(repo_domain.x), repo_domain.y, repo_domain.x),
@@ -258,14 +258,31 @@ pubs_wos_upw_cat <- pubs_wos_upw_gold_repo %>%
   )) %>% 
   distinct()
 rm(pubs_wos_upw_gold_repo)
-pubs_wos_upw_cat %>%
-  select(PK_ITEMS, DOI, PUBYEAR, INST_NAME, sector, upw_matched, url_domain, oa_category) %>%
-  readr::write_csv("data/pubs_cat.csv")
 pubs_wos_upw_cat %>% 
   readr::write_csv("data/pubs_cat_details.csv")
 ```
+A first validation of our results yielded issues with the OpenDOAR matching procedure. For details see the [report](data_gathering_preprocessing/upw_location_sample_analysis.ipynb). In order to improve the matching we designed a more elaborate matching using also Unpaywall's new field `repository_institution`. It is implemented in [003_match_opendoar_upw.R](data_gathering_preprocessing/opendoar_match/003_match_opendoar_upw.R), with the subsequent reclassification performed in [004_classify_matching_results.R](data_gathering_preprocessing/opendoar_match/004_classify_matching_results.R).
 
+Running these scripts now yields an additional matching table [opendoar_upw_match.csv](data/opendoar_upw_match.csv). We use this table to update the `oa_category`.
 
+```{r}
+opendoar_upw <- readr::read_csv("data/opendoar_upw_match.csv")
+pubs_cat_update <- pubs_wos_upw_cat %>% 
+  rename(oa_category_old = oa_category) %>%
+  # create ids for each full-text observation
+  group_by(PK_ITEMS) %>%
+  mutate(id = paste0(PK_ITEMS, "_", row_number())) %>%
+  ungroup() %>%
+  left_join(opendoar_upw, by = "id") %>% 
+  mutate(oa_category = ifelse(is.na(green_cat), oa_category_old, green_cat))
+```
 
+Lastly, we extract the fields relevant for the analysis and generate the corresponding dataset `pubs_cat` used in [analysis.Rmd](analysis.Rmd).
+
+```{r}
+pubs_cat_update %>%
+  select(PK_ITEMS, id, DOI, PUBYEAR, INST_NAME, sector, upw_matched, oa_category) %>%
+  readr::write_csv("data/pubs_cat.csv")
+```
 
 
