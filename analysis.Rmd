@@ -26,9 +26,10 @@ knitr::opts_chunk$set(
 
 ```{r}
 library(tidyverse)
-library(urltools)
+#library(urltools)
 library(cowplot)
 library(colorblindr)
+library(scales)
 library(viridis)
 ```
 
@@ -54,19 +55,50 @@ The goal is to answer the three research questions
  First, we look at how the overall OA share developed over time. The following figure displays the number of publications associated with one of the German research institutions we considered and highlights they part that is freely accessible online according to Unpaywall over the considered time period from 2010 until 2018.
  
 ```{r, fig.cap="Open access to journal articles from German research institutions according to Unpaywall. Blue area represents journal articles with at least one freely available full-text, grey area represents toll-access articles."}
-pubs_cat %>% 
-  mutate(oa_category = fct_relevel(factor(oa_category), "full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa")) %>% 
-  mutate(oa_category = fct_collapse(oa_category,
-    is_oa = c("full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo"),
+pubs_cat %>%
+  mutate(
+    oa_category = fct_relevel(
+      factor(oa_category),
+      "full_oa_journal",
+      "other_oa_journal",
+      "opendoar_inst",
+      "opendoar_subject",
+      "opendoar_other",
+      "other_repo",
+      "not_oa"
+    )
+  ) %>%
+  mutate(oa_category = fct_collapse(
+    oa_category,
+    is_oa = c(
+      "full_oa_journal",
+      "other_oa_journal",
+      "opendoar_inst",
+      "opendoar_subject",
+      "opendoar_other",
+      "other_repo"
+    ),
     not_oa = "not_oa"
   ))  %>%
-  group_by(PUBYEAR, oa_category) %>% 
-  summarise(number_of_articles = n_distinct(PK_ITEMS)) %>% 
+  group_by(PUBYEAR, oa_category) %>%
+  summarise(number_of_articles = n_distinct(PK_ITEMS)) %>%
   ggplot(aes(x = PUBYEAR, y = number_of_articles)) +
-    geom_area(aes(fill = fct_rev(oa_category), group = fct_rev(oa_category)),  alpha = 0.8) +
-    scale_fill_manual(values = c("#b3b3b3a0", "#56B4E9"), name = "Is OA?", labels = c("Not OA", "OA")) +
-    labs(x = "Publication Year", y = "Number of Articles", title = "Total number of OA Articles") +
-    theme(legend.position = "right")
+  geom_area(aes(fill = fct_rev(oa_category), group = fct_rev(oa_category)),  alpha = 0.8, colour = "white") +
+  scale_fill_manual(
+    values = c("#b3b3b3a0", "#56B4E9"),
+    name = NULL,
+    labels = c("Closed", "Open Access")
+  ) +
+  scale_y_continuous(
+    labels = scales::number_format(big.mark = ","),
+    expand = expansion(mult = c(0, 0.05)),
+    breaks =  scales::extended_breaks()(0:110000)
+    ) + 
+  labs(x = "Publication Year", y = "Total Articles") +
+#  theme_minimal_hgrid(12) +
+  theme_minimal_hgrid() +
+  theme(legend.position = "top",
+          legend.justification = "right") 
 ```
 
 As can be seen, the total number of articles, as well as the part that is OA increases constantly over time. The number of articles that are not openly available, is quite stable with a slow increase from `r pubs_cat %>% filter(oa_category == "not_oa") %>% group_by(PUBYEAR) %>% summarise(n = n_distinct(PK_ITEMS)) %>% filter(PUBYEAR == 2010) %>% .$n` in 2010 to `r pubs_cat %>% filter(oa_category == "not_oa") %>% group_by(PUBYEAR) %>% summarise(n = n_distinct(PK_ITEMS)) %>% filter(PUBYEAR == 2013) %>% .$n` in 2013, and decreasing again continuously from that point onwards to `r pubs_cat %>% filter(oa_category == "not_oa") %>% group_by(PUBYEAR) %>% summarise(n = n_distinct(PK_ITEMS)) %>% filter(PUBYEAR == 2018) %>% .$n`  publications in 2018. Since the number of OA articles increases continuously from `r pubs_cat %>% filter(oa_category != "not_oa") %>% group_by(PUBYEAR) %>% summarise(n = n_distinct(PK_ITEMS)) %>% filter(PUBYEAR == 2010) %>% .$n` publications in 2010 to `r pubs_cat %>% filter(oa_category != "not_oa") %>% group_by(PUBYEAR) %>% summarise(n = n_distinct(PK_ITEMS)) %>% filter(PUBYEAR == 2018) %>% .$n` in 2018, the relative proportion of OA articles rises significantly from `r round(pubs_cat %>% filter(oa_category != "not_oa") %>% group_by(PUBYEAR) %>% summarise(n = n_distinct(PK_ITEMS)) %>% filter(PUBYEAR == 2010) %>% .$n/pubs_cat %>% group_by(PUBYEAR) %>% summarise(n = n_distinct(PK_ITEMS)) %>% filter(PUBYEAR == 2010) %>% .$n, 4)*100` % in 2010 to `r round(pubs_cat %>% filter(oa_category != "not_oa") %>% group_by(PUBYEAR) %>% summarise(n = n_distinct(PK_ITEMS)) %>% filter(PUBYEAR == 2018) %>% .$n/pubs_cat %>% group_by(PUBYEAR) %>% summarise(n = n_distinct(PK_ITEMS)) %>% filter(PUBYEAR == 2018) %>% .$n, 4)*100` % in 2018.
@@ -85,7 +117,7 @@ pubs_cat %>%
     col.names = c(
       "Publication Year",
       "Is OA ?",
-      "Number of Articles"
+      "Total Articles"
     ),
     big.mark = ",",
     caption = "Number of articles that are openly accessible (OA) or not (Not OA) per year."
@@ -97,70 +129,162 @@ pubs_cat %>%
 In order to investigate what role the different sectors play in OA publishing in Germany and how they contribute to the OA development/overall OA shares, we distplay the development over time of the number of OA articles for each sector in the following figure. Note that scales for the `y-axes` are not the same, since the total publication output varies significantly among sectors.
 
 ```{r, fig.asp=1, fig.cap="Open access to journal articles per sector according to Unpaywall. Blue area represents journal articles with at least one freely available full-text, grey area represents toll-access articles. Sectors are ordered by publication output with the highest output top left and lowest at the bottom. Note that scales for the `y-axes` are not the same, since the total publication output varies significantly among sectors."}
-pubs_cat %>% 
-  mutate(oa_category = fct_relevel(factor(oa_category), "full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa")) %>% 
-  mutate(oa_category = fct_collapse(oa_category,
-    is_oa = c("full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo"),
+pubs_cat %>%
+  mutate(
+    oa_category = fct_relevel(
+      factor(oa_category),
+      "full_oa_journal",
+      "other_oa_journal",
+      "opendoar_inst",
+      "opendoar_subject",
+      "opendoar_other",
+      "other_repo",
+      "not_oa"
+    )
+  ) %>%
+  mutate(oa_category = fct_collapse(
+    oa_category,
+    is_oa = c(
+      "full_oa_journal",
+      "other_oa_journal",
+      "opendoar_inst",
+      "opendoar_subject",
+      "opendoar_other",
+      "other_repo"
+    ),
     not_oa = "not_oa"
   ))  %>%
-  group_by(sector) %>% 
-  mutate(n_total = n_distinct(PK_ITEMS)) %>% 
-  ungroup() %>% 
-  group_by(sector, PUBYEAR, oa_category, n_total) %>% 
-  summarise(number_of_articles = n_distinct(PK_ITEMS)) %>% 
+  group_by(sector) %>%
+  mutate(n_total = n_distinct(PK_ITEMS)) %>%
+  ungroup() %>%
+  group_by(sector, PUBYEAR, oa_category, n_total) %>%
+  summarise(number_of_articles = n_distinct(PK_ITEMS)) %>%
   ggplot(aes(x = PUBYEAR, y = number_of_articles)) +
-    geom_area(aes(fill = fct_rev(oa_category), group = fct_rev(oa_category)),  alpha = 0.8) +
-    scale_fill_manual(values = c("#b3b3b3a0", "#56B4E9"), name = "Is OA?", labels = c("Not OA", "OA")) +
-    facet_wrap(~ fct_rev(fct_reorder(sector, n_total)), scales = "free", ncol = 2) +
-    labs(x = "Publication Year", y = "Number of Articles", title = "Number of OA Articles per sector") +
-    theme(legend.position = "right")
+  geom_area(aes(fill = fct_rev(oa_category), group = fct_rev(oa_category)),  alpha = 0.8, colour = "white") +
+  scale_fill_manual(
+    values = c("#b3b3b3a0", "#56B4E9"),
+    name = NULL,
+    labels = c("Closed", "Open Access")
+  ) +
+  facet_wrap( ~ fct_rev(fct_reorder(sector, n_total)), scales = "free", ncol = 2) +
+  labs(x = "Publication Year", y = "Total Articles") +
+  scale_y_continuous(
+    labels = scales::number_format(big.mark = ","),
+    expand = expansion(mult = c(0, 0.05)),
+    breaks =  scales::extended_breaks()
+    ) + 
+  labs(x = "Publication Year", y = "Total Articles") +
+  theme(legend.position = "top",
+          legend.justification = "right") +
+  theme_minimal_hgrid() +
+  # bold facet names
+  theme(strip.text = element_text(face="bold")) +
+   theme(legend.position = "top",
+          legend.justification = "right") 
 ```
 
 In order to investigate the variability of OA publishing within the sectors, we now go one level deeper and examine OA shares of individual institutions, grouped by the sector they belong to. We only include institututions with a publication output of at least 100 publications in the observed time period of 9 years. Of the `r pubs_cat %>% summarise(n = n_distinct(INST_NAME)) %>% .$n` institutions in total, `r pubs_cat %>% group_by(INST_NAME) %>% mutate(n_total = n_distinct(PK_ITEMS)) %>% ungroup() %>% filter(n_total >= 100) %>% summarise(n = n_distinct(INST_NAME)) %>% .$n` fulfill this condition. This means, that in the following institution specific analyses, `r pubs_cat %>% group_by(INST_NAME) %>% mutate(n_total = n_distinct(PK_ITEMS)) %>% ungroup() %>% filter(n_total < 100) %>% summarise(n = n_distinct(INST_NAME)) %>% .$n` insitutions, or `r pubs_cat %>% group_by(INST_NAME) %>% mutate(n_total = n_distinct(PK_ITEMS)) %>% ungroup() %>% filter(n_total < 100) %>% summarise(n = n_distinct(PK_ITEMS)) %>% .$n` articles are not considered. Of the remaining institutions, we first calculate the individual OA shares.
 
 ```{r}
 oa_shares <- pubs_cat %>%
-  mutate(oa_category = factor(oa_category, levels = c("full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa"))) %>% 
-  mutate(oa_category = fct_collapse(oa_category,
-    is_oa = c("full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo"),
+  mutate(oa_category = factor(
+    oa_category,
+    levels = c(
+      "full_oa_journal",
+      "other_oa_journal",
+      "opendoar_inst",
+      "opendoar_subject",
+      "opendoar_other",
+      "other_repo",
+      "not_oa"
+    )
+  )) %>%
+  mutate(oa_category = fct_collapse(
+    oa_category,
+    is_oa = c(
+      "full_oa_journal",
+      "other_oa_journal",
+      "opendoar_inst",
+      "opendoar_subject",
+      "opendoar_other",
+      "other_repo"
+    ),
     not_oa = "not_oa"
-  )) %>% 
-  group_by(INST_NAME) %>% 
-  mutate(n_total = n_distinct(PK_ITEMS)) %>% 
+  )) %>%
+  group_by(INST_NAME) %>%
+  mutate(n_total = n_distinct(PK_ITEMS)) %>%
   ungroup() %>%
-  group_by(INST_NAME, oa_category, n_total) %>% 
-  summarise(n_cat = n_distinct(PK_ITEMS)) %>% 
-  pivot_wider(names_from = oa_category,
-              values_from = n_cat,
-              values_fill = list(n_cat = 0)) %>% 
-  mutate(oa_share = is_oa/n_total *100) %>%
-  rename(n_oa = is_oa, n_not_oa = not_oa) %>% 
+  group_by(INST_NAME, oa_category, n_total) %>%
+  summarise(n_cat = n_distinct(PK_ITEMS)) %>%
+  pivot_wider(
+    names_from = oa_category,
+    values_from = n_cat,
+    values_fill = list(n_cat = 0)
+  ) %>%
+  mutate(oa_share = is_oa / n_total) %>%
+  rename(n_oa = is_oa, n_not_oa = not_oa) %>%
   ungroup()
 ```
 The following figure displays scatterplots where the OA share of an institution over the whole time period is shown with respect to its publication output.
 
 ```{r, fig.asp=1, fig.cap="Open Access shares of research institutions in Germany with respect to their total publication output grouped by the sector they belong to. Only institutions with at least 100 publications are shown. Blue points correspond to single insitutions, gray lines are obained by linear regression within the sector, gray areas are pointwise symmetric 95% t-distribution confidence bands. Scales of the x-axes vary across subplots in order to adapt to the different publication volumes."}
-pubs_cat %>%
-  mutate(oa_category = factor(oa_category, levels = c("full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa"))) %>% 
-  mutate(oa_category = fct_collapse(oa_category,
+oa_share_by_sector <- pubs_cat %>%
+  mutate(oa_category = factor(
+    oa_category,
+    levels = c(
+      "full_oa_journal",
+      "other_oa_journal",
+      "opendoar_inst",
+      "opendoar_subject",
+      "opendoar_other",
+      "other_repo",
+      "not_oa"
+    )
+  )) %>%
+  mutate(oa_category = fct_collapse(
+    oa_category,
     journal_oa = c("full_oa_journal", "other_oa_journal"),
-    repo_oa = c("opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo"),
+    repo_oa = c(
+      "opendoar_inst",
+      "opendoar_subject",
+      "opendoar_other",
+      "other_repo"
+    ),
     not_oa = "not_oa"
   )) %>%
-  group_by(sector) %>% 
-  mutate(n_total_sec = n_distinct(PK_ITEMS)) %>% 
+  group_by(sector) %>%
+  mutate(n_total_sec = n_distinct(PK_ITEMS)) %>%
   ungroup() %>%
   left_join(oa_shares, by = 'INST_NAME') %>%
-  filter(n_total >= 100) %>% 
+  filter(n_total >= 100) %>%
   group_by(sector, INST_NAME, n_total, oa_share, n_total_sec) %>%
-  summarise() %>% 
-  ggplot(aes(x = n_total, y = oa_share)) +
-    geom_point(color = "#56B4E9") + 
-    scale_x_log10() + 
-    geom_smooth(color = "#808080a0", method = "lm") +
-    facet_wrap(~ fct_rev(fct_reorder(sector, n_total_sec)), ncol = 2, scales = "free_x") +
-    labs(x = "Total publication output (logarithmic scale)", y = "OA share (in %)", title = "Open Access shares of research institutions in Germany") +
-    theme(legend.position = "none")
+  summarise() 
+oa_share_by_sector_stats <- oa_share_by_sector %>% 
+  ungroup() %>% 
+  group_by(sector) %>% 
+  summarise(mean_oa_share = mean(oa_share), 
+            median_oa_share = median(oa_share),
+            mean_pub_volume = mean(n_total),
+            median_pub_volume = median(n_total)
+            )
+left_join(oa_share_by_sector, oa_share_by_sector_stats, by = "sector") %>%
+ggplot(aes(x = n_total, y = oa_share)) +
+  geom_point(color = "#56B4E9", alpha = .7)  +
+  scale_x_log10() +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 5L),
+                     expand = expansion(mult = c(0, 0.05)),
+                     limits = c(0,1)) +
+  geom_smooth(color = "#808080a0", method = "lm") +
+  facet_wrap(~ fct_rev(fct_reorder(sector, n_total_sec)), ncol = 2, scales = "free_x") +
+  geom_hline(aes(yintercept = median_oa_share),
+             colour = "#E69F00", linetype ="dashed", size = 1) +
+  geom_vline(aes(xintercept = median_pub_volume),
+             colour = "red", linetype ="dashed", size = 1) +
+  labs(x = "Total Articles (logarithmic scale)", y = "OA percentage") +
+  theme_minimal_grid() +
+  theme(legend.position = "none") +
+  # bold facet labels
+  theme(strip.text = element_text(face = "bold")) 
 ```
 The most striking observations from this figure are the high OA shares of most of the Max-Planck and Helmholtz institutes and the very low OA fractions of almost all of the state and federal institutes as well as the ones from the Fraunhofer Society. Universities and Leibniz-Society have many institutes with OA shares close to one half. We can further see very well that the universities have by far the largest publication volumes, followed by the Helmholtz-Society. The linear trend of higher publication volume implying higher OA shares is most distinctive for the university sector (narrowest confidence bands). 
 
@@ -168,24 +292,42 @@ The following box plot quantifies the observations regarding the variability of 
 
 ```{r, fig.asp=0.8, fig.cap="OA shares of German research institutions per sector. The color of the boxes corresponds to the total publication output of the sector, their widths to the number of institutions per sector. Gray points display the OA shares for individual institutions."}
 pubs_cat %>%
-  group_by(sector) %>% 
-  mutate(n_sector = n_distinct(PK_ITEMS),
-         sector_cat = case_when(
-           n_sector > 500000 ~ 'high_n_pubs',
-           n_sector > 50000 ~ 'middle_n_pubs',
-           TRUE ~ 'low_n_pubs'
-         )) %>%
-  mutate(sector_cat = factor(sector_cat, levels = c("high_n_pubs", "middle_n_pubs", "low_n_pubs"))) %>% 
-  ungroup() %>% 
+  group_by(sector) %>%
+  mutate(
+    n_sector = n_distinct(PK_ITEMS),
+    sector_cat = case_when(
+      n_sector > 500000 ~ 'high_n_pubs',
+      n_sector > 50000 ~ 'middle_n_pubs',
+      TRUE ~ 'low_n_pubs'
+    )
+  ) %>%
+  mutate(sector_cat = factor(
+    sector_cat,
+    levels = c("high_n_pubs", "middle_n_pubs", "low_n_pubs")
+  )) %>%
+  ungroup() %>%
   left_join(oa_shares, by = 'INST_NAME') %>%
-  group_by(INST_NAME, sector, oa_share, sector_cat) %>% 
-  summarise() %>% 
-  ggplot(aes(x = sector, y = oa_share)) + 
-    geom_boxplot(aes(color = sector_cat), varwidth = TRUE, size = 1) +
-    geom_jitter(alpha = 0.1) +
-    scale_color_viridis(end = 0.8, labels = c("> 500 000", "> 50 000", "<= 50 000"), discrete = TRUE, direction = -1, option = "plasma")+
-    theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-    labs(title = "OA shares of institutions per sector", x = "", y = "OA share (in %)", color = "Total number\n of publications") 
+  group_by(INST_NAME, sector, oa_share, sector_cat, n_sector) %>%
+  summarise() %>%
+  ggplot(aes(x = reorder(sector, n_sector), y = oa_share)) +
+  geom_boxplot(aes(color = sector_cat), varwidth = FALSE, size = 1) +
+  geom_jitter(alpha = 0.1) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 5L),
+                     expand = expansion(mult = c(0, 0.05))) +
+  coord_flip()  +
+  scale_color_viridis(
+    end = 0.8,
+    labels = c("> 500,000", "> 50,000", "<= 50,000"),
+    discrete = TRUE,
+    direction = -1,
+    option = "plasma"
+  ) +
+  labs(
+    x = "",
+    y = "OA percentage",
+    color = "Total Articles"
+  )  +
+  theme_minimal_vgrid() 
 ```
 
 ```{r, fig.asp=0.8, fig.cap="OA shares of German research institutions per sector. The width of the boxes corresponds to the number of institutions per sector. Gray points display the OA shares for individual institutions."}
@@ -211,23 +353,58 @@ pubs_cat %>%
 As mentioned in the previous chapters, there are several ways of providing open access to scientific journal articles. In this section, we want to investigate the prevalence of the most widespread OA routes: Green OA and Gold OA. We further distinguish these two main categories as described in the methodology section (see Table 1) according to whether the journal is fully OA (Gold OA), and into deposition on disciplinary, institutional, or OpenDOAR-listed repositories (Green OA). First, we visualise the number of articles per category on the national level, that is, not differentiated by sector. Note that, as mentioned before, the OA categories are not exclusive, that is, an article might be counted for several categories and numbers not necessarily sum up to the total number of articles published.
 
 ```{r, fig.asp=0.5, fig.cap="Development of the total number of journal articles over time per OA category (as per schema in Table 1). Categories are non-exclusive, that is some articles may be counted for a journal and a repository category. Colors correspond to the OA category, linetypes to whether a publication is not OA (dotted), or is available through a repository (dashed) or a publisher (solid)."}
-pubs_cat %>% 
-  group_by(PUBYEAR, oa_category) %>% 
-  summarise(number_of_articles = n_distinct(PK_ITEMS)) %>% 
-  mutate(oa_category = fct_relevel(factor(oa_category), "full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa")) %>% 
-  mutate(oa_host = fct_collapse(oa_category,
-    journal_oa = c("full_oa_journal", "other_oa_journal"),
-    repo_oa = c("opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo"),
-    not_oa = "not_oa"
+pubs_cat %>%
+  group_by(PUBYEAR, oa_category) %>%
+  summarise(number_of_articles = n_distinct(PK_ITEMS)) %>%
+  mutate(
+    oa_category = fct_relevel(
+      factor(oa_category),
+      "full_oa_journal",
+      "other_oa_journal",
+      "opendoar_inst",
+      "opendoar_subject",
+      "opendoar_other",
+      "other_repo",
+      "not_oa"
+    )
+  ) %>%
+  mutate(oa_host = fct_collapse(
+    oa_category,
+    `Publisher OA` = c("full_oa_journal", "other_oa_journal"),
+    `Repository OA` = c(
+      "opendoar_inst",
+      "opendoar_subject",
+      "opendoar_other",
+      "other_repo"
+    ),
+    `Closed` = "not_oa"
   )) %>%
+  ungroup() %>%
+  mutate(PUBYEAR = lubridate::ymd(paste0(PUBYEAR, "-01-01"))) %>%
   ggplot(aes(x = PUBYEAR, y = number_of_articles, group = oa_category)) +
-#    geom_line(aes(color = oa_category, linetype = oa_category), size = 0.7) +
-    geom_line(aes(color = oa_category, linetype = oa_host), size = 0.7) +
-#    geom_point(aes(color = oa_category)) +
-    scale_color_OkabeIto(name= "OA Category", order = c(4,1, 2, 3, 5, 7, 6)) +
-    scale_linetype_manual(name = "OA Host type", values = c(1, 2, 3), labels = c("OA (publisher)", "OA (repository)", " Not OA")) +
-    labs(x = "Publication Year", y = "Number of Articles", title = "Number of Articles per OA category (national level)") +
-    theme(legend.position = "right")
+  #    geom_line(aes(color = oa_category, linetype = oa_category), size = 0.7) +
+  geom_line(aes(color = oa_category), size = 0.9) +
+  geom_point(aes(color = oa_category, size = 0.7)) +
+  scale_color_OkabeIto(name = "OA Category", order = c(4, 1, 2, 3, 5, 7, 6)) +
+ # scale_linetype_manual(
+  #  name = "OA Host type",
+  #  values = c(1, 2, 3),
+  #  labels = c("OA (publisher)", "OA (repository)", " Not OA")
+  # ) +
+  gghighlight::gghighlight(label_params = list(alpha = 0.8)) +
+  facet_wrap(~ oa_host) +
+  labs(x = "Publication Year", y = "Total Articles") +
+  theme_minimal_hgrid() +
+  scale_x_date(date_labels = "%y") +
+  scale_y_continuous(
+    labels = scales::number_format(big.mark = ","),
+    expand = expansion(mult = c(0, 0.05)),
+    breaks =  scales::extended_breaks(n = 6),
+    limits = c(0,60000)
+    ) +
+  theme(legend.position = "none") +
+  # bold facet labels
+  theme(strip.text = element_text(face = "bold")) 
 ```
 Observations:
 
@@ -241,15 +418,31 @@ relative numbers?
 Or as barplot?
 
 ```{r, fig.asp=0.5, fig.cap="Development of the total number of journal articles over time per OA category (as per schema in Table 1). Categories are non-exclusive, that is some articles may be counted for a journal and a repository category."}
-pubs_cat %>% 
-  group_by(PUBYEAR, oa_category) %>% 
-  summarise(number_of_articles = n_distinct(PK_ITEMS)) %>% 
-  mutate(oa_category = fct_relevel(factor(oa_category), "full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa")) %>% 
+pubs_cat %>%
+  group_by(PUBYEAR, oa_category) %>%
+  summarise(number_of_articles = n_distinct(PK_ITEMS)) %>%
+  mutate(
+    oa_category = fct_relevel(
+      factor(oa_category),
+      "full_oa_journal",
+      "other_oa_journal",
+      "opendoar_inst",
+      "opendoar_subject",
+      "opendoar_other",
+      "other_repo",
+      "not_oa"
+    )
+  ) %>%
   ggplot(aes(x = PUBYEAR, y = number_of_articles)) +
-    geom_col(aes(fill = oa_category), position = "dodge", color = "#b3b3b3a0", size = 0.2) +
-    scale_fill_OkabeIto(name= "OA category", order = c(4,1, 2, 3, 5, 7, 6)) +
-    labs(x = "Publication Year", y = "Number of Articles", title = "Number of Articles per OA category (national level)") +
-    theme(legend.position = "right")
+  geom_col(
+    aes(fill = oa_category),
+    position = "dodge",
+    color = "#b3b3b3a0",
+    size = 0.2
+  ) +
+  scale_fill_OkabeIto(name = "OA category", order = c(4, 1, 2, 3, 5, 7, 6)) +
+  labs(x = "Publication Year", y = "Number of Articles", title = "Number of Articles per OA category (national level)") +
+  theme(legend.position = "right")
 ```
 
 Faceted?
@@ -337,34 +530,74 @@ plot oa_cat_shares for single sector, order by total oa_share (state in facet ti
 
 Lookin at the institutional level, we, again,  only consider institutions with at least 100 publications in the observed time period of 9 years.
 
-```{r, fig.asp=1, fig.cap="OA shares per OA category for individual research institutions. The relationship between OA shares of individual OA categories (as per schema in Table 1) and overall OA share is shown."}
+```{r, fig.cap="OA shares per OA category for individual research institutions. The relationship between OA shares of individual OA categories (as per schema in Table 1) and overall OA share is shown."}
 pubs_cat %>%
-  mutate(oa_category = factor(oa_category, levels = c("full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa"))) %>% 
-  group_by(INST_NAME) %>% 
-  mutate(n_total = n_distinct(PK_ITEMS)) %>% 
+  mutate(oa_category = factor(
+    oa_category,
+    levels = c(
+      "full_oa_journal",
+      "other_oa_journal",
+      "opendoar_inst",
+      "opendoar_subject",
+      "opendoar_other",
+      "other_repo",
+      "not_oa"
+    )
+  )) %>%
+  group_by(INST_NAME) %>%
+  mutate(n_total = n_distinct(PK_ITEMS)) %>%
   ungroup() %>%
-  filter(n_total >= 100) %>% 
-  group_by(sector) %>% 
-  mutate(n_total_sec = n_distinct(PK_ITEMS)) %>% 
-  ungroup() %>% 
-  group_by(INST_NAME, oa_category, n_total) %>% 
+  filter(n_total >= 100) %>%
+  group_by(sector) %>%
+  mutate(n_total_sec = n_distinct(PK_ITEMS)) %>%
+  ungroup() %>%
+  group_by(INST_NAME, oa_category, n_total) %>%
   mutate(n_cat = n_distinct(PK_ITEMS),
-         share_cat = n_cat/n_total * 100) %>%
-  ungroup() %>% 
-  group_by(INST_NAME, sector, oa_category, n_total, n_total_sec, share_cat) %>% 
-  summarise() %>% 
-  pivot_wider(names_from = oa_category,
-              values_from = share_cat,
-              values_fill = list(share_cat = 0)) %>%
-  pivot_longer(cols = c("full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo"), names_to = "oa_route", values_to = "share") %>% 
-  mutate(oa_route = factor(oa_route, levels = c("full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo"))) %>% 
-  ggplot(aes(x = (100-not_oa), y = share)) +
-    geom_point(aes(color = oa_route)) +
-    scale_color_OkabeIto(name= "OA category", order = c(4,1, 2, 3, 5, 7, 6)) +
-    geom_smooth(color = "#808080a0", method = "lm") +
-    facet_wrap(~oa_route, ncol = 2) +
-      labs(x = "OA share (in %)", y = "OA share (in %)", title = "Open Access shares of research institutions in Germany") +
-    theme(legend.position = "right")
+         share_cat = n_cat / n_total) %>%
+  ungroup() %>%
+  group_by(INST_NAME, sector, oa_category, n_total, n_total_sec, share_cat) %>%
+  summarise() %>%
+  pivot_wider(
+    names_from = oa_category,
+    values_from = share_cat,
+    values_fill = list(share_cat = 0)
+  ) %>%
+  pivot_longer(
+    cols = c(
+      "full_oa_journal",
+      "other_oa_journal",
+      "opendoar_inst",
+      "opendoar_subject",
+      "opendoar_other",
+      "other_repo"
+    ),
+    names_to = "oa_route",
+    values_to = "share"
+  ) %>%
+  mutate(oa_route = factor(
+    oa_route,
+    levels = c(
+      "full_oa_journal",
+      "other_oa_journal",
+      "opendoar_inst",
+      "opendoar_subject",
+      "opendoar_other",
+      "other_repo"
+    )
+  )) %>%
+  ggplot(aes(x = (1 - not_oa), y = share, size = n_total, color = oa_route)) +
+  geom_point(alpha = 0.15) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 5L),
+                     expand = expansion(mult = c(0, 0.05))) +
+  scale_x_continuous(labels = scales::percent_format(accuracy = 5L)) +
+  scale_color_OkabeIto(name = "OA category", order = c(4, 1, 2, 3, 5, 7, 6)) +
+  geom_smooth(color = "#808080a0", method = "lm") +
+  facet_wrap( ~ oa_route, ncol = 2) +
+  labs(x = "Overall OA percentage", y = "OA percentage by type") +
+  theme_minimal_grid() +
+  theme(legend.position = "none") +
+  # bold facet labels
+  theme(strip.text = element_text(face = "bold")) 
 ```
 
 ```{r, fig.asp=1, fig.cap="OA shares per sector and OA category for individual institutions. The relationship between OA shares of individual OA categories and overall OA share is shown."}
@@ -403,41 +636,41 @@ pubs_cat %>%
 In order to demonstrate the prevalence of evidence categories in Unpaywall, we load the original, non-categorized Unpaywall data:
 
 ```{r}
-upw_evidence <- readr::read_csv("data/upw_evidence.csv")
-upw_ev_cat <- upw_evidence %>% 
-  mutate(upw_matched = ifelse(is.na(upw_doi), FALSE, TRUE)) %>% 
-  filter(is_paratext == FALSE | is.na(is_paratext))
-rm(upw_evidence)
+# upw_evidence <- readr::read_csv("data/upw_evidence.csv")
+# upw_ev_cat <- upw_evidence %>% 
+#   mutate(upw_matched = ifelse(is.na(upw_doi), FALSE, TRUE)) %>% 
+#   filter(is_paratext == FALSE | is.na(is_paratext))
+# rm(upw_evidence)
 ```
 
 We now determine the evidence combinations for all matched DOIs and then calculate the frequency of each combination found.
 
 ```{r}
-upw_ev_cat <- upw_ev_cat %>% 
-  filter(upw_matched == TRUE) %>%
-  select(upw_doi, evidence) %>% 
-  distinct() %>% 
-  arrange(upw_doi, evidence) %>% 
-  aggregate(evidence ~ upw_doi, data = ., paste, collapse = "&")
-upw_ev_cat_n <- upw_ev_cat %>% 
-  group_by(evidence) %>% 
-  summarise(n = n_distinct(upw_doi))
-upw_ev_cat_n %>% 
-  arrange(desc(n))
+# upw_ev_cat <- upw_ev_cat %>% 
+#   filter(upw_matched == TRUE) %>%
+#   select(upw_doi, evidence) %>% 
+#   distinct() %>% 
+#   arrange(upw_doi, evidence) %>% 
+#   aggregate(evidence ~ upw_doi, data = ., paste, collapse = "&")
+# upw_ev_cat_n <- upw_ev_cat %>% 
+#   group_by(evidence) %>% 
+#   summarise(n = n_distinct(upw_doi))
+# upw_ev_cat_n %>% 
+#   arrange(desc(n))
 # upw_ev_cat_n %>% 
 #   readr::write_csv("data/upw_ev_cat.csv")
 ```
 We now prepare the data for plotting with the UpSetR package and visualise the overlapping evidence categories.
 
 ```{r}
-library(UpSetR)
-# list with counts
-upw_ev_upset_list <- as.list(upw_ev_cat_n$n)
-# categories as list names
-names(upw_ev_upset_list) <- upw_ev_cat_n$evidence
-# convert to vector
-evidence_categories_upset_expr <- unlist(upw_ev_upset_list)
-upset(fromExpression(evidence_categories_upset_expr), nsets = 7, nintersects = 15, order.by = "freq", show.numbers = FALSE, set_size.angles = 25)
+# library(UpSetR)
+# # list with counts
+# upw_ev_upset_list <- as.list(upw_ev_cat_n$n)
+# # categories as list names
+# names(upw_ev_upset_list) <- upw_ev_cat_n$evidence
+# # convert to vector
+# evidence_categories_upset_expr <- unlist(upw_ev_upset_list)
+# upset(fromExpression(evidence_categories_upset_expr), nsets = 7, nintersects = 15, order.by = "freq", show.numbers = FALSE, set_size.angles = 25)
 
 ```
 
