@@ -330,17 +330,7 @@ pubs_cat %>%
   theme_minimal_vgrid() 
 ```
 
-```{r, fig.asp=0.8, fig.cap="OA shares of German research institutions per sector. The width of the boxes corresponds to the number of institutions per sector. Gray points display the OA shares for individual institutions."}
-pubs_cat %>%
-  left_join(oa_shares, by = 'INST_NAME') %>%
-  group_by(INST_NAME, sector, oa_share) %>% 
-  summarise() %>% 
-  ggplot(aes(x = sector, y = oa_share)) + 
-    geom_boxplot(color = "#333333", varwidth = TRUE, size = 1) +
-    geom_jitter(alpha = 0.1) +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-    labs(title = "OA shares of institutions per sector", x = "", y = "OA share (in %)") 
-```
+
 
 ### Prevalences of OA categories
 
@@ -418,13 +408,22 @@ relative numbers?
 
 Or as barplot?
 
-```{r, fig.asp=0.5, fig.cap="Development of the total number of journal articles over time per OA category (as per schema in Table 1). Categories are non-exclusive, that is some articles may be counted for a journal and a repository category."}
+
+
+Faceted?
+
+
+
+
+Again, we go one step further and look at sector specific OA proportions.
+
+
+
+```{r, fig.asp=0.8, fig.cap="OA shares per category and sector. The relationship between OA shares of individual OA categories (as per schema in Table 1) and overall OA share is shown. Point sizes correspond to total publication output. Coloring is according to sector."}
 pubs_cat %>%
-  group_by(PUBYEAR, oa_category) %>%
-  summarise(number_of_articles = n_distinct(PK_ITEMS)) %>%
-  mutate(
-    oa_category = fct_relevel(
-      factor(oa_category),
+  mutate(oa_category = factor(
+    oa_category,
+    levels = c(
       "full_oa_journal",
       "other_oa_journal",
       "opendoar_inst",
@@ -433,98 +432,57 @@ pubs_cat %>%
       "other_repo",
       "not_oa"
     )
+  )) %>%
+  group_by(sector) %>%
+  mutate(n_total = n_distinct(PK_ITEMS)) %>%
+  ungroup() %>%
+  group_by(sector, oa_category, n_total) %>%
+  mutate(n_cat = n_distinct(PK_ITEMS),
+         share_cat = n_cat / n_total) %>%
+  ungroup() %>%
+  group_by(sector, oa_category, n_total, share_cat) %>%
+  summarise() %>%
+  pivot_wider(
+    names_from = oa_category,
+    values_from = share_cat,
+    values_fill = list(share_cat = 0)
   ) %>%
-  ggplot(aes(x = PUBYEAR, y = number_of_articles)) +
-  geom_col(
-    aes(fill = oa_category),
-    position = "dodge",
-    color = "#b3b3b3a0",
-    size = 0.2
-  ) +
-  scale_fill_OkabeIto(name = "OA category", order = c(4, 1, 2, 3, 5, 7, 6)) +
-  labs(x = "Publication Year", y = "Number of Articles", title = "Number of Articles per OA category (national level)") +
-  theme(legend.position = "right")
-```
-
-Faceted?
-
-
-```{r, fig.asp=1, fig.cap="Development of the number of journal articles per OA category (as per schema in Table 1) in comparison to the total number of journal articles published by the considered institutions over time. Categories are non-exclusive, that is some articles may be counted for a journal and a repository category."}
-all_articles <- pubs_cat%>% 
-  group_by(PUBYEAR) %>% 
-  summarise(number_of_articles = n_distinct(PK_ITEMS))
-
-pubs_cat %>% 
-  mutate(oa_category = fct_relevel(factor(oa_category), "full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa")) %>% 
-  group_by(PUBYEAR, oa_category) %>% 
-  summarise(number_of_articles = n_distinct(PK_ITEMS)) %>% 
-  ggplot(aes(x = PUBYEAR, y = number_of_articles)) +
-    geom_col(data = all_articles, aes(color = "All Articles"), fill = "#b3b3b3", size = 0.05) +
-    scale_color_manual(values = "#ffffff", name = "", labels = "All Articles") +
-    geom_col(aes(fill = oa_category)) +
-    scale_fill_OkabeIto(name= "OA category", order = c(4,1, 2, 3, 5, 7, 6)) +
-    facet_wrap(~ oa_category, ncol = 2) +
-#    theme(strip.text.x = element_blank()) +
-    labs(x = "Publication Year", y = "Number of Articles", title = "Number of Articles per OA host type (national level)") +
-    theme(legend.position = "right")
-```
-
-Again, we go one step further and look at sector specific OA proportions.
-
-```{r, fig.asp=0.5, fig.cap="OA shares per sector. The relationship between Gold OA (publisher), or Green OA (repository), and the total OA share is shown. Point sizes correspond to total publication output. Coloring is according to sector."}
-pubs_cat %>%
-  mutate(oa_category = factor(oa_category, levels = c("full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa"))) %>% 
-  mutate(oa_category = fct_collapse(oa_category,
-    journal_oa = c("full_oa_journal", "other_oa_journal"),
-    repo_oa = c("opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo"),
-    not_oa = "not_oa"
-  )) %>% 
-  group_by(sector) %>% 
-  mutate(n_total = n_distinct(PK_ITEMS)) %>% 
-  ungroup() %>%
-  group_by(sector, oa_category, n_total) %>% 
-  mutate(n_cat = n_distinct(PK_ITEMS),
-         share_cat = n_cat/n_total * 100) %>%
-  ungroup() %>% 
-  group_by(sector, oa_category, n_total, share_cat) %>% 
-  summarise() %>% 
-  pivot_wider(names_from = oa_category,
-              values_from = share_cat,
-              values_fill = list(share_cat = 0)) %>%
-  pivot_longer(cols = c("journal_oa", "repo_oa"), names_to = "oa_route", values_to = "share") %>% 
-  ggplot(aes(x = (100-not_oa), y = share)) +
-    geom_point(aes(color = fct_rev(fct_reorder(sector, n_total)), size = n_total)) + 
-    scale_color_brewer(palette = "Dark2", name = "Sectors", direction = -1) +
-    guides(size = "none") +
-    facet_wrap(~oa_route, labeller = labeller(oa_route = c("journal_oa" = "OA (publisher)", "repo_oa" = "OA (repository)"))) +
-    labs(x = "OA share (in %)", y = "OA share (in %)", title = "Open Access shares of research sectors in Germany") +
-    theme(legend.position = "right")
-```
-
-```{r, fig.asp=0.8, fig.cap="OA shares per category and sector. The relationship between OA shares of individual OA categories (as per schema in Table 1) and overall OA share is shown. Point sizes correspond to total publication output. Coloring is according to sector."}
-pubs_cat %>%
-  mutate(oa_category = factor(oa_category, levels = c("full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa"))) %>% 
-  group_by(sector) %>% 
-  mutate(n_total = n_distinct(PK_ITEMS)) %>% 
-  ungroup() %>%
-  group_by(sector, oa_category, n_total) %>% 
-  mutate(n_cat = n_distinct(PK_ITEMS),
-         share_cat = n_cat/n_total * 100) %>%
-  ungroup() %>% 
-  group_by(sector, oa_category, n_total, share_cat) %>% 
-  summarise() %>% 
-  pivot_wider(names_from = oa_category,
-              values_from = share_cat,
-              values_fill = list(share_cat = 0)) %>%
-  pivot_longer(cols = c("full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo"), names_to = "oa_route", values_to = "share") %>% 
-  mutate(oa_route = factor(oa_route, levels = c("full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo"))) %>% 
-  ggplot(aes(x = (100-not_oa), y = share)) +
-    geom_point(aes(color = fct_rev(fct_reorder(sector, n_total)), size = n_total)) + 
-    scale_color_brewer(palette = "Dark2", name = "Sectors", direction = -1) +
-    guides(size = "none") +
-    facet_wrap(~oa_route, ncol =2) +
-    labs(x = "OA share (in %)", y = "OA share (in %)", title = "Open Access shares of research sectors in Germany") +
-    theme(legend.position = "right")
+  pivot_longer(
+    cols = c(
+      "full_oa_journal",
+      "other_oa_journal",
+      "opendoar_inst",
+      "opendoar_subject",
+      "opendoar_other",
+      "other_repo"
+    ),
+    names_to = "oa_route",
+    values_to = "share"
+  ) %>%
+  mutate(oa_route = factor(
+    oa_route,
+    levels = c(
+      "full_oa_journal",
+      "other_oa_journal",
+      "opendoar_inst",
+      "opendoar_subject",
+      "opendoar_other",
+      "other_repo"
+    )
+  )) %>%
+  ggplot(aes(x = (1 - not_oa), y = share)) +
+  geom_point(aes(color = fct_rev(fct_reorder(sector, n_total)), size = n_total)) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
+  scale_x_continuous(labels = scales::percent_format(accuracy = 5L)) +
+  scale_color_brewer(palette = "Dark2",
+                     name = "Sectors",
+                     direction = -1) +
+  guides(size = "none") +
+  facet_wrap( ~ oa_route, ncol = 2) +
+  labs(x = "Overall OA percentage", y = "OA percentage by type") +
+  theme_minimal_grid() + 
+  theme(strip.text = element_text(face="bold")) +
+  theme(legend.position = "top", legend.justification = "right") 
 ```
 plot oa_cat_shares for single sector, order by total oa_share (state in facet titles); similar to above bar/line plots faceted by sector (with/without yearly development)
 
