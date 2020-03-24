@@ -55,7 +55,7 @@ The goal is to answer the three research questions
  First, we look at how the overall OA share developed over time. The following figure displays the number of publications associated with one of the German research institutions we considered and highlights they part that is freely accessible online according to Unpaywall over the considered time period from 2010 until 2018.
  
 ```{r, fig.cap="Open access to journal articles from German research institutions according to Unpaywall. Blue area represents journal articles with at least one freely available full-text, grey area represents toll-access articles."}
-pubs_cat %>%
+pubs_all <- pubs_cat %>%
   mutate(
     oa_category = fct_relevel(
       factor(oa_category),
@@ -81,8 +81,8 @@ pubs_cat %>%
     not_oa = "not_oa"
   ))  %>%
   group_by(PUBYEAR, oa_category) %>%
-  summarise(number_of_articles = n_distinct(PK_ITEMS)) %>%
-  ggplot(aes(x = PUBYEAR, y = number_of_articles)) +
+  summarise(number_of_articles = n_distinct(PK_ITEMS))
+  ggplot(pubs_all, aes(x = PUBYEAR, y = number_of_articles)) +
   geom_area(aes(fill = fct_rev(oa_category), group = fct_rev(oa_category)),  alpha = 0.8, colour = "white") +
   scale_fill_manual(
     values = c("#b3b3b3a0", "#56B4E9"),
@@ -381,10 +381,11 @@ pubs_cat %>%
   )) %>%
   ungroup() %>%
   mutate(PUBYEAR = lubridate::ymd(paste0(PUBYEAR, "-01-01"))) %>%
+  filter(oa_host != "Closed") %>%
   ggplot(aes(x = PUBYEAR, y = number_of_articles, group = oa_category)) +
   #    geom_line(aes(color = oa_category, linetype = oa_category), size = 0.7) +
+  geom_area(data = filter(pubs_all, oa_category == "is_oa"), aes(lubridate::ymd(paste0(PUBYEAR, "-01-01")), number_of_articles), fill = "#b3b3b3a0", color = "white", alpha = 0.2) +
   geom_line(aes(color = oa_category), size = 0.9) +
-  geom_point(aes(color = oa_category, size = 0.7)) +
   scale_color_OkabeIto(name = "OA Category", order = c(4, 1, 2, 3, 5, 7, 6)) +
  # scale_linetype_manual(
   #  name = "OA Host type",
