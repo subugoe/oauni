@@ -1,5 +1,8 @@
-# oa-german-inst
-OASE-OAUNI collaboration on the open access status of the publication output of German research institutions (universities, non-university research institutes, and federal and state institutions).
+# OA shares of German research institutions
+
+This study is a collaboration of BMBF-funded projects OASE and OAUNI on the open access status of the publication output of German research institutions (universities, non-university research institutes, and federal and state institutions).
+
+## Research Questions
 
 The goal is to answer the three research questions 
 
@@ -8,6 +11,8 @@ The goal is to answer the three research questions
 3) Which OA type is the most prevalent OA approach and can we identify different patterns of adoption to OA?
 
 The analyses we conducted are documented within this repository.
+
+## Structure of the repo
 
 The final analysis of the considered dataset is reported in [analysis.Rmd](analysis.Rmd)
 
