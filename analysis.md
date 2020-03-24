@@ -81,8 +81,6 @@ variability of OA shares within sectors made before.
 
 <img src="analysis_files/figure-gfm/unnamed-chunk-9-1.png" title="OA shares of German research institutions per sector. The color of the boxes corresponds to the total publication output of the sector, their widths to the number of institutions per sector. Gray points display the OA shares for individual institutions." alt="OA shares of German research institutions per sector. The color of the boxes corresponds to the total publication output of the sector, their widths to the number of institutions per sector. Gray points display the OA shares for individual institutions." width="90%" style="display: block; margin: auto;" />
 
-<img src="analysis_files/figure-gfm/unnamed-chunk-10-1.png" title="OA shares of German research institutions per sector. The width of the boxes corresponds to the number of institutions per sector. Gray points display the OA shares for individual institutions." alt="OA shares of German research institutions per sector. The width of the boxes corresponds to the number of institutions per sector. Gray points display the OA shares for individual institutions." width="90%" style="display: block; margin: auto;" />
-
 ### Prevalences of OA categories
 
   - oa categories on the national level (relative numbers); faceted /
@@ -105,7 +103,7 @@ before, the OA categories are not exclusive, that is, an article might
 be counted for several categories and numbers not necessarily sum up to
 the total number of articles published.
 
-<img src="analysis_files/figure-gfm/unnamed-chunk-11-1.png" title="Development of the total number of journal articles over time per OA category (as per schema in Table 1). Categories are non-exclusive, that is some articles may be counted for a journal and a repository category. Colors correspond to the OA category, linetypes to whether a publication is not OA (dotted), or is available through a repository (dashed) or a publisher (solid)." alt="Development of the total number of journal articles over time per OA category (as per schema in Table 1). Categories are non-exclusive, that is some articles may be counted for a journal and a repository category. Colors correspond to the OA category, linetypes to whether a publication is not OA (dotted), or is available through a repository (dashed) or a publisher (solid)." width="90%" style="display: block; margin: auto;" />
+<img src="analysis_files/figure-gfm/unnamed-chunk-10-1.png" title="Development of the total number of journal articles over time per OA category (as per schema in Table 1). Categories are non-exclusive, that is some articles may be counted for a journal and a repository category. Colors correspond to the OA category, linetypes to whether a publication is not OA (dotted), or is available through a repository (dashed) or a publisher (solid)." alt="Development of the total number of journal articles over time per OA category (as per schema in Table 1). Categories are non-exclusive, that is some articles may be counted for a journal and a repository category. Colors correspond to the OA category, linetypes to whether a publication is not OA (dotted), or is available through a repository (dashed) or a publisher (solid)." width="90%" style="display: block; margin: auto;" />
 Observations:
 
   - drop in other oa journal -\> Delayed OA
@@ -119,18 +117,12 @@ relative numbers?
 
 Or as barplot?
 
-<img src="analysis_files/figure-gfm/unnamed-chunk-12-1.png" title="Development of the total number of journal articles over time per OA category (as per schema in Table 1). Categories are non-exclusive, that is some articles may be counted for a journal and a repository category." alt="Development of the total number of journal articles over time per OA category (as per schema in Table 1). Categories are non-exclusive, that is some articles may be counted for a journal and a repository category." width="90%" style="display: block; margin: auto;" />
-
 Faceted?
-
-<img src="analysis_files/figure-gfm/unnamed-chunk-13-1.png" title="Development of the number of journal articles per OA category (as per schema in Table 1) in comparison to the total number of journal articles published by the considered institutions over time. Categories are non-exclusive, that is some articles may be counted for a journal and a repository category." alt="Development of the number of journal articles per OA category (as per schema in Table 1) in comparison to the total number of journal articles published by the considered institutions over time. Categories are non-exclusive, that is some articles may be counted for a journal and a repository category." width="90%" style="display: block; margin: auto;" />
 
 Again, we go one step further and look at sector specific OA
 proportions.
 
-<img src="analysis_files/figure-gfm/unnamed-chunk-14-1.png" title="OA shares per sector. The relationship between Gold OA (publisher), or Green OA (repository), and the total OA share is shown. Point sizes correspond to total publication output. Coloring is according to sector." alt="OA shares per sector. The relationship between Gold OA (publisher), or Green OA (repository), and the total OA share is shown. Point sizes correspond to total publication output. Coloring is according to sector." width="90%" style="display: block; margin: auto;" />
-
-<img src="analysis_files/figure-gfm/unnamed-chunk-15-1.png" title="OA shares per category and sector. The relationship between OA shares of individual OA categories (as per schema in Table 1) and overall OA share is shown. Point sizes correspond to total publication output. Coloring is according to sector." alt="OA shares per category and sector. The relationship between OA shares of individual OA categories (as per schema in Table 1) and overall OA share is shown. Point sizes correspond to total publication output. Coloring is according to sector." width="90%" style="display: block; margin: auto;" />
+<img src="analysis_files/figure-gfm/unnamed-chunk-11-1.png" title="OA shares per category and sector. The relationship between OA shares of individual OA categories (as per schema in Table 1) and overall OA share is shown. Point sizes correspond to total publication output. Coloring is according to sector." alt="OA shares per category and sector. The relationship between OA shares of individual OA categories (as per schema in Table 1) and overall OA share is shown. Point sizes correspond to total publication output. Coloring is according to sector." width="90%" style="display: block; margin: auto;" />
 plot oa\_cat\_shares for single sector, order by total oa\_share (state
 in facet titles); similar to above bar/line plots faceted by sector
 (with/without yearly development)
@@ -138,9 +130,9 @@ in facet titles); similar to above bar/line plots faceted by sector
 Lookin at the institutional level, we, again, only consider institutions
 with at least 100 publications in the observed time period of 9 years.
 
-<img src="analysis_files/figure-gfm/unnamed-chunk-16-1.png" title="OA shares per OA category for individual research institutions. The relationship between OA shares of individual OA categories (as per schema in Table 1) and overall OA share is shown." alt="OA shares per OA category for individual research institutions. The relationship between OA shares of individual OA categories (as per schema in Table 1) and overall OA share is shown." width="90%" style="display: block; margin: auto;" />
+<img src="analysis_files/figure-gfm/unnamed-chunk-12-1.png" title="OA shares per OA category for individual research institutions. The relationship between OA shares of individual OA categories (as per schema in Table 1) and overall OA share is shown." alt="OA shares per OA category for individual research institutions. The relationship between OA shares of individual OA categories (as per schema in Table 1) and overall OA share is shown." width="90%" style="display: block; margin: auto;" />
 
-<img src="analysis_files/figure-gfm/unnamed-chunk-17-1.png" title="OA shares per sector and OA category for individual institutions. The relationship between OA shares of individual OA categories and overall OA share is shown." alt="OA shares per sector and OA category for individual institutions. The relationship between OA shares of individual OA categories and overall OA share is shown." width="90%" style="display: block; margin: auto;" />
+<img src="analysis_files/figure-gfm/unnamed-chunk-13-1.png" title="OA shares per sector and OA category for individual institutions. The relationship between OA shares of individual OA categories and overall OA share is shown." alt="OA shares per sector and OA category for individual institutions. The relationship between OA shares of individual OA categories and overall OA share is shown." width="90%" style="display: block; margin: auto;" />
 
 ### Discussion
 
