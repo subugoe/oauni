@@ -61,7 +61,21 @@ pubs_wos_upw %>%
 ```
 
 
+## Fulltext links occuring for multiple dois
+
+How many locations in total? 
+
+```{r}
+upw_evidence %>% 
+  filter(is_oa == TRUE) %>% 
+  group_by(url_for_landing_page, url_for_pdf) %>% 
+  summarise(n = n_distinct(upw_doi)) %>% 
+  arrange(desc(n))
+
+```
+
 ## Number of Full-Text links per OA Article 
+
 How many OA DOIs have more than one OA location?
 
 ```{r}

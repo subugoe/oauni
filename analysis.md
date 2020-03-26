@@ -165,21 +165,21 @@ of OA categories in our dataset.
 
 Keeping in mind that our categories are non-exclusive, as just shown, we
 now visualise the number of articles per category on the national level,
-that is, not differentiated by
+that is, without differentiation by
 sector.
 
 <div class="figure" style="text-align: center">
 
-<img src="analysis_files/figure-gfm/unnamed-chunk-11-1.png" alt="Development of the total number of journal articles over time per OA category (as per schema in Table 1). Categories are non-exclusive, that is some articles may be counted for a journal and a repository category. Colors correspond to the OA category, linetypes to whether a publication is not OA (dotted), or is available through a repository (dashed) or a publisher (solid)." width="90%" />
+<img src="analysis_files/figure-gfm/unnamed-chunk-11-1.png" alt="Development of the percentage of journal articles per OA category (as per schema in Table 1) over time. Categories are non-exclusive, that is some articles may be counted for more than one category. Colors correspond to the OA category. Grey area displays the total percentage of OA publications. On the left, access provided via a publisher is highlighted, on the right via repositories. " width="90%" />
 
 <p class="caption">
 
-Development of the total number of journal articles over time per OA
-category (as per schema in Table 1). Categories are non-exclusive, that
-is some articles may be counted for a journal and a repository category.
-Colors correspond to the OA category, linetypes to whether a publication
-is not OA (dotted), or is available through a repository (dashed) or a
-publisher (solid).
+Development of the percentage of journal articles per OA category (as
+per schema in Table 1) over time. Categories are non-exclusive, that is
+some articles may be counted for more than one category. Colors
+correspond to the OA category. Grey area displays the total percentage
+of OA publications. On the left, access provided via a publisher is
+highlighted, on the right via repositories.
 
 </p>
 
@@ -199,14 +199,14 @@ proportions.
 
 <div class="figure" style="text-align: center">
 
-<img src="analysis_files/figure-gfm/unnamed-chunk-12-1.png" alt="OA shares per category and sector. The relationship between OA shares of individual OA categories (as per schema in Table 1) and overall OA share is shown. Point sizes correspond to total publication output. Coloring is according to sector." width="90%" />
+<img src="analysis_files/figure-gfm/unnamed-chunk-12-1.png" alt="OA shares per category and sector. The relationship between OA shares of individual OA categories (as per schema in Table 1) and overall OA share is shown. Coloring and shape is according to sector. Sizes of shapes correspond to total publication output." width="90%" />
 
 <p class="caption">
 
 OA shares per category and sector. The relationship between OA shares of
 individual OA categories (as per schema in Table 1) and overall OA share
-is shown. Point sizes correspond to total publication output. Coloring
-is according to sector.
+is shown. Coloring and shape is according to sector. Sizes of shapes
+correspond to total publication output.
 
 </p>
 
