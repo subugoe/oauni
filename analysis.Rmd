@@ -39,6 +39,23 @@ In this document we describe the analysis of our sample of publications from Ger
 
 ```{r}
 pubs_cat <- readr::read_csv("data/pubs_cat.csv", col_types = "dccdcclc")
+pubs_cat <- pubs_cat %>% 
+  mutate(sec_abbr = case_when(
+            sector == "Hochschulen" ~ "UNI",
+            sector == "Helmholtz-Gemeinschaft" ~ "HGF",
+            sector == "Max-Planck-Gesellschaft" ~ "MPG",
+            sector == "Leibniz-Gemeinschaft" ~ "WGL",
+            sector == "Fraunhofer-Gesellschaft" ~ "FhG",
+            sector == "Ressortforschung" ~ "ReF"
+          ),
+        sector = case_when(
+            sector == "Hochschulen" ~ "Universities",
+            sector == "Helmholtz-Gemeinschaft" ~ "Helmholtz Association",
+            sector == "Max-Planck-Gesellschaft" ~ "Max Planck Society",
+            sector == "Leibniz-Gemeinschaft" ~ "Leibniz Association",
+            sector == "Fraunhofer-Gesellschaft" ~ "Fraunhofer Society",
+            sector == "Ressortforschung" ~ "Ressortforschung"
+        ))
 ```
 
 
@@ -312,13 +329,14 @@ pubs_cat %>%
   ungroup() %>%
   left_join(oa_shares, by = 'INST_NAME') %>%
   filter(n_total > 100) %>% 
-  group_by(INST_NAME, sector, oa_share, sector_cat, n_sector) %>%
+  group_by(INST_NAME, sector, oa_share, sector_cat, n_sector, sec_abbr) %>%
   summarise() %>%
-  ggplot(aes(x = reorder(sector, n_sector), y = oa_share)) +
+  ggplot(aes(x = reorder(sec_abbr, n_sector), y = oa_share)) +
   geom_boxplot(aes(color = sector_cat), varwidth = FALSE, size = 1) +
   geom_jitter(alpha = 0.1) +
   scale_y_continuous(labels = scales::percent_format(accuracy = 5L),
-                     expand = expansion(mult = c(0, 0.05))) +
+                     expand = expansion(mult = c(0, 0.05)),
+                     limits = c(0, 1)) +
   coord_flip()  +
   scale_color_manual(
     values = c("#f68f46ff", "#a65c85ff", "#253582ff"),
@@ -366,82 +384,9 @@ As mentioned in the previous chapters, there are several ways of providing open 
 ```
 
 
-Keeping in mind that our categories are non-exclusive, as just shown, we now visualise the number of articles per category on the national level, that is, not differentiated by sector.
+Keeping in mind that our categories are non-exclusive, as just shown, we now visualise the number of articles per category on the national level, that is, without differentiation by sector.
 
-```{r, fig.cap="Development of the total number of journal articles over time per OA category (as per schema in Table 1). Categories are non-exclusive, that is some articles may be counted for a journal and a repository category. Colors correspond to the OA category, linetypes to whether a publication is not OA (dotted), or is available through a repository (dashed) or a publisher (solid)."}
-# n_cat <- pubs_cat %>% 
-#   group_by(PUBYEAR, oa_category) %>% 
-#   summarise(n = n_distinct(PK_ITEMS))%>%
-#   ungroup() %>% 
-#   mutate(PUBYEAR = lubridate::ymd(paste0(PUBYEAR, "-01-01")))
-pubs_cat %>%
-  group_by(PUBYEAR, oa_category) %>%
-  summarise(number_of_articles = n_distinct(PK_ITEMS)) %>%
-  mutate(
-    oa_category = fct_relevel(
-      factor(oa_category),
-      "full_oa_journal",
-      "other_oa_journal",
-      "opendoar_inst",
-      "opendoar_subject",
-      "opendoar_other",
-      "other_repo",
-      "not_oa"
-    )
-  ) %>%
-  mutate(oa_host = fct_collapse(
-    oa_category,
-    `Publisher OA` = c("full_oa_journal", "other_oa_journal"),
-    `Repository OA` = c(
-      "opendoar_inst",
-      "opendoar_subject",
-      "opendoar_other",
-      "other_repo"
-    ),
-    `Closed` = "not_oa"
-  )) %>%
-  ungroup() %>%
-  mutate(PUBYEAR = lubridate::ymd(paste0(PUBYEAR, "-01-01"))) %>%
-  filter(oa_host != "Closed") %>%
-  ggplot(aes(x = PUBYEAR, y = number_of_articles, group = oa_category)) +
-  #    geom_line(aes(color = oa_category, linetype = oa_category), size = 0.7) +
-  geom_line(aes(color = oa_category), size = 0.9) +
-  scale_color_OkabeIto(name = "OA Category", order = c(4, 1, 2, 3, 5, 7, 6)) +
- # scale_linetype_manual(
-  #  name = "OA Host type",
-  #  values = c(1, 2, 3),
-  #  labels = c("OA (publisher)", "OA (repository)", " Not OA")
-  # ) +
-  gghighlight::gghighlight(label_params = list(alpha = 0.8, force = 10, direction = "y", hjust = 1, segment.color = NA)) +
-#  gghighlight::gghighlight(use_direct_label = FALSE) +
-#  geom_label(aes(x = lubridate::ymd("2018-01-01"), y = c(22000, 15000, 15000, 35000, 2000, 10000), label = oa_category, color = oa_category)) +
-  geom_area(data = filter(pubs_all, oa_category == "is_oa"), aes(lubridate::ymd(paste0(PUBYEAR, "-01-01")), number_of_articles), fill = "#cccccca0", color = "white", alpha = 0.2) +
-  facet_wrap(~ oa_host) +
-  labs(x = "Publication Year", y = "Total Articles") +
-  theme_minimal_hgrid() +
-  scale_x_date(date_labels = "%y") +
-  scale_y_continuous(
-    labels = scales::number_format(big.mark = ","),
-    expand = expansion(mult = c(0, 0.05)),
-    breaks =  scales::extended_breaks(n = 6),
-    limits = c(0,60000)
-    ) +
-  theme(legend.position = "none") +
-  # bold facet labels
-  theme(strip.text = element_text(face = "bold"))
-# +
-#   ggsave("lineplot.png", width = 6, height = 4)
-```
-Observations:
-
-- drop in other oa journal -> Delayed OA
-- slight drop in other_repo -> more sources registered, published more in registered sources
-- apart from this: all OA categories increase, not oa decreases
-- most prevalent category: subject-specific repos, registered with OpenDOAR
-
-relative numbers:
-
-```{r, fig.cap="Development of the total number of journal articles over time per OA category (as per schema in Table 1). Categories are non-exclusive, that is some articles may be counted for a journal and a repository category. Colors correspond to the OA category, linetypes to whether a publication is not OA (dotted), or is available through a repository (dashed) or a publisher (solid)."}
+```{r, fig.cap="Development of the percentage of journal articles per OA category (as per schema in Table 1) over time. Categories are non-exclusive, that is some articles may be counted for more than one category. Colors correspond to the OA category. Grey area displays the total percentage of OA publications. On the left, access provided via a publisher is highlighted, on the right via repositories. "}
 # n_cat <- pubs_cat %>% 
 #   group_by(PUBYEAR, oa_category) %>% 
 #   summarise(n = n_distinct(PK_ITEMS))%>%
@@ -484,19 +429,19 @@ pubs_cat %>%
   ggplot(aes(x = PUBYEAR, y = prop, group = oa_category)) +
   #    geom_line(aes(color = oa_category, linetype = oa_category), size = 0.7) +
   geom_line(aes(color = oa_category), size = 0.9) +
-  scale_color_OkabeIto(name = "OA Category", order = c(4, 1, 2, 3, 5, 7, 6)) +
+  scale_color_OkabeIto(name = "OA Category", order = c(4, 1, 2, 3, 5, 7, 6), darken = 0.11) +
  # scale_linetype_manual(
   #  name = "OA Host type",
   #  values = c(1, 2, 3),
   #  labels = c("OA (publisher)", "OA (repository)", " Not OA")
   # ) +
-  gghighlight::gghighlight(label_params = list(alpha = 0.8, force = 10, direction = "y", hjust = 1, segment.color = NA)) +
-#  gghighlight::gghighlight(use_direct_label = FALSE) +
-#  geom_label(aes(x = lubridate::ymd("2018-01-01"), y = c(22000, 15000, 15000, 35000, 2000, 10000), label = oa_category, color = oa_category)) +
+  gghighlight::gghighlight(label_params = list(alpha = 0.8, force = 10, direction = "y", hjust = 1, segment.color = NA, fontface = 'bold')) +
   geom_area(data = filter(pubs_all, oa_category == "is_oa"), aes(lubridate::ymd(paste0(PUBYEAR, "-01-01")), number_of_articles/n_total_year), fill = "#cccccca0", color = "white", alpha = 0.2) +
-  scale_y_continuous(labels = scales::percent_format(accuracy = 5L)) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 5L),
+                     expand = expansion(mult = c(0, 0.05)),
+                     breaks =  scales::extended_breaks(n = 6)) +
   facet_wrap(~ oa_host) +
-  labs(x = "Publication Year", y = "Total Articles") +
+  labs(x = "Publication Year", y = "OA percentage") +
   theme_minimal_hgrid() +
   scale_x_date(date_labels = "%y") +
   theme(legend.position = "none") +
@@ -504,10 +449,16 @@ pubs_cat %>%
   theme(strip.text = element_text(face = "bold")) +
   ggsave("lineplot_rel.png", width = 6, height = 4)
 ```
+Observations:
+
+- drop in other oa journal -> Delayed OA
+- slight drop in other_repo -> more sources registered, published more in registered sources
+- apart from this: all OA categories increase, not oa decreases
+- most prevalent category: subject-specific repos, registered with OpenDOAR
 
 Again, we go one step further and look at sector specific OA proportions.
 
-```{r, fig.asp=1, fig.cap="OA shares per category and sector. The relationship between OA shares of individual OA categories (as per schema in Table 1) and overall OA share is shown. Point sizes correspond to total publication output. Coloring is according to sector."}
+```{r, fig.asp=1, fig.cap="OA shares per category and sector. The relationship between OA shares of individual OA categories (as per schema in Table 1) and overall OA share is shown. Coloring and shape is according to sector. Sizes of shapes correspond to total publication output."}
 pubs_cat %>%
   mutate(oa_category = factor(
     oa_category,
@@ -528,7 +479,7 @@ pubs_cat %>%
   mutate(n_cat = n_distinct(PK_ITEMS),
          share_cat = n_cat / n_total) %>%
   ungroup() %>%
-  group_by(sector, oa_category, n_total, share_cat) %>%
+  group_by(sector, oa_category, n_total, share_cat, sec_abbr) %>%
   summarise() %>%
   pivot_wider(
     names_from = oa_category,
@@ -559,32 +510,31 @@ pubs_cat %>%
     )
   )) %>%
   ggplot(aes(x = (1 - not_oa), y = share)) +
-  geom_point(aes(color = fct_rev(fct_reorder(sector, n_total)), size = n_total)) +
+  geom_point(aes(color = fct_rev(fct_reorder(sec_abbr, n_total)),
+                 size = n_total,
+                 shape = fct_rev(fct_reorder(sec_abbr, n_total)),
+                 stroke = 1
+                 )) +
   scale_y_continuous(labels = scales::percent_format(accuracy = 5L), 
-                     expand = expansion(mult = c(0.2, 0.2)),
-                     breaks = c(0, 0.1, 0.2, 0.3, 0.4, 0.5)) +
-  scale_x_continuous(labels = scales::percent_format(accuracy = 5L)) +
-  scale_color_brewer(palette = "Set2",
+ #                    expand = expansion(mult = c(0.2, 0.2)),
+                     breaks = c(0, 0.1, 0.2, 0.3, 0.4, 0.5),
+                     limits = c(0, 0.55)) +
+  scale_x_continuous(labels = scales::percent_format(accuracy = 5L),
+                     breaks = c(0.2, 0.3, 0.4, 0.5, 0.6, 0.7),
+                     limits = c(0.2, 0.75)) +
+  scale_color_brewer(palette = "Dark2",
                      direction = -1,
                      name = "Sectors"
                      ) +
   guides(size = "none") +
-  scale_size_continuous(range = c(3, 10)) +
-  # scale_size_manual(values = c(4:9),
-  #                       name = "Sectors",
-  #                       labels = c("740098" = "Hochschulen",
-  #                                  "121223" = "Helmholtz-Gemeinschaft",
-  #                                  "93701" = "Max-Plank-Gesellschaft",
-  #                                  "56684" = "Leibniz-Gemeinschaft",
-  #                                  "25092" = "Ressortforschung",
-  #                                  "14505" = "Fraunhofer-Gemeinschaft")
-  #                       ) +
+  scale_size_continuous(range = c(3, 8)) +
+  scale_shape_manual(values = c(8, 7, 9, 10, 12, 13), name = "Sectors") +
   facet_wrap( ~ oa_route, ncol = 2) +
   labs(x = "Overall OA percentage", y = "OA percentage by type") +
   theme_minimal_grid() + 
   theme(strip.text = element_text(face="bold")) +
   theme(legend.position = "top", legend.justification = "right") +
-  guides(color = guide_legend(nrow = 3, byrow = TRUE))
+  guides(color = guide_legend(override.aes = list(size=3))) 
 ```
 
   
