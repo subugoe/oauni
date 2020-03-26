@@ -1,6 +1,7 @@
 <!-- TOC -->
 
 - [Minutes of Meetings and Calls](#minutes-of-meetings-and-calls)
+  - [Minutes of Call 26 March 2020](#minutes-of-call-26-march-2020)
   - [Minutes of Call 5 March 2020](#minutes-of-call-5-march-2020)
   - [Minutes of Call 8 January 2020](#minutes-of-call-8-january-2020)
   - [Minutes of Call 18 Dec 2019](#minutes-of-call-18-dec-2019)
@@ -14,6 +15,35 @@
 <!-- /TOC -->
 
 # Minutes of Meetings and Calls
+
+## Minutes of Call 26 March 2020
+
+Participants
+-----
+- Philipp
+- Niels
+- Najko
+- Anne
+
+Agenda
+-----
+
+- include subject specific analysis?
+  - on level of institutions
+  - decided to make it part of the discussion and future research
+  - mention it when describing the plot on sectorwise OA share (unis much narrower bands)
+- include life sciences explicitly in introduction
+- names of sectors
+  - English versions and abbreviations to be set by Niels in section on research sectors
+  - adjust plots accordingly
+- additional flow chart for data gathering in methodology section (Anne)
+- supplement
+  - additional tables with explicit numbers for all/most of the plots
+  - institution specific indicators for all institutions (Spreadsheet)
+  
+To Do for everybody:
+ - interpretation of results to be discussed next week
+  
 
 ## Minutes of Call 5 March 2020
 
