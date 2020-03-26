@@ -511,9 +511,10 @@ pubs_cat %>%
   )) %>%
   ggplot(aes(x = (1 - not_oa), y = share)) +
   geom_point(aes(color = fct_rev(fct_reorder(sec_abbr, n_total)),
-                 size = n_total,
+#                 size = n_total,
                  shape = fct_rev(fct_reorder(sec_abbr, n_total)),
-                 stroke = 1
+                 stroke = 1,
+                 size = 4
                  )) +
   scale_y_continuous(labels = scales::percent_format(accuracy = 5L), 
  #                    expand = expansion(mult = c(0.2, 0.2)),
@@ -527,7 +528,7 @@ pubs_cat %>%
                      name = "Sectors"
                      ) +
   guides(size = "none") +
-  scale_size_continuous(range = c(3, 8)) +
+#  scale_size_continuous(range = c(3, 8)) +
   scale_shape_manual(values = c(8, 7, 9, 10, 12, 13), name = "Sectors") +
   facet_wrap( ~ oa_route, ncol = 2) +
   labs(x = "Overall OA percentage", y = "OA percentage by type") +
