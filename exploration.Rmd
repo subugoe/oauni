@@ -62,10 +62,34 @@ pubs_wos_upw %>%
 
 
 ## Number of Full-Text links per OA Article 
+How many OA DOIs have more than one OA location?
+
 ```{r}
-oa_fxt_count <- pubs_wos_upw %>% 
+upw_evidence %>% 
+  filter(is_oa == TRUE) %>% 
+  group_by(upw_doi) %>% 
+  summarise(n_oa_loc = n()) %>% 
+  group_by(n_oa_loc > 1) %>% 
+  count() %>% 
+  mutate(prop = n / sum(.$n))
+```
+How many OA DOIs have more than one OA category according to our schema?
+
+```{r}
+pubs_cat %>% 
+  filter(oa_category != "not_oa") %>% 
+  group_by(DOI) %>% 
+  summarise(n_oa_cat = n_distinct(oa_category)) %>% 
+  group_by(n_oa_cat > 1) %>% 
+  count() %>% 
+  mutate(prop = n / sum(.$n))
+```
+
+
+```{r}
+oa_fxt_count <- upw_evidence %>% 
   filter(!is.na(host_type)) %>%
-  group_by(DOI) %>%
+  group_by(upw_doi) %>%
   mutate(n_oa_versions = n()) %>%
   ungroup() %>%
   group_by(DOI, n_oa_versions, host_type) %>%
