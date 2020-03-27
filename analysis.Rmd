@@ -405,7 +405,7 @@ Observations:
 - most prevalent category: subject-specific repos, registered with OpenDOAR
 
 Again, we go one step further and look at sector specific OA proportions.
-```{r, fig.asp=1}
+```{r, fig.asp=1, fig.cap="OA shares per category and sector. Coloring displays the percentage in the respective category, size of the points corresponds to the total publication output. The rightmost column shows the overall OA share of the sectors, the bottom row percentage of articles in the corresponding category regardless of the sector (on the national level)."}
 oa_shares_sector <-pubs_cat %>% 
   mutate(n_total = n_distinct(PK_ITEMS)) %>% 
   group_by(sec_abbr) %>%
