@@ -170,7 +170,7 @@ sector.
 
 <div class="figure" style="text-align: center">
 
-<img src="analysis_files/figure-gfm/unnamed-chunk-11-1.png" alt="Development of the percentage of journal articles per OA category (as per schema in Table 1) over time. Categories are non-exclusive, that is some articles may be counted for more than one category. Colors correspond to the OA category. Grey area displays the total percentage of OA publications. On the left, access provided via a publisher is highlighted, on the right via repositories. " width="90%" />
+<img src="analysis_files/figure-gfm/unnamed-chunk-12-1.png" alt="Development of the percentage of journal articles per OA category (as per schema in Table 1) over time. Categories are non-exclusive, that is some articles may be counted for more than one category. Colors correspond to the OA category. Grey area displays the total percentage of OA publications. On the left, access provided via a publisher is highlighted, on the right via repositories. " width="90%" />
 
 <p class="caption">
 
@@ -196,10 +196,11 @@ Observations:
 
 Again, we go one step further and look at sector specific OA
 proportions.
+<img src="analysis_files/figure-gfm/unnamed-chunk-13-1.png" width="90%" style="display: block; margin: auto;" />
 
 <div class="figure" style="text-align: center">
 
-<img src="analysis_files/figure-gfm/unnamed-chunk-12-1.png" alt="OA shares per category and sector. The relationship between OA shares of individual OA categories (as per schema in Table 1) and overall OA share is shown. Coloring and shape is according to sector. Sizes of shapes correspond to total publication output." width="90%" />
+<img src="analysis_files/figure-gfm/unnamed-chunk-14-1.png" alt="OA shares per category and sector. The relationship between OA shares of individual OA categories (as per schema in Table 1) and overall OA share is shown. Coloring and shape is according to sector. Sizes of shapes correspond to total publication output." width="90%" />
 
 <p class="caption">
 
