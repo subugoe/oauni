@@ -199,27 +199,7 @@ proportions.
 
 <div class="figure" style="text-align: center">
 
-<img src="analysis_files/figure-gfm/unnamed-chunk-13-1.png" alt="OA shares per category and sector. Coloring displays the percentage in the respective category, size of the points corresponds to the total publication output. Grey numbers display the percentage value explicitly. The bottom row shows the overall OA share of the sectors, the rightmost column the percentage of articles in the corresponding category regardless of the sector (on the national level)." width="90%" />
-
-<p class="caption">
-
-OA shares per category and sector. Coloring displays the percentage in
-the respective category, size of the points corresponds to the total
-publication output. Grey numbers display the percentage value
-explicitly. The bottom row shows the overall OA share of the sectors,
-the rightmost column the percentage of articles in the corresponding
-category regardless of the sector (on the national level).
-
-</p>
-
-</div>
-
-size according to share as
-well:
-
-<div class="figure" style="text-align: center">
-
-<img src="analysis_files/figure-gfm/unnamed-chunk-14-1.png" alt="OA shares per category and sector. Coloring and size of the points displays the percentage in the respective category. Grey numbers display the percentage value explicitly. The bottom row shows the overall OA share of the sectors, the rightmost column the percentage of articles in the corresponding category regardless of the sector (on the national level)." width="90%" />
+<img src="analysis_files/figure-gfm/unnamed-chunk-13-1.png" alt="OA shares per category and sector. Coloring and size of the points displays the percentage in the respective category. Grey numbers display the percentage value explicitly. The bottom row shows the overall OA share of the sectors, the rightmost column the percentage of articles in the corresponding category regardless of the sector (on the national level). Ordering of the sectors is according to total publication output for the entire sector (highest: universities, lowest: Fraunhofer Society)." width="90%" />
 
 <p class="caption">
 
@@ -228,22 +208,9 @@ displays the percentage in the respective category. Grey numbers display
 the percentage value explicitly. The bottom row shows the overall OA
 share of the sectors, the rightmost column the percentage of articles in
 the corresponding category regardless of the sector (on the national
-level).
-
-</p>
-
-</div>
-
-<div class="figure" style="text-align: center">
-
-<img src="analysis_files/figure-gfm/unnamed-chunk-15-1.png" alt="OA shares per category and sector. The relationship between OA shares of individual OA categories (as per schema in Table 1) and overall OA share is shown. Coloring and shape is according to sector. Sizes of shapes correspond to total publication output." width="90%" />
-
-<p class="caption">
-
-OA shares per category and sector. The relationship between OA shares of
-individual OA categories (as per schema in Table 1) and overall OA share
-is shown. Coloring and shape is according to sector. Sizes of shapes
-correspond to total publication output.
+level). Ordering of the sectors is according to total publication output
+for the entire sector (highest: universities, lowest: Fraunhofer
+Society).
 
 </p>
 
