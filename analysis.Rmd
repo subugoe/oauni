@@ -287,7 +287,6 @@ oa_shares_inst_sector_stats <- oa_shares_inst_sector %>%
 The following figure displays scatterplots where the OA share of an institution over the whole time period is shown with respect to its publication output.
 
 ```{r, fig.asp=1, fig.cap="Open Access shares of research institutions in Germany with respect to their total publication output grouped by the sector they belong to. Only institutions with at least 100 publications are shown. Blue points correspond to single insitutions, gray lines are obained by linear regression within the sector, gray areas are pointwise symmetric 95% t-distribution confidence bands. Scales of the x-axes vary across subplots in order to adapt to the different publication volumes. Dashed lines show the median value per sector for the OA share (red) and the total number of publications (orange)."}
-
 oa_shares_inst_sector %>% 
   filter(n_total >= 100) %>%
   left_join(oa_shares_inst_sector_stats, by = "sector") %>%
@@ -384,8 +383,63 @@ As mentioned in the previous chapters, there are several ways of providing open 
 
 
 Keeping in mind that our categories are non-exclusive, as just shown, we now visualise the number of articles per category on the national level, that is, without differentiation by sector.
+```{r}
+host_overlap <- pubs_cat %>%
+  filter(oa_category != "not_oa") %>%
+  mutate(oa_host = fct_collapse(
+    oa_category,
+    publisher = c("full_oa_journal", "other_oa_journal"),
+    repository = c(
+      "opendoar_inst",
+      "opendoar_subject",
+      "opendoar_other",
+      "other_repo"
+    )
+  )) %>%
+  mutate(oa_host = as.character(oa_host)) %>%
+  select(PK_ITEMS, oa_host) %>%
+  distinct() %>%
+  arrange(PK_ITEMS, oa_host) %>% 
+  aggregate(oa_host ~ PK_ITEMS, data = ., paste, collapse = "&")
 
-```{r, fig.cap="Development of the percentage of journal articles per OA category (as per schema in Table 1) over time. Categories are non-exclusive, that is some articles may be counted for more than one category. Colors correspond to the OA category. Grey area displays the total percentage of OA publications. On the left, access provided via a publisher is highlighted, on the right via repositories. "}
+  pubs_cat %>%
+  filter(oa_category != "not_oa") %>% 
+  left_join(host_overlap, by = "PK_ITEMS") %>% 
+  mutate(oa_host = case_when(
+    oa_host == "publisher" ~ "Publisher OA only",
+    oa_host == "repository" ~ "Repository OA only",
+    oa_host == "publisher&repository" ~ "Publisher & Repository OA"
+  )) %>% 
+  mutate(oa_host = factor(oa_host, levels = c("Publisher OA only", "Publisher & Repository OA", "Repository OA only"))) %>% 
+  group_by(PUBYEAR, oa_host) %>% 
+  summarise(number_of_articles = n_distinct(PK_ITEMS)) %>% 
+  ggplot(aes(x = PUBYEAR, y = number_of_articles)) +
+    geom_area(data = filter(pubs_oa_year, oa_category == "is_oa"), aes(fill = "All OA Articles"), alpha = 0.8, colour = "white") +
+    geom_area(aes(fill = "by Host"), alpha = 0.8, colour = "white") +
+    scale_fill_manual(
+      values = c("#cccccca0", "#56b4e9"),
+      name = NULL
+    ) +
+    facet_wrap( ~ oa_host) +
+    labs(x = "Publication Year", y = "Total Articles") +
+    scale_y_continuous(
+      labels = scales::number_format(big.mark = ","),
+      expand = expansion(mult = c(0, 0.05)),
+      breaks =  scales::extended_breaks()
+      ) + 
+    labs(x = "Publication Year", y = "Total Articles") +
+    theme(legend.position = "top",
+          legend.justification = "right") +
+    theme_minimal_hgrid() +
+    # bold facet names
+    theme(strip.text = element_text(face="bold")) +
+     theme(legend.position = "top",
+           legend.justification = "right")
+
+```
+
+
+```{r, fig.cap="Development of the percentage of journal articles per OA category (as per schema in Table 1) over time. Categories are non-exclusive, that is some articles may be counted for more than one category. Colors correspond to the OA category. On the left, access provided via a publisher is highlighted, on the right via repositories. Grey area displays the total percentage of OA via the corresponding route (publisher or repository). "}
 pubs_cat %>%
   group_by(PUBYEAR) %>% 
   mutate(n_total = n_distinct(PK_ITEMS)) %>% 
@@ -416,8 +470,8 @@ pubs_cat %>%
                                                  hjust = 1,
                                                  segment.color = NA,
                                                  fontface = 'bold')) +
-    geom_area(data = filter(pubs_oa_year, oa_category == "is_oa"),
-              aes(lubridate::ymd(paste0(PUBYEAR, "-01-01")), number_of_articles/n_total_year),
+     geom_area(data = oa_shares_host_cat,
+              aes(lubridate::ymd(paste0(PUBYEAR, "-01-01")), share_host, group = "none"),
               fill = "#cccccca0", color = "white", alpha = 0.2) +
     scale_y_continuous(labels = scales::percent_format(accuracy = 5L),
                        expand = expansion(mult = c(0, 0.05)),
@@ -499,6 +553,17 @@ ggplot(oa_shares_sector, aes(x = fct_rev(fct_recode(fct_relevel(fct_reorder(sec_
 Generate tables for export:
 ```{r}
 oa_shares_sector %>% 
+  mutate(oa_host = fct_collapse(
+    oa_category,
+    `Publisher OA` = c("full_oa_journal", "other_oa_journal"),
+    `Repository OA` = c(
+      "opendoar_inst",
+      "opendoar_subject",
+      "opendoar_other",
+      "other_repo"
+    ),
+    `Not OA` = not_oa
+  )) %>%
   pivot_wider(names_from = oa_category, values_from = share) %>% 
   left_join(distinct(select(pubs_cat, sector, sec_abbr))) %>% 
   select(-sec_abbr) %>% 
@@ -523,6 +588,9 @@ for(secname in unique(pubs_cat$sec_abbr)){
     readr::write_csv(paste0("data/export_tables/table_oa_cat_inst_", secname,".csv"))
 }
 ```
+```{r}
+#rm(oa_shares_inst, oa_shares_inst_sector, oa_shares_inst_sector_stats, oa_shares_sector, pubs_oa_year, pubs_oa_year_sec)
+```
 
 ### Discussion
 
@@ -531,22 +599,22 @@ for(secname in unique(pubs_cat$sec_abbr)){
 In order to demonstrate the prevalence of evidence categories in Unpaywall, we load the original, non-categorized Unpaywall data:
 
 ```{r}
-# upw_evidence <- readr::read_csv("data/upw_evidence.csv")
-# upw_ev_cat <- upw_evidence %>% 
-#   mutate(upw_matched = ifelse(is.na(upw_doi), FALSE, TRUE)) %>% 
-#   filter(is_paratext == FALSE | is.na(is_paratext))
+upw_evidence <- readr::read_csv("data/upw_evidence.csv")
+upw_ev_cat <- upw_evidence %>%
+  mutate(upw_matched = ifelse(is.na(upw_doi), FALSE, TRUE)) %>%
+  filter(is_paratext == FALSE | is.na(is_paratext))
 # rm(upw_evidence)
 ```
 
 We now determine the evidence combinations for all matched DOIs and then calculate the frequency of each combination found.
 
 ```{r}
-# upw_ev_cat <- upw_ev_cat %>% 
-#   filter(upw_matched == TRUE) %>%
-#   select(upw_doi, evidence) %>% 
-#   distinct() %>% 
-#   arrange(upw_doi, evidence) %>% 
-#   aggregate(evidence ~ upw_doi, data = ., paste, collapse = "&")
+upw_ev_cat <- upw_ev_cat %>%
+  filter(upw_matched == TRUE) %>%
+  select(upw_doi, evidence) %>%
+  distinct() %>%
+  arrange(upw_doi, evidence) %>%
+  aggregate(evidence ~ upw_doi, data = ., paste, collapse = "&")
 # upw_ev_cat_n <- upw_ev_cat %>% 
 #   group_by(evidence) %>% 
 #   summarise(n = n_distinct(upw_doi))
