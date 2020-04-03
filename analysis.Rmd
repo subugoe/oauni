@@ -103,7 +103,14 @@ pubs_oa_year <- pubs_cat %>%
   ungroup() %>% 
   group_by(PUBYEAR, oa_category, n_total_year) %>%
   summarise(number_of_articles = n_distinct(PK_ITEMS))
-  ggplot(pubs_oa_year, aes(x = PUBYEAR, y = number_of_articles)) +
+
+pubs_oa_year %>% 
+  pivot_wider(names_from = oa_category, values_from = number_of_articles) %>% 
+  mutate(oa_share = is_oa/n_total_year) %>% 
+  select(-not_oa) %>% 
+  readr::write_csv("data/export_tables/table_fig_is_oa.csv")
+
+ggplot(pubs_oa_year, aes(x = PUBYEAR, y = number_of_articles)) +
     geom_area(aes(fill = fct_rev(oa_category), group = fct_rev(oa_category)),  alpha = 0.8, colour = "white") +
     scale_fill_manual(
       values = c("#cccccca0", "#56b4e9"),
@@ -191,6 +198,32 @@ pubs_cat %>%
     theme(strip.text = element_text(face="bold")) +
      theme(legend.position = "top",
            legend.justification = "right")
+```
+
+Generate corresponding table:
+```{r}
+pubs_cat %>%
+  mutate(oa_category = fct_collapse(
+    oa_category,
+    is_oa = c(
+      "full_oa_journal",
+      "other_oa_journal",
+      "opendoar_inst",
+      "opendoar_subject",
+      "opendoar_other",
+      "other_repo"
+    ),
+    not_oa = "not_oa"
+  ))  %>%
+  group_by(sector, PUBYEAR) %>%
+  mutate(n_total = n_distinct(PK_ITEMS)) %>%
+  ungroup() %>%
+  group_by(sector, PUBYEAR, oa_category, n_total) %>%
+  summarise(number_of_articles = n_distinct(PK_ITEMS)) %>%
+  pivot_wider(names_from = oa_category, values_from = number_of_articles) %>% 
+  mutate(oa_share = is_oa/n_total) %>% 
+  select(-not_oa) %>%
+  readr::write_csv("data/export_tables/table_fig_is_oa_sec.csv")
 ```
 
 In order to investigate the variability of OA publishing within the sectors, we now go one level deeper and examine OA shares of individual institutions, grouped by the sector they belong to. We only include institututions with a publication output of at least 100 publications in the observed time period of 9 years. Of the `r pubs_cat %>% summarise(n = n_distinct(INST_NAME)) %>% .$n` institutions in total, `r pubs_cat %>% group_by(INST_NAME) %>% mutate(n_total = n_distinct(PK_ITEMS)) %>% ungroup() %>% filter(n_total >= 100) %>% summarise(n = n_distinct(INST_NAME)) %>% .$n` fulfill this condition. This means, that in the following institution specific analyses, `r pubs_cat %>% group_by(INST_NAME) %>% mutate(n_total = n_distinct(PK_ITEMS)) %>% ungroup() %>% filter(n_total < 100) %>% summarise(n = n_distinct(INST_NAME)) %>% .$n` insitutions, or `r pubs_cat %>% group_by(INST_NAME) %>% mutate(n_total = n_distinct(PK_ITEMS)) %>% ungroup() %>% filter(n_total < 100) %>% summarise(n = n_distinct(PK_ITEMS)) %>% .$n` articles are not considered. Of the remaining institutions, we first calculate the individual OA shares.
@@ -462,6 +495,33 @@ ggplot(oa_shares_sector, aes(x = fct_rev(fct_recode(fct_relevel(fct_reorder(sec_
   theme(legend.position = "top", legend.justification = "right") +
   theme(legend.direction = "horizontal", legend.box = "vertical") +
   theme(strip.text = element_text(face="bold"))
+```
+Generate tables for export:
+```{r}
+oa_shares_sector %>% 
+  pivot_wider(names_from = oa_category, values_from = share) %>% 
+  left_join(distinct(select(pubs_cat, sector, sec_abbr))) %>% 
+  select(-sec_abbr) %>% 
+  select(sector, everything()) %>% 
+  mutate( sector = replace_na(sector, "All sectors")) %>%
+  readr::write_csv("data/export_tables/table_fig_oa_cat_sec.csv")
+for(secname in unique(pubs_cat$sec_abbr)){
+  pubs_cat %>% 
+    filter(sec_abbr == secname) %>%
+    group_by(INST_NAME) %>% 
+    mutate(n_total = n_distinct(PK_ITEMS)) %>% 
+    ungroup() %>% 
+    group_by(INST_NAME, sector, sec_abbr, n_total, oa_category) %>% 
+    summarise(n_cat = n_distinct(PK_ITEMS)) %>%
+    ungroup() %>% 
+    mutate(share = n_cat / n_total) %>%
+    select(- c(n_cat, sector, sec_abbr)) %>% 
+    pivot_wider(names_from = oa_category, values_from = share, values_fill = list(share = 0)) %>% 
+    mutate(is_oa = 1 - not_oa) %>% 
+    select(-not_oa) %>% 
+    select(INST_NAME, n_total, is_oa, everything()) %>% 
+    readr::write_csv(paste0("data/export_tables/table_oa_cat_inst_", secname,".csv"))
+}
 ```
 
 ### Discussion
