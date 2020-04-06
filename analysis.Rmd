@@ -277,6 +277,7 @@ oa_shares_inst_sector <- pubs_cat %>%
 
 oa_shares_inst_sector_stats <- oa_shares_inst_sector %>% 
   ungroup() %>% 
+  filter(n_total >= 100) %>% 
   group_by(sector) %>% 
   summarise(mean_oa_share = mean(oa_share), 
             median_oa_share = median(oa_share),
