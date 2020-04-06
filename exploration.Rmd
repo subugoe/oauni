@@ -157,13 +157,14 @@ oa_fxt_count %>%
 ### Repository analysis using OpenDOAR
 
 ```{r}
- repo_df <- pubs_wos_upw %>% 
+upw_evidence <- readr::read_csv("data/upw_evidence.csv")
+ repo_df <- upw_evidence %>% 
   distinct() %>%
   filter(host_type == "repository") %>%
   mutate(url_domain = domain(url_for_pdf)) %>%
   mutate(url_domain = gsub("www.", "", url_domain)) %>%
   mutate(landing_domain = domain(url_for_landing_page)) %>%
-  mutate(landing_domain = gsub("www.", "", url_domain))
+  mutate(landing_domain = gsub("www.", "", landing_domain))
 ```
 
 ```{r}
@@ -206,12 +207,18 @@ repo_df %>%
 
 ```{r}
 repo_df %>%
-  group_by(url_domain) %>%
+  mutate(domains = case_when(
+    is.na(url_domain) && is.na(landing_domain) ~ NA_character_,
+    is.na(url_domain) ~ landing_domain,
+    TRUE ~ url_domain
+  )) %>% 
+  group_by(domains) %>%
   summarise(n = n()) %>%
   mutate(prop = n / sum(n) * 100) %>%
   arrange(desc(n)) %>%
-  head(20) %>%
-  knitr::kable()
+#  head(20) %>%
+#  knitr::kable()
+  readr::write_csv("data/repo_domain_counts.csv")
 ```
 
 ```{r}
@@ -225,6 +232,27 @@ repo_df %>%
   ungroup() %>% 
   write_csv("data/german_unis_url_matching.csv")
 ```
+## Special role of MPG
+
+```{r}
+pubs_cat_details <- readr::read_csv("data/pubs_cat_details.csv")
+pubs_cat_details %>% 
+  filter(sector == "Max-Planck-Gesellschaft",
+#         host_type == "repository") %>% 
+         oa_category == "opendoar_subject") %>% 
+  mutate(domains = case_when(
+    is.na(pdf_domain) && is.na(landing_domain) ~ NA_character_,
+    is.na(pdf_domain) ~ landing_domain,
+    TRUE ~ pdf_domain
+  )) %>% 
+  group_by(domains) %>%
+  summarise(n = n()) %>%
+  mutate(prop = n / sum(n) * 100) %>%
+  arrange(desc(n)) %>%
+ head(20) %>%
+ knitr::kable()
+```
+
 
 ## Institutional details
 
