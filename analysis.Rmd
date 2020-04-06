@@ -98,17 +98,12 @@ pubs_oa_year <- pubs_cat %>%
     ),
     not_oa = "not_oa"
   ))  %>%
+  mutate(PUBYEAR = lubridate::ymd(paste0(PUBYEAR, "-01-01"))) %>% 
   group_by(PUBYEAR) %>% 
   mutate(n_total_year = n_distinct(PK_ITEMS)) %>% 
   ungroup() %>% 
   group_by(PUBYEAR, oa_category, n_total_year) %>%
   summarise(number_of_articles = n_distinct(PK_ITEMS))
-
-pubs_oa_year %>% 
-  pivot_wider(names_from = oa_category, values_from = number_of_articles) %>% 
-  mutate(oa_share = is_oa/n_total_year) %>% 
-  select(-not_oa) %>% 
-  readr::write_csv("data/export_tables/table_fig_is_oa.csv")
 
 ggplot(pubs_oa_year, aes(x = PUBYEAR, y = number_of_articles)) +
     geom_area(aes(fill = fct_rev(oa_category), group = fct_rev(oa_category)),  alpha = 0.8, colour = "white") +
@@ -131,22 +126,6 @@ ggplot(pubs_oa_year, aes(x = PUBYEAR, y = number_of_articles)) +
 
 As can be seen, the total number of articles, as well as the part that is OA increases constantly over time. The number of articles that are not openly available, is quite stable with a slow increase from `r pubs_cat %>% filter(oa_category == "not_oa") %>% group_by(PUBYEAR) %>% summarise(n = n_distinct(PK_ITEMS)) %>% filter(PUBYEAR == 2010) %>% .$n` in 2010 to `r pubs_cat %>% filter(oa_category == "not_oa") %>% group_by(PUBYEAR) %>% summarise(n = n_distinct(PK_ITEMS)) %>% filter(PUBYEAR == 2013) %>% .$n` in 2013, and decreasing again continuously from that point onwards to `r pubs_cat %>% filter(oa_category == "not_oa") %>% group_by(PUBYEAR) %>% summarise(n = n_distinct(PK_ITEMS)) %>% filter(PUBYEAR == 2018) %>% .$n`  publications in 2018. Since the number of OA articles increases continuously from `r pubs_cat %>% filter(oa_category != "not_oa") %>% group_by(PUBYEAR) %>% summarise(n = n_distinct(PK_ITEMS)) %>% filter(PUBYEAR == 2010) %>% .$n` publications in 2010 to `r pubs_cat %>% filter(oa_category != "not_oa") %>% group_by(PUBYEAR) %>% summarise(n = n_distinct(PK_ITEMS)) %>% filter(PUBYEAR == 2018) %>% .$n` in 2018, the relative proportion of OA articles rises significantly from `r round(pubs_cat %>% filter(oa_category != "not_oa") %>% group_by(PUBYEAR) %>% summarise(n = n_distinct(PK_ITEMS)) %>% filter(PUBYEAR == 2010) %>% .$n/pubs_cat %>% group_by(PUBYEAR) %>% summarise(n = n_distinct(PK_ITEMS)) %>% filter(PUBYEAR == 2010) %>% .$n, 4)*100` % in 2010 to `r round(pubs_cat %>% filter(oa_category != "not_oa") %>% group_by(PUBYEAR) %>% summarise(n = n_distinct(PK_ITEMS)) %>% filter(PUBYEAR == 2018) %>% .$n/pubs_cat %>% group_by(PUBYEAR) %>% summarise(n = n_distinct(PK_ITEMS)) %>% filter(PUBYEAR == 2018) %>% .$n, 4)*100` % in 2018.
 
-```{r,eval=FALSE}
-pubs_oa_year %>% 
-  select(PUBYEAR, oa_category, number_of_articles) %>% 
-  pivot_wider(names_from = oa_category,
-              values_from = number_of_articles
-              ) %>% 
-  knitr::kable(
-    col.names = c(
-      "Publication Year",
-      "OA",
-      "Not OA"
-    ),
-    big.mark = ",",
-    caption = "Number of articles that are openly accessible (OA) or not (Not OA) per year."
-  )
-```
 
 ### Differences between sectors
 
@@ -200,31 +179,6 @@ pubs_cat %>%
            legend.justification = "right")
 ```
 
-Generate corresponding table:
-```{r}
-pubs_cat %>%
-  mutate(oa_category = fct_collapse(
-    oa_category,
-    is_oa = c(
-      "full_oa_journal",
-      "other_oa_journal",
-      "opendoar_inst",
-      "opendoar_subject",
-      "opendoar_other",
-      "other_repo"
-    ),
-    not_oa = "not_oa"
-  ))  %>%
-  group_by(sector, PUBYEAR) %>%
-  mutate(n_total = n_distinct(PK_ITEMS)) %>%
-  ungroup() %>%
-  group_by(sector, PUBYEAR, oa_category, n_total) %>%
-  summarise(number_of_articles = n_distinct(PK_ITEMS)) %>%
-  pivot_wider(names_from = oa_category, values_from = number_of_articles) %>% 
-  mutate(oa_share = is_oa/n_total) %>% 
-  select(-not_oa) %>%
-  readr::write_csv("data/export_tables/table_fig_is_oa_sec.csv")
-```
 
 In order to investigate the variability of OA publishing within the sectors, we now go one level deeper and examine OA shares of individual institutions, grouped by the sector they belong to. We only include institututions with a publication output of at least 100 publications in the observed time period of 9 years. Of the `r pubs_cat %>% summarise(n = n_distinct(INST_NAME)) %>% .$n` institutions in total, `r pubs_cat %>% group_by(INST_NAME) %>% mutate(n_total = n_distinct(PK_ITEMS)) %>% ungroup() %>% filter(n_total >= 100) %>% summarise(n = n_distinct(INST_NAME)) %>% .$n` fulfill this condition. This means, that in the following institution specific analyses, `r pubs_cat %>% group_by(INST_NAME) %>% mutate(n_total = n_distinct(PK_ITEMS)) %>% ungroup() %>% filter(n_total < 100) %>% summarise(n = n_distinct(INST_NAME)) %>% .$n` insitutions, or `r pubs_cat %>% group_by(INST_NAME) %>% mutate(n_total = n_distinct(PK_ITEMS)) %>% ungroup() %>% filter(n_total < 100) %>% summarise(n = n_distinct(PK_ITEMS)) %>% .$n` articles are not considered. Of the remaining institutions, we first calculate the individual OA shares.
 
@@ -332,7 +286,7 @@ pubs_cat %>%
   )) %>%
   ungroup() %>%
   left_join(oa_shares_inst, by = 'INST_NAME') %>%
-  filter(n_total > 100) %>% 
+  filter(n_total >= 100) %>% 
   group_by(INST_NAME, sector, oa_share, sector_cat, n_sector, sec_abbr) %>%
   summarise() %>%
   ggplot(aes(x = fct_reorder(sec_abbr, n_sector), y = oa_share)) +
@@ -383,8 +337,9 @@ As mentioned in the previous chapters, there are several ways of providing open 
 ```
 
 
-Keeping in mind that our categories are non-exclusive, as just shown, we now visualise the number of articles per category on the national level, that is, without differentiation by sector.
-```{r}
+Keeping in mind that our categories are non-exclusive, as just shown, we now visualise the number of articles per category on the national level, that is, without differentiation by sector. As a first step, we investigate the two main OA routes via publisher or via repository.
+
+```{r, fig.asp = 0.4, fig.cap="Development of the number of articles per OA host type and their overlap. Highlighted in blue are the number of articles per OA host type with articles made available only via the publisher on the left, articles available only in repositories on the right and the overlap, that is, articles openly accessible via both a publisher hosted platform and a repository, in the middle. Grey Area shows the remaining OA articles."}
 host_overlap <- pubs_cat %>%
   filter(oa_category != "not_oa") %>%
   mutate(oa_host = fct_collapse(
@@ -405,15 +360,17 @@ host_overlap <- pubs_cat %>%
 
   pubs_cat %>%
   filter(oa_category != "not_oa") %>% 
+  mutate(PUBYEAR = lubridate::ymd(paste0(PUBYEAR, "-01-01"))) %>% 
   left_join(host_overlap, by = "PK_ITEMS") %>% 
   mutate(oa_host = case_when(
-    oa_host == "publisher" ~ "Publisher OA only",
-    oa_host == "repository" ~ "Repository OA only",
-    oa_host == "publisher&repository" ~ "Publisher & Repository OA"
+    oa_host == "publisher" ~ "Publisher only",
+    oa_host == "repository" ~ "Repository only",
+    oa_host == "publisher&repository" ~ "Publisher & Repository"
   )) %>% 
-  mutate(oa_host = factor(oa_host, levels = c("Publisher OA only", "Publisher & Repository OA", "Repository OA only"))) %>% 
+  mutate(oa_host = factor(oa_host, levels = c("Publisher only", "Publisher & Repository", "Repository only"))) %>% 
   group_by(PUBYEAR, oa_host) %>% 
   summarise(number_of_articles = n_distinct(PK_ITEMS)) %>% 
+    ungroup() %>% 
   ggplot(aes(x = PUBYEAR, y = number_of_articles)) +
     geom_area(data = filter(pubs_oa_year, oa_category == "is_oa"), aes(fill = "All OA Articles"), alpha = 0.8, colour = "white") +
     geom_area(aes(fill = "by Host"), alpha = 0.8, colour = "white") +
@@ -428,6 +385,7 @@ host_overlap <- pubs_cat %>%
       expand = expansion(mult = c(0, 0.05)),
       breaks =  scales::extended_breaks()
       ) + 
+    scale_x_date(date_labels = "%y") +
     labs(x = "Publication Year", y = "Total Articles") +
     theme(legend.position = "top",
           legend.justification = "right") +
@@ -436,11 +394,31 @@ host_overlap <- pubs_cat %>%
     theme(strip.text = element_text(face="bold")) +
      theme(legend.position = "top",
            legend.justification = "right")
-
 ```
 
 
 ```{r, fig.cap="Development of the percentage of journal articles per OA category (as per schema in Table 1) over time. Categories are non-exclusive, that is some articles may be counted for more than one category. Colors correspond to the OA category. On the left, access provided via a publisher is highlighted, on the right via repositories. Grey area displays the total percentage of OA via the corresponding route (publisher or repository). "}
+oa_shares_host <- pubs_cat %>%
+  mutate(PUBYEAR = lubridate::ymd(paste0(PUBYEAR, "-01-01"))) %>% 
+  group_by(PUBYEAR) %>% 
+  mutate(n_total = n_distinct(PK_ITEMS)) %>% 
+  ungroup() %>% 
+  filter(oa_category != "not_oa") %>% 
+  mutate(oa_host = fct_collapse(
+    oa_category,
+    `Publisher OA` = c("full_oa_journal", "other_oa_journal"),
+    `Repository OA` = c(
+      "opendoar_inst",
+      "opendoar_subject",
+      "opendoar_other",
+      "other_repo"
+    )
+  )) %>%
+  group_by(PUBYEAR, oa_host, n_total) %>% 
+  summarise(n_host = n_distinct(PK_ITEMS)) %>% 
+  mutate(share = n_host/n_total) %>% 
+  ungroup()
+  
 pubs_cat %>%
   group_by(PUBYEAR) %>% 
   mutate(n_total = n_distinct(PK_ITEMS)) %>% 
@@ -471,8 +449,8 @@ pubs_cat %>%
                                                  hjust = 1,
                                                  segment.color = NA,
                                                  fontface = 'bold')) +
-     geom_area(data = oa_shares_host_cat,
-              aes(lubridate::ymd(paste0(PUBYEAR, "-01-01")), share_host, group = "none"),
+     geom_area(data = oa_shares_host,
+              aes(PUBYEAR, share, group = "none"),
               fill = "#cccccca0", color = "white", alpha = 0.2) +
     scale_y_continuous(labels = scales::percent_format(accuracy = 5L),
                        expand = expansion(mult = c(0, 0.05)),
@@ -553,24 +531,139 @@ ggplot(oa_shares_sector, aes(x = fct_rev(fct_recode(fct_relevel(fct_reorder(sec_
 ```
 Generate tables for export:
 ```{r}
-oa_shares_sector %>% 
+## Total articles per year
+pubs_oa_year %>% 
+  left_join(oa_shares_host, by = c("PUBYEAR")) %>% 
+  select(-n_total, -share) %>% 
+  pivot_wider(names_from = oa_category, values_from = number_of_articles) %>% 
+  mutate(oa_share = is_oa/n_total_year) %>% 
+  select(-not_oa) %>% 
+    pivot_wider(names_from = oa_host, values_from = n_host) %>% 
+    mutate(`Proportion of Publisher OA` = `Publisher OA` / n_total_year,
+           `Proportion of Repository OA` = `Repository OA` / n_total_year) %>% 
+  ungroup() %>% 
+  mutate(PUBYEAR = lubridate::year(PUBYEAR)) %>% 
+  readr::write_csv("data/export_tables/table_fig_is_oa.csv")
+
+## Total articles per year and sector
+pubs_cat %>%
   mutate(oa_host = fct_collapse(
     oa_category,
-    `Publisher OA` = c("full_oa_journal", "other_oa_journal"),
-    `Repository OA` = c(
+    publisher = c("full_oa_journal", "other_oa_journal"),
+    repository = c(
+      "opendoar_inst",
+      "opendoar_subject",
+      "opendoar_other",
+      "other_repo"
+    )
+  )) %>%
+  mutate(oa_category = fct_collapse(
+    oa_category,
+    is_oa = c(
+      "full_oa_journal",
+      "other_oa_journal",
       "opendoar_inst",
       "opendoar_subject",
       "opendoar_other",
       "other_repo"
     ),
-    `Not OA` = not_oa
+    not_oa = "not_oa"
+  ))  %>%
+  group_by(sector, PUBYEAR) %>%
+  mutate(n_total = n_distinct(PK_ITEMS)) %>%
+  ungroup() %>%
+  group_by(sector, PUBYEAR, oa_category) %>%
+  mutate(number_of_articles = n_distinct(PK_ITEMS)) %>%
+  ungroup() %>% 
+  group_by(sector, PUBYEAR, oa_host, n_total, oa_category, number_of_articles) %>% 
+  summarise(n_host = n_distinct(PK_ITEMS)) %>% 
+  ungroup() %>% 
+  filter(oa_category != "not_oa") %>% 
+    pivot_wider(names_from = oa_category, values_from = number_of_articles) %>% 
+  mutate(oa_share = is_oa/n_total) %>% 
+  pivot_wider(names_from = oa_host, values_from = n_host) %>% 
+  mutate(publisher_share = publisher / n_total,
+         repo_share = repository / n_total) %>% 
+  readr::write_csv("data/export_tables/table_fig_is_oa_sec.csv")
+
+## sector per category
+oa_shares_host_sec <-pubs_cat %>% 
+  mutate(oa_host = fct_collapse(
+    oa_category,
+    publisher = c("full_oa_journal", "other_oa_journal"),
+    repository = c(
+      "opendoar_inst",
+      "opendoar_subject",
+      "opendoar_other",
+      "other_repo"
+    )
   )) %>%
-  pivot_wider(names_from = oa_category, values_from = share) %>% 
+  mutate(n_total = n_distinct(PK_ITEMS)) %>% 
+  group_by(sec_abbr) %>%
+  mutate(n_sec = n_distinct(PK_ITEMS)) %>%
+  ungroup() %>%
+  filter(oa_host !="not_oa") %>% 
+  group_by(oa_host) %>% 
+  mutate(n_host = n_distinct(PK_ITEMS)) %>% 
+  ungroup() %>% 
+  group_by(sec_abbr, oa_host, n_sec, n_host, n_total) %>%
+  mutate(n_sec_host = n_distinct(PK_ITEMS),
+         share_sec_host = n_sec_host / n_sec,
+         share_host = n_host / n_total) %>%
+  ungroup() %>% 
+  group_by(sec_abbr, oa_host, n_sec, share_sec_host, share_host, n_total) %>%
+  summarise() %>%
+  ungroup() %>% 
+  pivot_longer(cols = c("share_sec_host", "n_sec"),
+               names_to = "fig_type",
+               values_to = "fig_val") %>% 
+  pivot_wider(names_from = sec_abbr,
+              values_from = fig_val) %>% 
+  mutate(all_sec = case_when(
+    fig_type == "share_sec_host" ~ share_host,
+    TRUE ~  as.double(n_total)
+  )) %>% 
+  select(-share_host, -n_total) %>% 
+  pivot_longer(cols = c("FhG", "HGF", "MPG", "ReF", "UNI", "WGL", "all_sec"),
+               names_to = "sec_abbr",
+               values_to = "fig_val") %>% 
+  pivot_wider(names_from = fig_type,
+              values_from = fig_val) %>% 
+  select(-n_sec)
+
+oa_shares_sector %>% 
+  left_join(oa_shares_host_sec, by = "sec_abbr") %>% 
+  pivot_wider(names_from = oa_host, values_from = share_sec_host) %>%
+  pivot_wider(names_from = oa_category, values_from = share) %>%
   left_join(distinct(select(pubs_cat, sector, sec_abbr))) %>% 
   select(-sec_abbr) %>% 
-  select(sector, everything()) %>% 
   mutate( sector = replace_na(sector, "All sectors")) %>%
+  select(sector, n_sec, all_oa, publisher, repository, everything()) %>% 
   readr::write_csv("data/export_tables/table_fig_oa_cat_sec.csv")
+
+## institutions per sector and category
+oa_share_host_inst <- pubs_cat %>% 
+  group_by(INST_NAME) %>% 
+  mutate(n_total = n_distinct(PK_ITEMS)) %>% 
+  ungroup() %>% 
+  mutate(oa_host = fct_collapse(
+    oa_category,
+    publisher = c("full_oa_journal", "other_oa_journal"),
+    repository = c(
+      "opendoar_inst",
+      "opendoar_subject",
+      "opendoar_other",
+      "other_repo"
+    )
+  )) %>%
+  filter(oa_host != "not_oa") %>% 
+  group_by(INST_NAME, oa_host, n_total) %>% 
+  summarise(n_host = n_distinct(PK_ITEMS)) %>% 
+  mutate(share = n_host /n_total) %>% 
+  ungroup() %>% 
+  select(-n_host, -n_total) %>% 
+  pivot_wider(names_from = oa_host, values_from = share, values_fill = list(share = 0))
+
 for(secname in unique(pubs_cat$sec_abbr)){
   pubs_cat %>% 
     filter(sec_abbr == secname) %>%
@@ -585,7 +678,10 @@ for(secname in unique(pubs_cat$sec_abbr)){
     pivot_wider(names_from = oa_category, values_from = share, values_fill = list(share = 0)) %>% 
     mutate(is_oa = 1 - not_oa) %>% 
     select(-not_oa) %>% 
-    select(INST_NAME, n_total, is_oa, everything()) %>% 
+    left_join(oa_share_host_inst, by = "INST_NAME") %>% 
+    mutate(publisher = replace_na(publisher, 0),
+           repository = replace_na(repository, 0)) %>% 
+    select(INST_NAME, n_total, is_oa, publisher, repository, everything()) %>% 
     readr::write_csv(paste0("data/export_tables/table_oa_cat_inst_", secname,".csv"))
 }
 ```
