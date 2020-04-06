@@ -365,9 +365,9 @@ host_overlap <- pubs_cat %>%
   mutate(oa_host = case_when(
     oa_host == "publisher" ~ "Publisher only",
     oa_host == "repository" ~ "Repository only",
-    oa_host == "publisher&repository" ~ "Publisher & Repository"
+    oa_host == "publisher&repository" ~ "Publisher &\n Repository"
   )) %>% 
-  mutate(oa_host = factor(oa_host, levels = c("Publisher only", "Publisher & Repository", "Repository only"))) %>% 
+  mutate(oa_host = factor(oa_host, levels = c("Publisher only", "Publisher &\n Repository", "Repository only"))) %>% 
   group_by(PUBYEAR, oa_host) %>% 
   summarise(number_of_articles = n_distinct(PK_ITEMS)) %>% 
     ungroup() %>% 
@@ -444,7 +444,7 @@ pubs_cat %>%
     geom_line(aes(color = oa_category), size = 0.9) +
     scale_color_OkabeIto(name = "OA Category", order = c(4, 1, 2, 3, 5, 7, 6), darken = 0.11) +
     gghighlight::gghighlight(label_params = list(alpha = 0.8,
-                                                 force = 10,
+                                                 force = 15,
                                                  direction = "y",
                                                  hjust = 1,
                                                  segment.color = NA,
@@ -461,7 +461,7 @@ pubs_cat %>%
     scale_x_date(date_labels = "%y") +
     theme(legend.position = "none") +
     # bold facet labels
-    theme(strip.text = element_text(face = "bold")) # + ggsave("lineplot_rel.png", width = 6, height = 4)
+    theme(strip.text = element_text(face = "bold"))  + ggsave("lineplot_rel.png", width = 6, height = 4)
 ```
 Observations:
 
@@ -686,7 +686,7 @@ for(secname in unique(pubs_cat$sec_abbr)){
 }
 ```
 
-```{r}
+```{r, eval=FALSE}
 rm(oa_shares_inst, oa_shares_inst_sector, oa_shares_inst_sector_stats, oa_shares_sector, pubs_oa_year, host_overlap, oa_share_host_inst, oa_shares_host, oa_shares_host_sec)
 ```
 
