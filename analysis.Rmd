@@ -530,7 +530,7 @@ ggplot(oa_shares_sector, aes(x = fct_rev(fct_recode(fct_relevel(fct_reorder(sec_
   theme(strip.text = element_text(face="bold"))
 ```
 Generate tables for export:
-```{r}
+```{r, eval=FALSE}
 ## Total articles per year
 pubs_oa_year %>% 
   left_join(oa_shares_host, by = c("PUBYEAR")) %>% 
@@ -685,8 +685,9 @@ for(secname in unique(pubs_cat$sec_abbr)){
     readr::write_csv(paste0("data/export_tables/table_oa_cat_inst_", secname,".csv"))
 }
 ```
+
 ```{r}
-#rm(oa_shares_inst, oa_shares_inst_sector, oa_shares_inst_sector_stats, oa_shares_sector, pubs_oa_year, pubs_oa_year_sec)
+rm(oa_shares_inst, oa_shares_inst_sector, oa_shares_inst_sector_stats, oa_shares_sector, pubs_oa_year, host_overlap, oa_share_host_inst, oa_shares_host, oa_shares_host_sec)
 ```
 
 ### Discussion
@@ -695,7 +696,7 @@ for(secname in unique(pubs_cat$sec_abbr)){
 
 In order to demonstrate the prevalence of evidence categories in Unpaywall, we load the original, non-categorized Unpaywall data:
 
-```{r}
+```{r, eval=FALSE}
 upw_evidence <- readr::read_csv("data/upw_evidence.csv")
 upw_ev_cat <- upw_evidence %>%
   mutate(upw_matched = ifelse(is.na(upw_doi), FALSE, TRUE)) %>%
@@ -705,32 +706,32 @@ upw_ev_cat <- upw_evidence %>%
 
 We now determine the evidence combinations for all matched DOIs and then calculate the frequency of each combination found.
 
-```{r}
+```{r, eval=FALSE}
 upw_ev_cat <- upw_ev_cat %>%
   filter(upw_matched == TRUE) %>%
   select(upw_doi, evidence) %>%
   distinct() %>%
   arrange(upw_doi, evidence) %>%
   aggregate(evidence ~ upw_doi, data = ., paste, collapse = "&")
-# upw_ev_cat_n <- upw_ev_cat %>% 
-#   group_by(evidence) %>% 
-#   summarise(n = n_distinct(upw_doi))
-# upw_ev_cat_n %>% 
-#   arrange(desc(n))
-# upw_ev_cat_n %>% 
-#   readr::write_csv("data/upw_ev_cat.csv")
+upw_ev_cat_n <- upw_ev_cat %>%
+  group_by(evidence) %>%
+  summarise(n = n_distinct(upw_doi))
+upw_ev_cat_n %>%
+  arrange(desc(n))
+upw_ev_cat_n %>%
+  readr::write_csv("data/upw_ev_cat.csv")
 ```
 We now prepare the data for plotting with the UpSetR package and visualise the overlapping evidence categories.
 
-```{r}
-# library(UpSetR)
-# # list with countsa
-# upw_ev_upset_list <- as.list(upw_ev_cat_n$n)
-# # categories as list names
-# names(upw_ev_upset_list) <- upw_ev_cat_n$evidence
-# # convert to vector
-# evidence_categories_upset_expr <- unlist(upw_ev_upset_list)
-# upset(fromExpression(evidence_categories_upset_expr), nsets = 7, nintersects = 15, order.by = "freq", show.numbers = FALSE, set_size.angles = 25)
+```{r, eval=FALSE}
+library(UpSetR)
+# list with countsa
+upw_ev_upset_list <- as.list(upw_ev_cat_n$n)
+# categories as list names
+names(upw_ev_upset_list) <- upw_ev_cat_n$evidence
+# convert to vector
+evidence_categories_upset_expr <- unlist(upw_ev_upset_list)
+upset(fromExpression(evidence_categories_upset_expr), nsets = 7, nintersects = 15, order.by = "freq", show.numbers = FALSE, set_size.angles = 25)
 
 ```
 
