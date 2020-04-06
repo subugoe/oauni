@@ -326,6 +326,18 @@ sample_rows %>%
   readr::write_csv("data/sample_manual_check_2.csv")
 ```
 
+Explore registration agencies of the unmatched DOIs:
+```{r}
+unmatched_dois <- readr::read_csv("data/unmatched_dois_agency.csv")
+unmatched_dois %>% 
+  group_by(doi_agency_label) %>% 
+  summarise(n = n_distinct(doi)) %>% 
+  arrange(desc(n)) %>% 
+  mutate(doi_agency_label = replace_na(doi_agency_label, "No agency found")) %>% 
+  readr::write_csv("data/unmatched_dois_agency_counts.csv")
+```
+
+
 ## Comparison of matching strategies
 
 After the first validation we updated the matching strategy regarding OpenDOAR information. Here, we want to briefly investigate the effects of this change in procedure.
