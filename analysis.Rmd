@@ -71,6 +71,14 @@ pubs_cat <- pubs_cat %>%
     )
 ```
 
+## Exlcude institutions from university sector which are not listed in official statistics
+
+```{r}
+excl_from_analysis <- readr::read_csv("data/exclude_from_analysis.csv")
+pubs_cat <- pubs_cat %>% 
+  anti_join(excl_from_analysis, by = c("INST_NAME" = "Universitäten"))
+```
+
 
 ## Investigation of research questions
 
@@ -82,7 +90,8 @@ The goal is to answer the three research questions
 
 ### OA fraction of the German publication output
  
- First, we look at how the overall OA share developed over time. The following figure displays the number of publications associated with one of the German research institutions we considered and highlights they part that is freely accessible online according to Unpaywall over the considered time period from 2010 until 2018.
+First, we look at how the overall OA share developed over time. The following figure displays the number of publications associated with one of the German research institutions we considered and highlights they part that is freely accessible online according to Unpaywall over the considered time period from 2010 until 2018. The total number of articles over the whole period is `r sum(pubs_oa_year$number_of_articles)` with an overall OA share of `r round(sum(pubs_oa_year %>% filter(oa_category == "is_oa") %>% .$number_of_articles)/sum(pubs_oa_year$number_of_articles)*100)` %.
+
  
 ```{r, fig.cap="Open access to journal articles from German research institutions according to Unpaywall. Blue area represents journal articles with at least one freely available full-text, grey area represents toll-access articles."}
 pubs_oa_year <- pubs_cat %>%
@@ -125,7 +134,6 @@ ggplot(pubs_oa_year, aes(x = PUBYEAR, y = number_of_articles)) +
 ```
 
 As can be seen, the total number of articles, as well as the part that is OA increases constantly over time. The number of articles that are not openly available, is quite stable with a slow increase from `r pubs_cat %>% filter(oa_category == "not_oa") %>% group_by(PUBYEAR) %>% summarise(n = n_distinct(PK_ITEMS)) %>% filter(PUBYEAR == 2010) %>% .$n` in 2010 to `r pubs_cat %>% filter(oa_category == "not_oa") %>% group_by(PUBYEAR) %>% summarise(n = n_distinct(PK_ITEMS)) %>% filter(PUBYEAR == 2013) %>% .$n` in 2013, and decreasing again continuously from that point onwards to `r pubs_cat %>% filter(oa_category == "not_oa") %>% group_by(PUBYEAR) %>% summarise(n = n_distinct(PK_ITEMS)) %>% filter(PUBYEAR == 2018) %>% .$n`  publications in 2018. Since the number of OA articles increases continuously from `r pubs_cat %>% filter(oa_category != "not_oa") %>% group_by(PUBYEAR) %>% summarise(n = n_distinct(PK_ITEMS)) %>% filter(PUBYEAR == 2010) %>% .$n` publications in 2010 to `r pubs_cat %>% filter(oa_category != "not_oa") %>% group_by(PUBYEAR) %>% summarise(n = n_distinct(PK_ITEMS)) %>% filter(PUBYEAR == 2018) %>% .$n` in 2018, the relative proportion of OA articles rises significantly from `r round(pubs_cat %>% filter(oa_category != "not_oa") %>% group_by(PUBYEAR) %>% summarise(n = n_distinct(PK_ITEMS)) %>% filter(PUBYEAR == 2010) %>% .$n/pubs_cat %>% group_by(PUBYEAR) %>% summarise(n = n_distinct(PK_ITEMS)) %>% filter(PUBYEAR == 2010) %>% .$n, 4)*100` % in 2010 to `r round(pubs_cat %>% filter(oa_category != "not_oa") %>% group_by(PUBYEAR) %>% summarise(n = n_distinct(PK_ITEMS)) %>% filter(PUBYEAR == 2018) %>% .$n/pubs_cat %>% group_by(PUBYEAR) %>% summarise(n = n_distinct(PK_ITEMS)) %>% filter(PUBYEAR == 2018) %>% .$n, 4)*100` % in 2018.
-
 
 ### Differences between sectors
 
@@ -179,11 +187,12 @@ pubs_cat %>%
            legend.justification = "right")
 ```
 
-
 In order to investigate the variability of OA publishing within the sectors, we now go one level deeper and examine OA shares of individual institutions, grouped by the sector they belong to. We only include institututions with a publication output of at least 100 publications in the observed time period of 9 years. Of the `r pubs_cat %>% summarise(n = n_distinct(INST_NAME)) %>% .$n` institutions in total, `r pubs_cat %>% group_by(INST_NAME) %>% mutate(n_total = n_distinct(PK_ITEMS)) %>% ungroup() %>% filter(n_total >= 100) %>% summarise(n = n_distinct(INST_NAME)) %>% .$n` fulfill this condition. This means, that in the following institution specific analyses, `r pubs_cat %>% group_by(INST_NAME) %>% mutate(n_total = n_distinct(PK_ITEMS)) %>% ungroup() %>% filter(n_total < 100) %>% summarise(n = n_distinct(INST_NAME)) %>% .$n` insitutions, or `r pubs_cat %>% group_by(INST_NAME) %>% mutate(n_total = n_distinct(PK_ITEMS)) %>% ungroup() %>% filter(n_total < 100) %>% summarise(n = n_distinct(PK_ITEMS)) %>% .$n` articles are not considered. Of the remaining institutions, we first calculate the individual OA shares.
 
 ```{r}
+exclude_from_inst_analysis <- readr::read_csv("data/exclude_from_inst_level_analysis.csv")
 oa_shares_inst <- pubs_cat %>%
+  anti_join(exclude_from_inst_analysis, by = c("INST_NAME" = "NAME")) %>% 
   mutate(oa_category = fct_collapse(
     oa_category,
     is_oa = c(
@@ -211,6 +220,7 @@ oa_shares_inst <- pubs_cat %>%
   ungroup()
 
 oa_shares_inst_sector <- pubs_cat %>%
+  anti_join(exclude_from_inst_analysis, by = c("INST_NAME" = "NAME")) %>% 
   mutate(oa_category = fct_collapse(
     oa_category,
     journal_oa = c("full_oa_journal", "other_oa_journal"),
@@ -236,12 +246,17 @@ oa_shares_inst_sector_stats <- oa_shares_inst_sector %>%
   summarise(mean_oa_share = mean(oa_share), 
             median_oa_share = median(oa_share),
             mean_pub_volume = mean(n_total),
-            median_pub_volume = median(n_total)
+            median_pub_volume = median(n_total),
+            sd_oa_share = sd(oa_share),
+            sd_pub_volume = sd(n_total)
             )
 ```
 The following figure displays scatterplots where the OA share of an institution over the whole time period is shown with respect to its publication output.
 
 ```{r, fig.asp=1, fig.cap="Open Access shares of research institutions in Germany with respect to their total publication output grouped by the sector they belong to. Only institutions with at least 100 publications are shown. Blue points correspond to single insitutions, gray lines are obained by linear regression within the sector, gray areas are pointwise symmetric 95% t-distribution confidence bands. Scales of the x-axes vary across subplots in order to adapt to the different publication volumes. Dashed lines show the median value per sector for the OA share (red) and the total number of publications (orange)."}
+
+## TODO: remove EMMI from Helmholtzplot, see if trendline still falls
+
 oa_shares_inst_sector %>% 
   filter(n_total >= 100) %>%
   left_join(oa_shares_inst_sector_stats, by = "sector") %>%
@@ -269,46 +284,99 @@ The most striking observations from this figure are the high OA shares of most o
 
 The following box plot quantifies the observations regarding the variability of OA shares within sectors made before.
 
-```{r, fig.cap="OA shares of German research institutions per sector. The color of the boxes groups sectors into universities with a typically high total journal publication output, research-oriented institutes with a medium journal publication output and practise oriented institutions with a comparatively low journal publication output. Gray points display the OA shares for individual institutions."}
-pubs_cat %>%
+```{r, fig.cap="OA shares of German research institutions per sector. The color of the boxes groups sectors into universities with a typically high total journal publication output, research-oriented institutes with a medium journal publication output and practise oriented institutions with a comparatively low journal publication output. Gray points display the OA shares for individual institutions. Notches indicate approximate 95 % confidence intervals for the median values. Non-overlapping notches imply a strong indication that median values are significantly different."}
+oa_shares_inst_sec_boxplot <- pubs_cat %>%
+  anti_join(exclude_from_inst_analysis, by = c("INST_NAME" = "NAME")) %>% 
   group_by(sector) %>%
   mutate(
     n_sector = n_distinct(PK_ITEMS),
     sector_cat = case_when(
-      n_sector > 500000 ~ 'high_n_pubs',
-      n_sector > 50000 ~ 'middle_n_pubs',
-      TRUE ~ 'low_n_pubs'
+      sec_abbr == "UNI" ~ "Universities",
+      sec_abbr %in% c("MPG", "HGF") ~ "Research-oriented",
+      sec_abbr == "WGL" ~ "Varying focuses",
+      sec_abbr %in% c("FhG", "ReF") ~ "Practise-oriented"
     )
   ) %>%
   mutate(sector_cat = factor(
     sector_cat,
-    levels = c("high_n_pubs", "middle_n_pubs", "low_n_pubs")
+    levels = c("Universities",
+               "Research-oriented",
+               "Varying focuses",
+               "Practise-oriented"
+               )
   )) %>%
   ungroup() %>%
   left_join(oa_shares_inst, by = 'INST_NAME') %>%
   filter(n_total >= 100) %>% 
   group_by(INST_NAME, sector, oa_share, sector_cat, n_sector, sec_abbr) %>%
-  summarise() %>%
-  ggplot(aes(x = fct_reorder(sec_abbr, n_sector), y = oa_share)) +
-    geom_boxplot(aes(color = sector_cat), varwidth = FALSE, size = 1) +
+  summarise()
+
+secnames <- unique(oa_shares_inst_sec_boxplot$sec_abbr)
+ci_lims <- tibble(sec_abbr = secnames, ci_lower = rep(0, 6), ci_upper = rep(1, 6)) %>% 
+  pivot_longer(cols = starts_with("ci_"), names_to = "lim", values_to = "val") %>%
+  pivot_wider(names_from = sec_abbr, values_from = val)
+for(i in 1:6){
+  bstats <- my_df %>% 
+    filter(sec_abbr == secnames[i]) %>% 
+    .$oa_share %>% 
+    boxplot.stats()
+  ci_lims[, i+1] <- bstats$conf
+}
+ci_lims <- ci_lims %>%
+  pivot_longer(cols = c(2:7), names_to = "sec_abbr", values_to = "val") %>% 
+  pivot_wider(names_from = lim, values_from = val) %>% 
+  mutate(
+    sector_cat = case_when(
+      sec_abbr == "UNI" ~ "Universities",
+      sec_abbr %in% c("MPG", "HGF") ~ "Research-oriented",
+      sec_abbr == "WGL" ~ "Varying focuses",
+      sec_abbr %in% c("FhG", "ReF") ~ "Practise-oriented"
+    )
+  ) %>%
+  mutate(sector_cat = factor(
+    sector_cat,
+    levels = c("Universities",
+               "Research-oriented",
+               "Varying focuses",
+               "Practise-oriented"
+               )
+  ))
+
+seccats <- unique(oa_shares_inst_sec_boxplot$sector_cat)
+ci_lims_groups <- tibble(sector_cat = seccats, ci_lower = rep(0, 4), ci_upper = rep(1, 4)) %>% 
+  pivot_longer(cols = starts_with("ci_"), names_to = "lim", values_to = "val") %>%
+  pivot_wider(names_from = sector_cat, values_from = val)
+for(i in 1:4){
+  bstats <- my_df %>% 
+    filter(sector_cat == seccats[i]) %>% 
+    .$oa_share %>% 
+    boxplot.stats()
+  ci_lims_groups[, i+1] <- bstats$conf
+}
+
+  ggplot(data = oa_shares_inst_sec_boxplot, aes(x = fct_rev(fct_reorder(sec_abbr, n_sector)), y = oa_share)) +
+    geom_boxplot(aes(color = sector_cat), varwidth = FALSE, size = 1, notch = TRUE) +
     geom_jitter(alpha = 0.1) +
     scale_y_continuous(labels = scales::percent_format(accuracy = 5L),
                        expand = expansion(mult = c(0, 0.05)),
                        limits = c(0, 1)) +
-    coord_flip()  +
+    geom_hline(data = ci_lims, aes(yintercept = ci_lower, color = sector_cat), linetype = "dashed", size = 0.5)+
+    geom_hline(data = ci_lims, aes(yintercept = ci_upper, color = sector_cat), linetype = "dotted", size = 0.5)+
     scale_color_manual(
-      values = c("#f68f46ff", "#a65c85ff", "#253582ff"),
-      labels = c("Universities", "Research-oriented", "Practise-oriented")
+      values = c("#684747", "#f68f46ff", "#a65c85ff", "#051461")
     ) +
     labs(
       x = "",
       y = "OA percentage",
       color = ""
     )  +
-    theme_minimal_vgrid()
+    theme_minimal_vgrid()+
+   theme(legend.position = "top",
+       legend.justification = "right") 
 ```
 
-
+Significance: HGF against all non-research oriented, MPG against all non-research oriented, FhG against all others
+Significance groups: research against all others, practise against all others, mixed not well separated from universities (maybe sec_cat classification should be inst_cat, i.e. on the level of institutions - would have to be manually at least for some sectors)
 
 ### Prevalences of OA categories
 
