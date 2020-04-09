@@ -284,6 +284,97 @@ The most striking observations from this figure are the high OA shares of most o
 
 The following box plot quantifies the observations regarding the variability of OA shares within sectors made before.
 
+```{r, echo=FALSE}
+## some functions for inferring significance
+get_ci_lims <- function(sec_data, grouped = FALSE){
+  if(grouped){
+    seccats <- unique(sec_data$sector_cat)
+    ci_lims_groups <- tibble(sector_cat = seccats, ci_lower = rep(0, 4), ci_upper = rep(1, 4)) %>% 
+      pivot_longer(cols = starts_with("ci_"), names_to = "lim", values_to = "val") %>%
+      pivot_wider(names_from = sector_cat, values_from = val)
+      for(i in 1:4){
+        bstats <- sec_data %>% 
+          filter(sector_cat == seccats[i]) %>% 
+          .$oa_share %>% 
+          boxplot.stats()
+        ci_lims_groups[, i+1] <- bstats$conf
+      }
+    ci_lims_groups <- ci_lims_groups %>% 
+      pivot_longer(cols = c(2:5), names_to = "sector_cat", values_to = "val") %>% 
+      pivot_wider(names_from = lim, values_from = val) %>% 
+      mutate(sector_cat = factor(
+        sector_cat,
+        levels = c("Universities",
+                   "Research-oriented",
+                   "Varying focuses",
+                   "Practise-oriented"
+                   )
+      ))
+    return(ci_lims_groups)
+  } else {
+    secnames <- unique(sec_data$sec_abbr)
+    ci_lims <- tibble(sec_abbr = secnames, ci_lower = rep(0, 6), ci_upper = rep(1, 6)) %>% 
+      pivot_longer(cols = starts_with("ci_"), names_to = "lim", values_to = "val") %>%
+      pivot_wider(names_from = sec_abbr, values_from = val)
+    for(i in 1:6){
+      bstats <- sec_data %>% 
+        filter(sec_abbr == secnames[i]) %>% 
+        .$oa_share %>% 
+        boxplot.stats()
+      ci_lims[, i+1] <- bstats$conf
+    }
+    ci_lims <- ci_lims %>%
+      pivot_longer(cols = c(2:7), names_to = "sec_abbr", values_to = "val") %>% 
+      pivot_wider(names_from = lim, values_from = val) %>% 
+      mutate(
+        sector_cat = case_when(
+          sec_abbr == "UNI" ~ "Universities",
+          sec_abbr %in% c("MPG", "HGF") ~ "Research-oriented",
+          sec_abbr == "WGL" ~ "Varying focuses",
+          sec_abbr %in% c("FhG", "ReF") ~ "Practise-oriented"
+        )
+      ) %>%
+      mutate(sector_cat = factor(
+        sector_cat,
+        levels = c("Universities",
+                   "Research-oriented",
+                   "Varying focuses",
+                   "Practise-oriented"
+                   )
+      ))
+    return(ci_lims)
+  }
+}
+
+which_significant <- function(ci_lims, grouped = FALSE){
+  if(grouped){
+    ci_lowers <- matrix(ci_lims$ci_lower, nrow = 4, ncol = 4, dimnames = list(ci_lims$sector_cat, c(1:4)))
+    ci_uppers <- matrix(ci_lims$ci_upper, nrow = 4, ncol = 4, byrow = TRUE, dimnames = list(c(1:4), ci_lims$sector_cat))
+    ci_diff_signs <- sign(ci_lowers - ci_uppers)
+    colnames(ci_diff_signs) <- rownames(ci_diff_signs)
+    ci_signf_mat <- ci_diff_signs * t(ci_diff_signs) < 0
+    list_of_signf <- which(ci_signf_mat * upper.tri(ci_signf_mat) > 0, arr.ind = TRUE, useNames = FALSE)
+    list_of_signf[, 1] <- rownames(ci_signf_mat)[list_of_signf[, 1 ]]
+    list_of_signf[, 2] <- colnames(ci_signf_mat)[as.numeric(list_of_signf[, 2 ])]
+    list_of_signf[, 1] <- paste0(list_of_signf[, 1], ", ", list_of_signf[, 2])
+    return(list(res_matrix = ci_signf_mat, res_list = list_of_signf[, 1]))
+    
+  } else{
+    ci_lowers <- matrix(ci_lims$ci_lower, nrow = 6, ncol = 6, dimnames = list(ci_lims$sec_abbr, c(1:6)))
+    ci_uppers <- matrix(ci_lims$ci_upper, nrow = 6, ncol = 6, byrow = TRUE, dimnames = list(c(1:6), ci_lims$sec_abbr))
+    ci_diff_signs <- sign(ci_lowers - ci_uppers)
+    colnames(ci_diff_signs) <- rownames(ci_diff_signs)
+    ci_signf_mat <- ci_diff_signs * t(ci_diff_signs) < 0
+    list_of_signf <- which(ci_signf_mat * upper.tri(ci_signf_mat) > 0, arr.ind = TRUE, useNames = FALSE)
+    list_of_signf[, 1] <- rownames(ci_signf_mat)[list_of_signf[, 1 ]]
+    list_of_signf[, 2] <- colnames(ci_signf_mat)[as.numeric(list_of_signf[, 2 ])]
+    list_of_signf[, 1] <- paste0(list_of_signf[, 1], ", ", list_of_signf[, 2])
+    return(list(res_matrix = ci_signf_mat, res_list = list_of_signf[, 1]))
+  }
+}
+```
+
+
 ```{r, fig.cap="OA shares of German research institutions per sector. The color of the boxes groups sectors into universities with a typically high total journal publication output, research-oriented institutes with a medium journal publication output and practise oriented institutions with a comparatively low journal publication output. Gray points display the OA shares for individual institutions. Notches indicate approximate 95 % confidence intervals for the median values. Non-overlapping notches imply a strong indication that median values are significantly different."}
 oa_shares_inst_sec_boxplot <- pubs_cat %>%
   anti_join(exclude_from_inst_analysis, by = c("INST_NAME" = "NAME")) %>% 
@@ -311,72 +402,35 @@ oa_shares_inst_sec_boxplot <- pubs_cat %>%
   group_by(INST_NAME, sector, oa_share, sector_cat, n_sector, sec_abbr) %>%
   summarise()
 
-secnames <- unique(oa_shares_inst_sec_boxplot$sec_abbr)
-ci_lims <- tibble(sec_abbr = secnames, ci_lower = rep(0, 6), ci_upper = rep(1, 6)) %>% 
-  pivot_longer(cols = starts_with("ci_"), names_to = "lim", values_to = "val") %>%
-  pivot_wider(names_from = sec_abbr, values_from = val)
-for(i in 1:6){
-  bstats <- my_df %>% 
-    filter(sec_abbr == secnames[i]) %>% 
-    .$oa_share %>% 
-    boxplot.stats()
-  ci_lims[, i+1] <- bstats$conf
-}
-ci_lims <- ci_lims %>%
-  pivot_longer(cols = c(2:7), names_to = "sec_abbr", values_to = "val") %>% 
-  pivot_wider(names_from = lim, values_from = val) %>% 
-  mutate(
-    sector_cat = case_when(
-      sec_abbr == "UNI" ~ "Universities",
-      sec_abbr %in% c("MPG", "HGF") ~ "Research-oriented",
-      sec_abbr == "WGL" ~ "Varying focuses",
-      sec_abbr %in% c("FhG", "ReF") ~ "Practise-oriented"
-    )
-  ) %>%
-  mutate(sector_cat = factor(
-    sector_cat,
-    levels = c("Universities",
-               "Research-oriented",
-               "Varying focuses",
-               "Practise-oriented"
-               )
-  ))
+# ci_lims <- get_ci_lims(oa_shares_inst_sec_boxplot)
+# ci_lims_groups <- get_ci_lims(oa_shares_inst_sec_boxplot, grouped = TRUE)
+# 
+# sign_diffs <- which_significant(ci_lims)$res_list
+# sign_diffs_groups <- which_significant(ci_lims_groups, grouped = TRUE)$res_list
 
-seccats <- unique(oa_shares_inst_sec_boxplot$sector_cat)
-ci_lims_groups <- tibble(sector_cat = seccats, ci_lower = rep(0, 4), ci_upper = rep(1, 4)) %>% 
-  pivot_longer(cols = starts_with("ci_"), names_to = "lim", values_to = "val") %>%
-  pivot_wider(names_from = sector_cat, values_from = val)
-for(i in 1:4){
-  bstats <- my_df %>% 
-    filter(sector_cat == seccats[i]) %>% 
-    .$oa_share %>% 
-    boxplot.stats()
-  ci_lims_groups[, i+1] <- bstats$conf
-}
-
-  ggplot(data = oa_shares_inst_sec_boxplot, aes(x = fct_rev(fct_reorder(sec_abbr, n_sector)), y = oa_share)) +
-    geom_boxplot(aes(color = sector_cat), varwidth = FALSE, size = 1, notch = TRUE) +
-    geom_jitter(alpha = 0.1) +
-    scale_y_continuous(labels = scales::percent_format(accuracy = 5L),
-                       expand = expansion(mult = c(0, 0.05)),
-                       limits = c(0, 1)) +
-    geom_hline(data = ci_lims, aes(yintercept = ci_lower, color = sector_cat), linetype = "dashed", size = 0.5)+
-    geom_hline(data = ci_lims, aes(yintercept = ci_upper, color = sector_cat), linetype = "dotted", size = 0.5)+
-    scale_color_manual(
-      values = c("#684747", "#f68f46ff", "#a65c85ff", "#051461")
-    ) +
-    labs(
-      x = "",
-      y = "OA percentage",
-      color = ""
-    )  +
-    theme_minimal_vgrid()+
-   theme(legend.position = "top",
-       legend.justification = "right") 
+ggplot(data = oa_shares_inst_sec_boxplot, aes(x = fct_rev(fct_reorder(sec_abbr, n_sector)), y = oa_share)) +
+  geom_boxplot(aes(color = sector_cat), varwidth = FALSE, size = 1, notch = TRUE) +
+  geom_jitter(alpha = 0.1) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 5L),
+                     expand = expansion(mult = c(0, 0.05)),
+                     limits = c(0, 1)) +
+  # geom_hline(data = ci_lims, aes(yintercept = ci_lower, color = sector_cat), linetype = "dashed", size = 0.5)+
+  # geom_hline(data = ci_lims, aes(yintercept = ci_upper, color = sector_cat), linetype = "dotted", size = 0.5)+
+  scale_color_manual(
+    values = c("#684747", "#f68f46ff", "#a65c85ff", "#051461")
+  ) +
+  labs(
+    x = "",
+    y = "OA percentage",
+    color = ""
+  )  +
+  theme_minimal_vgrid()+
+ theme(legend.position = "top",
+     legend.justification = "right") 
 ```
 
 Significance: HGF against all non-research oriented, MPG against all non-research oriented, FhG against all others
-Significance groups: research against all others, practise against all others, mixed not well separated from universities (maybe sec_cat classification should be inst_cat, i.e. on the level of institutions - would have to be manually at least for some sectors)
+Significance groups: research against all others, practise against all others, mixed not well separated from universities (maybe sector_cat classification should be inst_cat, i.e. on the level of institutions - would have to be manually at least for some sectors)
 
 ### Prevalences of OA categories
 
