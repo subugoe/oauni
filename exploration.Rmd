@@ -218,7 +218,30 @@ repo_df %>%
   arrange(desc(n)) %>%
 #  head(20) %>%
 #  knitr::kable()
-  readr::write_csv("data/repo_domain_counts.csv")
+  readr::write_csv("data/export_tables/repo_domain_counts.csv")
+```
+
+per category:
+
+```{r}
+pubs_cat_details <- readr::read_csv("data/pubs_cat_details.csv")
+pubs_cat_details %>%
+  filter(!oa_category %in% c("not_oa", "full_oa_journal", "other_oa_journal")) %>% 
+  mutate(domains = case_when(
+    is.na(pdf_domain) && is.na(landing_domain) ~ NA_character_,
+    is.na(pdf_domain) ~ landing_domain,
+    TRUE ~ pdf_domain
+  )) %>% 
+  group_by(oa_category, domains) %>%
+  summarise(n = n()) %>%
+  ungroup() %>% 
+  group_by(oa_category) %>% 
+#  mutate(prop = round(n / sum(n) * 100)) %>%
+  arrange(oa_category, desc(n)) %>%
+  pivot_wider(names_from = oa_category, values_from = n, values_fill = list(n = 0)) %>%
+#  head(20) %>%
+#  knitr::kable()
+  readr::write_csv("data/export_tables/repo_domain_category_counts.csv")
 ```
 
 ```{r}
