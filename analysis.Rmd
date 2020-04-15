@@ -3,6 +3,9 @@ title: "Analysis of German publication output"
 author: "Anne Hobert"
 date: "3/6/2020"
 output:
+  html_document:
+    fig_caption: yes
+    keep_md : true
   word_document:
     fig_caption: yes
   github_document:
@@ -77,6 +80,7 @@ pubs_cat <- pubs_cat %>%
 excl_from_analysis <- readr::read_csv("data/exclude_from_analysis.csv")
 pubs_cat <- pubs_cat %>% 
   anti_join(excl_from_analysis, by = c("INST_NAME" = "Universitäten"))
+rm(excl_from_analysis)
 ```
 
 
@@ -90,10 +94,7 @@ The goal is to answer the three research questions
 
 ### OA fraction of the German publication output
  
-First, we look at how the overall OA share developed over time. The following figure displays the number of publications associated with one of the German research institutions we considered and highlights they part that is freely accessible online according to Unpaywall over the considered time period from 2010 until 2018. The total number of articles over the whole period is `r sum(pubs_oa_year$number_of_articles)` with an overall OA share of `r round(sum(pubs_oa_year %>% filter(oa_category == "is_oa") %>% .$number_of_articles)/sum(pubs_oa_year$number_of_articles)*100)` %.
-
- 
-```{r, fig.cap="Open access to journal articles from German research institutions according to Unpaywall. Blue area represents journal articles with at least one freely available full-text, grey area represents toll-access articles."}
+```{r}
 pubs_oa_year <- pubs_cat %>%
   mutate(oa_category = fct_collapse(
     oa_category,
@@ -113,7 +114,13 @@ pubs_oa_year <- pubs_cat %>%
   ungroup() %>% 
   group_by(PUBYEAR, oa_category, n_total_year) %>%
   summarise(number_of_articles = n_distinct(PK_ITEMS))
+```
+ 
+ 
+First, we look at how the overall OA share developed over time. The following figure displays the number of publications associated with one of the German research institutions we considered and highlights they part that is freely accessible online according to Unpaywall over the considered time period from 2010 until 2018. The total number of articles over the whole period is `r sum(pubs_oa_year$number_of_articles)` with an overall OA share of `r round(sum(pubs_oa_year %>% filter(oa_category == "is_oa") %>% .$number_of_articles)/sum(pubs_oa_year$number_of_articles)*100)` %.
 
+ 
+```{r, fig.cap="Open access to journal articles from German research institutions according to Unpaywall. Blue area represents journal articles with at least one freely available full-text, grey area represents toll-access articles."}
 ggplot(pubs_oa_year, aes(x = PUBYEAR, y = number_of_articles)) +
     geom_area(aes(fill = fct_rev(oa_category), group = fct_rev(oa_category)),  alpha = 0.8, colour = "white") +
     scale_fill_manual(
@@ -517,35 +524,6 @@ host_overlap <- pubs_cat %>%
            legend.justification = "right")
 ```
 
-Which categories dominant?
-```{r, eval=FALSE}
-  pubs_cat %>%
-  filter(oa_category != "not_oa") %>% 
-  mutate(PUBYEAR = lubridate::ymd(paste0(PUBYEAR, "-01-01"))) %>% 
-  left_join(host_overlap, by = "PK_ITEMS") %>% 
-  mutate(oa_host = case_when(
-    oa_host == "publisher" ~ "Publisher only",
-    oa_host == "repository" ~ "Repository only",
-    oa_host == "publisher&repository" ~ "Publisher &\n Repository"
-  )) %>% 
-  mutate(oa_host = factor(oa_host, levels = c("Publisher only", "Publisher &\n Repository", "Repository only"))) %>% 
-    mutate(oa_host_non_overlap = fct_collapse(oa_category,
-      publisher = c("full_oa_journal", "other_oa_journal"),
-      repository = c(
-        "opendoar_inst",
-        "opendoar_subject",
-        "opendoar_other",
-        "other_repo"
-      ))) %>% 
-    group_by(oa_host, oa_category, oa_host_non_overlap) %>% 
-    summarise(n = n_distinct(PK_ITEMS)) %>% 
-    group_by(oa_host, oa_host_non_overlap) %>% 
-    mutate(prop_per_host = n/sum(n)) %>% 
-  select(-n) %>% 
-  pivot_wider(names_from = oa_host, values_from = prop_per_host, values_fill = list(prop_per_host = 0)) %>%
-  readr::write_csv("data/export_tables/overlap_hosttype_per_category.csv")
-```
-
 
 ```{r, fig.cap="Development of the percentage of journal articles per OA category (as per schema in Table 1) over time. Categories are non-exclusive, that is some articles may be counted for more than one category. Colors correspond to the OA category. On the left, access provided via a publisher is highlighted, on the right via repositories. Grey area displays the total percentage of OA via the corresponding route (publisher or repository). "}
 oa_shares_host <- pubs_cat %>%
@@ -598,7 +576,8 @@ pubs_cat %>%
                                                  direction = "y",
                                                  hjust = 1,
                                                  segment.color = NA,
-                                                 fontface = 'bold')) +
+                                                 fontface = 'bold'),
+                             unhighlighted_params = list(colour = "transparent")) +
      geom_area(data = oa_shares_host,
               aes(PUBYEAR, share, group = "none"),
               fill = "#cccccca0", color = "white", alpha = 0.2) +
@@ -834,6 +813,34 @@ for(secname in unique(pubs_cat$sec_abbr)){
     select(INST_NAME, n_total, is_oa, publisher, repository, everything()) %>% 
     readr::write_csv(paste0("data/export_tables/table_oa_cat_inst_", secname,".csv"))
 }
+
+## which categories are dominant in the overlapping host type plot?
+ pubs_cat %>%
+  filter(oa_category != "not_oa") %>% 
+  mutate(PUBYEAR = lubridate::ymd(paste0(PUBYEAR, "-01-01"))) %>% 
+  left_join(host_overlap, by = "PK_ITEMS") %>% 
+  mutate(oa_host = case_when(
+    oa_host == "publisher" ~ "Publisher only",
+    oa_host == "repository" ~ "Repository only",
+    oa_host == "publisher&repository" ~ "Publisher &\n Repository"
+  )) %>% 
+  mutate(oa_host = factor(oa_host, levels = c("Publisher only", "Publisher &\n Repository", "Repository only"))) %>% 
+    mutate(oa_host_non_overlap = fct_collapse(oa_category,
+      publisher = c("full_oa_journal", "other_oa_journal"),
+      repository = c(
+        "opendoar_inst",
+        "opendoar_subject",
+        "opendoar_other",
+        "other_repo"
+      ))) %>% 
+    group_by(oa_host, oa_category, oa_host_non_overlap) %>% 
+    summarise(n = n_distinct(PK_ITEMS)) %>% 
+    group_by(oa_host, oa_host_non_overlap) %>% 
+    mutate(prop_per_host = n/sum(n)) %>% 
+  select(-n) %>% 
+  pivot_wider(names_from = oa_host, values_from = prop_per_host, values_fill = list(prop_per_host = 0)) %>%
+  readr::write_csv("data/export_tables/overlap_hosttype_per_category.csv")
+
 ```
 
 ```{r, eval=FALSE}
