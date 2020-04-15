@@ -3,12 +3,12 @@ title: "Analysis of German publication output"
 author: "Anne Hobert"
 date: "3/6/2020"
 output:
-  html_document:
-    fig_caption: yes
-    keep_md : true
   word_document:
     fig_caption: yes
   github_document:
+  html_document:
+    fig_caption: yes
+    keep_md : true
 urlcolor: blue
 ---
 
@@ -282,8 +282,7 @@ oa_shares_inst_sector %>%
     theme_minimal_grid() +
     theme(legend.position = "none") +
     # bold facet labels
-    theme(strip.text = element_text(face = "bold")) -> plot_oa_inst_sec
-  plotly::ggplotly(plot_oa_inst_sec, tooltip = c("label", "y", "x"))
+    theme(strip.text = element_text(face = "bold"))
 ```
 The most striking observations from this figure are the high OA shares of most of the Max-Planck and Helmholtz institutes and the very low OA fractions of almost all of the state and federal institutes as well as the ones from the Fraunhofer Society. Universities and Leibniz-Society have many institutes with OA shares close to one half. We can further see very well that the universities have by far the largest publication volumes, followed by the Helmholtz-Society. The linear trend of higher publication volume implying higher OA shares is most distinctive for the university sector (narrowest confidence bands). 
 

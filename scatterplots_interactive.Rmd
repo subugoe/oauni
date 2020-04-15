@@ -1,0 +1,175 @@
+---
+title: "Analysis of German publication output"
+author: "Anne Hobert"
+date: "3/6/2020"
+output:
+  html_document:
+    fig_caption: yes
+    keep_md : true
+  urlcolor: blue
+---
+
+  ```{r, echo = FALSE, message = FALSE, warning = FALSE}
+knitr::opts_chunk$set(
+  comment = "#>",
+  collapse = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  echo = FALSE,
+  fig.width = 6,
+  fig.asp = 0.618,
+  out.width = "90%",
+  fig.align = "center",
+  dpi = 300
+)
+```
+
+```{r}
+library(tidyverse)
+#library(urltools)
+library(cowplot)
+library(colorblindr)
+library(scales)
+library(viridis)
+```
+
+## Data
+
+In this document we describe the analysis of our sample of publications from German research institutions. We work with the dataset `pubs_cat` generated in [data_gathering.Rmd](data_gathering.Rmd).
+
+```{r}
+pubs_cat <- readr::read_csv("data/pubs_cat.csv", col_types = "dccdcclc")
+pubs_cat <- pubs_cat %>%
+  mutate(sec_abbr = case_when(
+    sector == "Hochschulen" ~ "UNI",
+    sector == "Helmholtz-Gemeinschaft" ~ "HGF",
+    sector == "Max-Planck-Gesellschaft" ~ "MPG",
+    sector == "Leibniz-Gemeinschaft" ~ "WGL",
+    sector == "Fraunhofer-Gesellschaft" ~ "FhG",
+    sector == "Ressortforschung" ~ "ReF"
+  ),
+  sector = case_when(
+    sector == "Hochschulen" ~ "Universities",
+    sector == "Helmholtz-Gemeinschaft" ~ "Helmholtz Association",
+    sector == "Max-Planck-Gesellschaft" ~ "Max Planck Society",
+    sector == "Leibniz-Gemeinschaft" ~ "Leibniz Association",
+    sector == "Fraunhofer-Gesellschaft" ~ "Fraunhofer Society",
+    sector == "Ressortforschung" ~ "Ressortforschung"
+  ),
+  oa_category = factor(
+    oa_category,
+    levels = c(
+      "full_oa_journal",
+      "other_oa_journal",
+      "opendoar_inst",
+      "opendoar_subject",
+      "opendoar_other",
+      "other_repo",
+      "not_oa"
+    )
+  )
+  )
+```
+
+## Exlcude institutions from university sector which are not listed in official statistics
+
+```{r}
+excl_from_analysis <- readr::read_csv("data/exclude_from_analysis.csv")
+pubs_cat <- pubs_cat %>%
+  anti_join(excl_from_analysis, by = c("INST_NAME" = "Universitäten"))
+rm(excl_from_analysis)
+```
+In order to investigate the variability of OA publishing within the sectors, we now go one level deeper and examine OA shares of individual institutions, grouped by the sector they belong to. We only include institututions with a publication output of at least 100 publications in the observed time period of 9 years. Of the `r pubs_cat %>% summarise(n = n_distinct(INST_NAME)) %>% .$n` institutions in total, `r pubs_cat %>% group_by(INST_NAME) %>% mutate(n_total = n_distinct(PK_ITEMS)) %>% ungroup() %>% filter(n_total >= 100) %>% summarise(n = n_distinct(INST_NAME)) %>% .$n` fulfill this condition. This means, that in the following institution specific analyses, `r pubs_cat %>% group_by(INST_NAME) %>% mutate(n_total = n_distinct(PK_ITEMS)) %>% ungroup() %>% filter(n_total < 100) %>% summarise(n = n_distinct(INST_NAME)) %>% .$n` insitutions, or `r pubs_cat %>% group_by(INST_NAME) %>% mutate(n_total = n_distinct(PK_ITEMS)) %>% ungroup() %>% filter(n_total < 100) %>% summarise(n = n_distinct(PK_ITEMS)) %>% .$n` articles are not considered. Of the remaining institutions, we first calculate the individual OA shares.
+
+```{r}
+exclude_from_inst_analysis <- readr::read_csv("data/exclude_from_inst_level_analysis.csv")
+oa_shares_inst <- pubs_cat %>%
+  anti_join(exclude_from_inst_analysis, by = c("INST_NAME" = "NAME")) %>%
+  mutate(oa_category = fct_collapse(
+    oa_category,
+    is_oa = c(
+      "full_oa_journal",
+      "other_oa_journal",
+      "opendoar_inst",
+      "opendoar_subject",
+      "opendoar_other",
+      "other_repo"
+    ),
+    not_oa = "not_oa"
+  )) %>%
+  group_by(INST_NAME) %>%
+  mutate(n_total = n_distinct(PK_ITEMS)) %>%
+  ungroup() %>%
+  group_by(INST_NAME, oa_category, n_total) %>%
+  summarise(n_cat = n_distinct(PK_ITEMS)) %>%
+  pivot_wider(
+    names_from = oa_category,
+    values_from = n_cat,
+    values_fill = list(n_cat = 0)
+  ) %>%
+  mutate(oa_share = is_oa / n_total) %>%
+  rename(n_oa = is_oa, n_not_oa = not_oa) %>%
+  ungroup()
+
+oa_shares_inst_sector <- pubs_cat %>%
+  anti_join(exclude_from_inst_analysis, by = c("INST_NAME" = "NAME")) %>%
+  mutate(oa_category = fct_collapse(
+    oa_category,
+    journal_oa = c("full_oa_journal", "other_oa_journal"),
+    repo_oa = c(
+      "opendoar_inst",
+      "opendoar_subject",
+      "opendoar_other",
+      "other_repo"
+    ),
+    not_oa = "not_oa"
+  )) %>%
+  group_by(sector) %>%
+  mutate(n_total_sec = n_distinct(PK_ITEMS)) %>%
+  ungroup() %>%
+  left_join(oa_shares_inst, by = 'INST_NAME') %>%
+  group_by(sector, INST_NAME, n_total, oa_share, n_total_sec) %>%
+  summarise()
+
+oa_shares_inst_sector_stats <- oa_shares_inst_sector %>%
+  ungroup() %>%
+  filter(n_total >= 100) %>%
+  group_by(sector) %>%
+  summarise(mean_oa_share = mean(oa_share),
+            median_oa_share = median(oa_share),
+            mean_pub_volume = mean(n_total),
+            median_pub_volume = median(n_total),
+            sd_oa_share = sd(oa_share),
+            sd_pub_volume = sd(n_total)
+  )
+```
+The following figure displays scatterplots where the OA share of an institution over the whole time period is shown with respect to its publication output.
+
+```{r, fig.asp=1, fig.cap="Open Access shares of research institutions in Germany with respect to their total publication output grouped by the sector they belong to. Only institutions with at least 100 publications are shown. Blue points correspond to single insitutions, gray lines are obained by linear regression within the sector, gray areas are pointwise symmetric 95% t-distribution confidence bands. Scales of the x-axes vary across subplots in order to adapt to the different publication volumes. Dashed lines show the median value per sector for the OA share (red) and the total number of publications (orange)."}
+oa_shares_inst_sector %>%
+  filter(n_total >= 100) %>%
+  left_join(oa_shares_inst_sector_stats, by = "sector") %>%
+  ggplot(aes(x = n_total, y = oa_share, label = INST_NAME)) +
+  geom_point(color = "#56b4e9", alpha = .7)  +
+  scale_x_log10() +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 5L),
+                     expand = expansion(mult = c(0, 0.05)),
+                     limits = c(0,1)) +
+  geom_smooth(color = "#999999a0", method = "lm") +
+  facet_wrap(~ fct_rev(fct_reorder(sector, n_total_sec)),
+             ncol = 2,
+             scales = "free_x") +
+  geom_hline(aes(yintercept = median_oa_share),
+             colour = "#d55e00", linetype ="dashed", size = 1) +
+  geom_vline(aes(xintercept = median_pub_volume),
+             colour = "#E69F00", linetype ="dashed", size = 1) +
+  labs(x = "Total Articles (logarithmic scale)", y = "OA percentage") +
+  theme_minimal_grid() +
+  theme(legend.position = "none") +
+  # bold facet labels
+  theme(strip.text = element_text(face = "bold")) -> plot_oa_inst_sec
+plotly::ggplotly(plot_oa_inst_sec, tooltip = c("label", "y", "x"))
+```
+The most striking observations from this figure are the high OA shares of most of the Max-Planck and Helmholtz institutes and the very low OA fractions of almost all of the state and federal institutes as well as the ones from the Fraunhofer Society. Universities and Leibniz-Society have many institutes with OA shares close to one half. We can further see very well that the universities have by far the largest publication volumes, followed by the Helmholtz-Society. The linear trend of higher publication volume implying higher OA shares is most distinctive for the university sector (narrowest confidence bands).
+
+
