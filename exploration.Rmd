@@ -157,14 +157,12 @@ oa_fxt_count %>%
 ### Repository analysis using OpenDOAR
 
 ```{r}
-upw_evidence <- readr::read_csv("data/upw_evidence.csv")
- repo_df <- upw_evidence %>% 
-  distinct() %>%
+excl_from_analysis <- readr::read_csv("data/exclude_from_analysis.csv")
+pubs_cat_details <- readr::read_csv("data/pubs_cat_details.csv")
+ repo_df <- pubs_cat_details %>% 
   filter(host_type == "repository") %>%
-  mutate(url_domain = domain(url_for_pdf)) %>%
-  mutate(url_domain = gsub("www.", "", url_domain)) %>%
-  mutate(landing_domain = domain(url_for_landing_page)) %>%
-  mutate(landing_domain = gsub("www.", "", landing_domain))
+   ## exclude some inst
+  anti_join(excl_from_analysis, by = c("INST_NAME" = "Universitäten"))
 ```
 
 ```{r}
@@ -208,12 +206,12 @@ repo_df %>%
 ```{r}
 repo_df %>%
   mutate(domains = case_when(
-    is.na(url_domain) && is.na(landing_domain) ~ NA_character_,
-    is.na(url_domain) ~ landing_domain,
-    TRUE ~ url_domain
+    is.na(pdf_domain) && is.na(landing_domain) ~ NA_character_,
+    is.na(pdf_domain) ~ landing_domain,
+    TRUE ~ pdf_domain
   )) %>% 
   group_by(domains) %>%
-  summarise(n = n()) %>%
+  summarise(n = n_distinct(DOI)) %>%
   mutate(prop = n / sum(n) * 100) %>%
   arrange(desc(n)) %>%
 #  head(20) %>%
@@ -226,6 +224,7 @@ per category:
 ```{r}
 pubs_cat_details <- readr::read_csv("data/pubs_cat_details.csv")
 pubs_cat_details %>%
+    anti_join(excl_from_analysis, by = c("INST_NAME" = "Universitäten")) %>% 
   filter(!oa_category %in% c("not_oa", "full_oa_journal", "other_oa_journal")) %>% 
   mutate(domains = case_when(
     is.na(pdf_domain) && is.na(landing_domain) ~ NA_character_,

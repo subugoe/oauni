@@ -430,6 +430,7 @@ ggplot(data = oa_shares_inst_sec_boxplot, aes(x = fct_rev(fct_reorder(sec_abbr, 
     color = ""
   )  +
   theme_minimal_vgrid()+
+  guides(color=guide_legend(nrow=2)) +
  theme(legend.position = "top",
      legend.justification = "right") 
 ```
