@@ -465,14 +465,14 @@ As mentioned in the previous chapters, there are several ways of providing open 
 ```
 
 
-Keeping in mind that our categories are non-exclusive, as just shown, we now visualise the number of articles per category on the national level, that is, without differentiation by sector. As a first step, we investigate the two main OA routes via publisher or via repository.
+Keeping in mind that our categories are non-exclusive, as just shown, we now visualise the number of articles per category on the national level, that is, without differentiation by sector. As a first step, we investigate the two main OA routes via a journal or via a repository.
 
-```{r, fig.asp = 0.4, fig.cap="Development of the number of articles per OA host type and their overlap. Highlighted in blue are the number of articles per OA host type with articles made available only via the publisher on the left, articles available only in repositories on the right and the overlap, that is, articles openly accessible via both a publisher hosted platform and a repository, in the middle. Grey Area shows the remaining OA articles."}
+```{r, fig.asp = 0.4, fig.cap="Development of the number of articles per OA host type and their overlap. Highlighted in blue are the number of articles per OA host type with articles made available only via a journal on the left, articles available only in repositories on the right and the overlap, that is, articles openly accessible via both a journal and a repository, in the middle. Grey Area shows the remaining OA articles."}
 host_overlap <- pubs_cat %>%
   filter(oa_category != "not_oa") %>%
   mutate(oa_host = fct_collapse(
     oa_category,
-    publisher = c("full_oa_journal", "other_oa_journal"),
+    journal = c("full_oa_journal", "other_oa_journal"),
     repository = c(
       "opendoar_inst",
       "opendoar_subject",
@@ -491,11 +491,11 @@ host_overlap <- pubs_cat %>%
   mutate(PUBYEAR = lubridate::ymd(paste0(PUBYEAR, "-01-01"))) %>% 
   left_join(host_overlap, by = "PK_ITEMS") %>% 
   mutate(oa_host = case_when(
-    oa_host == "publisher" ~ "Publisher only",
+    oa_host == "journal" ~ "Journal only",
     oa_host == "repository" ~ "Repository only",
-    oa_host == "publisher&repository" ~ "Publisher &\n Repository"
+    oa_host == "journal&repository" ~ "Journal &\n Repository"
   )) %>% 
-  mutate(oa_host = factor(oa_host, levels = c("Publisher only", "Publisher &\n Repository", "Repository only"))) %>% 
+  mutate(oa_host = factor(oa_host, levels = c("Journal only", "Journal &\n Repository", "Repository only"))) %>% 
   group_by(PUBYEAR, oa_host) %>% 
   summarise(number_of_articles = n_distinct(PK_ITEMS)) %>% 
     ungroup() %>% 
@@ -525,7 +525,7 @@ host_overlap <- pubs_cat %>%
 ```
 
 
-```{r, fig.cap="Development of the percentage of journal articles per OA category (as per schema in Table 1) over time. Categories are non-exclusive, that is some articles may be counted for more than one category. Colors correspond to the OA category. On the left, access provided via a publisher is highlighted, on the right via repositories. Grey area displays the total percentage of OA via the corresponding route (publisher or repository). "}
+```{r, fig.cap="Development of the percentage of journal articles per OA category (as per schema in Table 1) over time. Categories are non-exclusive, that is some articles may be counted for more than one category. Colors correspond to the OA category. On the left, access provided via a journal is displayed, on the right via repositories. Grey area shows the total percentage of OA via the corresponding route (journal or repository). "}
 oa_shares_host <- pubs_cat %>%
   mutate(PUBYEAR = lubridate::ymd(paste0(PUBYEAR, "-01-01"))) %>% 
   group_by(PUBYEAR) %>% 
@@ -534,7 +534,7 @@ oa_shares_host <- pubs_cat %>%
   filter(oa_category != "not_oa") %>% 
   mutate(oa_host = fct_collapse(
     oa_category,
-    `Publisher OA` = c("full_oa_journal", "other_oa_journal"),
+    `Journal OA` = c("full_oa_journal", "other_oa_journal"),
     `Repository OA` = c(
       "opendoar_inst",
       "opendoar_subject",
@@ -557,7 +557,7 @@ pubs_cat %>%
   filter(oa_category != "not_oa") %>% 
   mutate(oa_host = fct_collapse(
     oa_category,
-    `Publisher OA` = c("full_oa_journal", "other_oa_journal"),
+    `Journal OA` = c("full_oa_journal", "other_oa_journal"),
     `Repository OA` = c(
       "opendoar_inst",
       "opendoar_subject",
@@ -668,7 +668,7 @@ pubs_oa_year %>%
   mutate(oa_share = is_oa/n_total_year) %>% 
   select(-not_oa) %>% 
     pivot_wider(names_from = oa_host, values_from = n_host) %>% 
-    mutate(`Proportion of Publisher OA` = `Publisher OA` / n_total_year,
+    mutate(`Proportion of Journal OA` = `Journal OA` / n_total_year,
            `Proportion of Repository OA` = `Repository OA` / n_total_year) %>% 
   ungroup() %>% 
   mutate(PUBYEAR = lubridate::year(PUBYEAR)) %>% 
@@ -678,7 +678,7 @@ pubs_oa_year %>%
 pubs_cat %>%
   mutate(oa_host = fct_collapse(
     oa_category,
-    publisher = c("full_oa_journal", "other_oa_journal"),
+    journal = c("full_oa_journal", "other_oa_journal"),
     repository = c(
       "opendoar_inst",
       "opendoar_subject",
@@ -711,7 +711,7 @@ pubs_cat %>%
     pivot_wider(names_from = oa_category, values_from = number_of_articles) %>% 
   mutate(oa_share = is_oa/n_total) %>% 
   pivot_wider(names_from = oa_host, values_from = n_host) %>% 
-  mutate(publisher_share = publisher / n_total,
+  mutate(journal_share = journal / n_total,
          repo_share = repository / n_total) %>% 
   readr::write_csv("data/export_tables/table_fig_is_oa_sec.csv")
 
@@ -719,7 +719,7 @@ pubs_cat %>%
 oa_shares_host_sec <-pubs_cat %>% 
   mutate(oa_host = fct_collapse(
     oa_category,
-    publisher = c("full_oa_journal", "other_oa_journal"),
+    journal = c("full_oa_journal", "other_oa_journal"),
     repository = c(
       "opendoar_inst",
       "opendoar_subject",
@@ -767,7 +767,7 @@ oa_shares_sector %>%
   left_join(distinct(select(pubs_cat, sector, sec_abbr))) %>% 
   select(-sec_abbr) %>% 
   mutate( sector = replace_na(sector, "All sectors")) %>%
-  select(sector, n_sec, all_oa, publisher, repository, everything()) %>% 
+  select(sector, n_sec, all_oa, journal, repository, everything()) %>% 
   readr::write_csv("data/export_tables/table_fig_oa_cat_sec.csv")
 
 ## institutions per sector and category
@@ -777,7 +777,7 @@ oa_share_host_inst <- pubs_cat %>%
   ungroup() %>% 
   mutate(oa_host = fct_collapse(
     oa_category,
-    publisher = c("full_oa_journal", "other_oa_journal"),
+    journal = c("full_oa_journal", "other_oa_journal"),
     repository = c(
       "opendoar_inst",
       "opendoar_subject",
@@ -808,9 +808,9 @@ for(secname in unique(pubs_cat$sec_abbr)){
     mutate(is_oa = 1 - not_oa) %>% 
     select(-not_oa) %>% 
     left_join(oa_share_host_inst, by = "INST_NAME") %>% 
-    mutate(publisher = replace_na(publisher, 0),
+    mutate(journal = replace_na(journal, 0),
            repository = replace_na(repository, 0)) %>% 
-    select(INST_NAME, n_total, is_oa, publisher, repository, everything()) %>% 
+    select(INST_NAME, n_total, is_oa, journal, repository, everything()) %>% 
     readr::write_csv(paste0("data/export_tables/table_oa_cat_inst_", secname,".csv"))
 }
 
@@ -820,13 +820,13 @@ for(secname in unique(pubs_cat$sec_abbr)){
   mutate(PUBYEAR = lubridate::ymd(paste0(PUBYEAR, "-01-01"))) %>% 
   left_join(host_overlap, by = "PK_ITEMS") %>% 
   mutate(oa_host = case_when(
-    oa_host == "publisher" ~ "Publisher only",
+    oa_host == "journal" ~ "Journal only",
     oa_host == "repository" ~ "Repository only",
-    oa_host == "publisher&repository" ~ "Publisher &\n Repository"
+    oa_host == "journal&repository" ~ "Journal &\n Repository"
   )) %>% 
-  mutate(oa_host = factor(oa_host, levels = c("Publisher only", "Publisher &\n Repository", "Repository only"))) %>% 
+  mutate(oa_host = factor(oa_host, levels = c("Journal only", "Journal &\n Repository", "Repository only"))) %>% 
     mutate(oa_host_non_overlap = fct_collapse(oa_category,
-      publisher = c("full_oa_journal", "other_oa_journal"),
+      journal = c("full_oa_journal", "other_oa_journal"),
       repository = c(
         "opendoar_inst",
         "opendoar_subject",
