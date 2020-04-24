@@ -3,9 +3,9 @@ title: "Analysis of German publication output"
 author: "Anne Hobert"
 date: "3/6/2020"
 output:
+  github_document:
   word_document:
     fig_caption: yes
-  github_document:
   html_document:
     fig_caption: yes
     keep_md : true
@@ -250,7 +250,18 @@ oa_shares_inst_sector <- pubs_cat %>%
   ungroup() %>%
   left_join(oa_shares_inst, by = 'INST_NAME') %>%
   group_by(sector, INST_NAME, n_total, oa_share, n_total_sec) %>%
-  summarise() 
+  summarise() %>% 
+  mutate(inst_label = case_when(
+    INST_NAME == "Universität Konstanz" ~ "Konstanz",
+    INST_NAME == "Deutsches Elektronen-Synchrotron" ~ "DESY",
+    INST_NAME == "Forschungszentrum Jülich GmbH (FZJ)" ~ "FZJ",
+    INST_NAME == "Helmholtz-Zentrum Dresden-Rossendorf (HZDR)" ~ "HZDR",
+    INST_NAME == "Leibniz-Institut für Astrophysik Potsdam" ~ "AIP",
+    INST_NAME == "Kiepenheuer-Institut für Sonnenphysik (KIS)" ~ "KIS",
+    INST_NAME == "Robert Koch-Institut" ~ "RKI",
+    INST_NAME == "Deutscher Wetterdienst" ~ "DWD",
+    TRUE ~ ""
+  ))
 
 oa_shares_inst_sector_stats <- oa_shares_inst_sector %>% 
   ungroup() %>% 
@@ -267,12 +278,21 @@ oa_shares_inst_sector_stats <- oa_shares_inst_sector %>%
 The following figure displays scatterplots where the OA share of an institution over the whole time period is shown with respect to its publication output.
 
 ```{r, fig.asp=1, fig.cap="Open Access shares of research institutions in Germany with respect to their total publication output grouped by the sector they belong to. Only institutions with at least 100 publications are shown. Blue points correspond to single insitutions, gray lines are obained by linear regression within the sector, gray areas are pointwise symmetric 95% t-distribution confidence bands. Scales of the x-axes vary across subplots in order to adapt to the different publication volumes. Dashed lines show the median value per sector for the OA share (red) and the total number of publications (orange)."}
-oa_shares_inst_sector %>% 
+point_shapes <- oa_shares_inst_sector %>% 
+  filter(n_total >= 100) %>% 
+  mutate(point_shape = ifelse(inst_label =="", 19, 15)) %>% 
+  .$point_shape
+point_sizes <- oa_shares_inst_sector %>% 
+  filter(n_total >= 100) %>% 
+  mutate(point_shape = ifelse(inst_label =="", 1.5, 2)) %>% 
+  .$point_shape
+oa_shares_inst_sector %>%
   filter(n_total >= 100) %>%
   left_join(oa_shares_inst_sector_stats, by = "sector") %>%
   ggplot(aes(x = n_total, y = oa_share, label = INST_NAME)) +
-    geom_point(color = "#56b4e9", alpha = .7)  +
-    scale_x_log10() +
+    geom_point(color = "#56b4e9", alpha = .7, shape = point_shapes, size = point_sizes)  +
+    scale_x_log10(labels = scales::number_format(big.mark = ","),
+                  expand = expansion(mult = c(0.05, 0.1))) +
     scale_y_continuous(labels = scales::percent_format(accuracy = 5L),
                        expand = expansion(mult = c(0, 0.05)),
                        limits = c(0,1)) +
@@ -284,6 +304,14 @@ oa_shares_inst_sector %>%
                colour = "#d55e00", linetype ="dashed", size = 1) +
     geom_vline(aes(xintercept = median_pub_volume),
                colour = "#E69F00", linetype ="dashed", size = 1) +
+  ggrepel::geom_text_repel(aes(label = inst_label),
+                              size = 3,
+                              box.padding = 0.15,
+                              point.padding = 0.15,
+                              segment.color = "transparent",
+                              color = "#666666",
+                              force = 3
+                              )+
     labs(x = "Total Articles (logarithmic scale)", y = "OA percentage") +
     theme_minimal_grid() +
     theme(legend.position = "none") +

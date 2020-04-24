@@ -7,8 +7,7 @@ Anne Hobert
 
 In this document we describe the analysis of our sample of publications
 from German research institutions. We work with the dataset `pubs_cat`
-generated in
-[data\_gathering.Rmd](data_gathering.Rmd).
+generated in [data\_gathering.Rmd](data_gathering.Rmd).
 
 ## Exlcude institutions from university sector which are not listed in official statistics
 
@@ -65,8 +64,7 @@ publishing in Germany and how they contribute to the OA
 development/overall OA shares, we distplay the development over time of
 the number of OA articles for each sector in the following figure. Note
 that scales for the `y-axes` are not the same, since the total
-publication output varies significantly among
-sectors.
+publication output varies significantly among sectors.
 
 <div class="figure" style="text-align: center">
 
@@ -91,19 +89,18 @@ sectors, we now go one level deeper and examine OA shares of individual
 institutions, grouped by the sector they belong to. We only include
 institututions with a publication output of at least 100 publications in
 the observed time period of 9 years. Of the 444 institutions in total,
-326 fulfill this condition. This means, that in the following
-institution specific analyses, 118 insitutions, or 4187 articles are not
+320 fulfill this condition. This means, that in the following
+institution specific analyses, 124 insitutions, or 6259 articles are not
 considered. Of the remaining institutions, we first calculate the
 individual OA shares.
 
 The following figure displays scatterplots where the OA share of an
 institution over the whole time period is shown with respect to its
-publication
-output.
+publication output.
 
 <div class="figure" style="text-align: center">
 
-<img src="analysis_files/figure-gfm/unnamed-chunk-9-1.png" alt="Open Access shares of research institutions in Germany with respect to their total publication output grouped by the sector they belong to. Only institutions with at least 100 publications are shown. Blue points correspond to single insitutions, gray lines are obained by linear regression within the sector, gray areas are pointwise symmetric 95% t-distribution confidence bands. Scales of the x-axes vary across subplots in order to adapt to the different publication volumes. Dashed lines show the median value per sector for the OA share (red) and the total number of publications (orange)." width="90%" />
+<img src="analysis_files/figure-gfm/unnamed-chunk-10-1.png" alt="Open Access shares of research institutions in Germany with respect to their total publication output grouped by the sector they belong to. Only institutions with at least 100 publications are shown. Blue points correspond to single insitutions, gray lines are obained by linear regression within the sector, gray areas are pointwise symmetric 95% t-distribution confidence bands. Scales of the x-axes vary across subplots in order to adapt to the different publication volumes. Dashed lines show the median value per sector for the OA share (red) and the total number of publications (orange)." width="90%" />
 
 <p class="caption">
 
@@ -132,12 +129,11 @@ publication volume implying higher OA shares is most distinctive for the
 university sector (narrowest confidence bands).
 
 The following box plot quantifies the observations regarding the
-variability of OA shares within sectors made
-before.
+variability of OA shares within sectors made before.
 
 <div class="figure" style="text-align: center">
 
-<img src="analysis_files/figure-gfm/unnamed-chunk-11-1.png" alt="OA shares of German research institutions per sector. The color of the boxes groups sectors into universities with a typically high total journal publication output, research-oriented institutes with a medium journal publication output and practise oriented institutions with a comparatively low journal publication output. Gray points display the OA shares for individual institutions. Notches indicate approximate 95 % confidence intervals for the median values. Non-overlapping notches imply a strong indication that median values are significantly different." width="90%" />
+<img src="analysis_files/figure-gfm/unnamed-chunk-12-1.png" alt="OA shares of German research institutions per sector. The color of the boxes groups sectors into universities with a typically high total journal publication output, research-oriented institutes with a medium journal publication output and practise oriented institutions with a comparatively low journal publication output. Gray points display the OA shares for individual institutions. Notches indicate approximate 95 % confidence intervals for the median values. Non-overlapping notches imply a strong indication that median values are significantly different." width="90%" />
 
 <p class="caption">
 
@@ -180,22 +176,20 @@ of OA categories in our dataset.
 Keeping in mind that our categories are non-exclusive, as just shown, we
 now visualise the number of articles per category on the national level,
 that is, without differentiation by sector. As a first step, we
-investigate the two main OA routes via publisher or via
-repository.
+investigate the two main OA routes via a journal or via a repository.
 
 <div class="figure" style="text-align: center">
 
-<img src="analysis_files/figure-gfm/unnamed-chunk-14-1.png" alt="Development of the number of articles per OA host type and their overlap. Highlighted in blue are the number of articles per OA host type with articles made available only via the publisher on the left, articles available only in repositories on the right and the overlap, that is, articles openly accessible via both a publisher hosted platform and a repository, in the middle. Grey Area shows the remaining OA articles." width="90%" />
+<img src="analysis_files/figure-gfm/unnamed-chunk-15-1.png" alt="Development of the number of articles per OA host type and their overlap. Highlighted in blue are the number of articles per OA host type with articles made available only via a journal on the left, articles available only in repositories on the right and the overlap, that is, articles openly accessible via both a journal and a repository, in the middle. Grey Area shows the remaining OA articles." width="90%" />
 
 <p class="caption">
 
 Development of the number of articles per OA host type and their
 overlap. Highlighted in blue are the number of articles per OA host type
-with articles made available only via the publisher on the left,
-articles available only in repositories on the right and the overlap,
-that is, articles openly accessible via both a publisher hosted platform
-and a repository, in the middle. Grey Area shows the remaining OA
-articles.
+with articles made available only via a journal on the left, articles
+available only in repositories on the right and the overlap, that is,
+articles openly accessible via both a journal and a repository, in the
+middle. Grey Area shows the remaining OA articles.
 
 </p>
 
@@ -203,7 +197,7 @@ articles.
 
 <div class="figure" style="text-align: center">
 
-<img src="analysis_files/figure-gfm/unnamed-chunk-15-1.png" alt="Development of the percentage of journal articles per OA category (as per schema in Table 1) over time. Categories are non-exclusive, that is some articles may be counted for more than one category. Colors correspond to the OA category. On the left, access provided via a publisher is highlighted, on the right via repositories. Grey area displays the total percentage of OA via the corresponding route (publisher or repository). " width="90%" />
+<img src="analysis_files/figure-gfm/unnamed-chunk-16-1.png" alt="Development of the percentage of journal articles per OA category (as per schema in Table 1) over time. Categories are non-exclusive, that is some articles may be counted for more than one category. Colors correspond to the OA category. On the left, access provided via a journal is displayed, on the right via repositories. Grey area shows the total percentage of OA via the corresponding route (journal or repository). " width="90%" />
 
 <p class="caption">
 
@@ -211,9 +205,9 @@ Development of the percentage of journal articles per OA category (as
 per schema in Table 1) over time. Categories are non-exclusive, that is
 some articles may be counted for more than one category. Colors
 correspond to the OA category. On the left, access provided via a
-publisher is highlighted, on the right via repositories. Grey area
-displays the total percentage of OA via the corresponding route
-(publisher or repository).
+journal is displayed, on the right via repositories. Grey area shows the
+total percentage of OA via the corresponding route (journal or
+repository).
 
 </p>
 
@@ -233,7 +227,7 @@ proportions.
 
 <div class="figure" style="text-align: center">
 
-<img src="analysis_files/figure-gfm/unnamed-chunk-16-1.png" alt="OA shares per category and sector. Coloring and size of the points displays the percentage in the respective category. Grey numbers display the percentage value explicitly. The bottom row shows the overall OA share of the sectors, the rightmost column the percentage of articles in the corresponding category regardless of the sector (on the national level). Ordering of the sectors is according to total publication output for the entire sector (highest: universities, lowest: Fraunhofer Society)." width="90%" />
+<img src="analysis_files/figure-gfm/unnamed-chunk-17-1.png" alt="OA shares per category and sector. Coloring and size of the points displays the percentage in the respective category. Grey numbers display the percentage value explicitly. The bottom row shows the overall OA share of the sectors, the rightmost column the percentage of articles in the corresponding category regardless of the sector (on the national level). Ordering of the sectors is according to total publication output for the entire sector (highest: universities, lowest: Fraunhofer Society)." width="90%" />
 
 <p class="caption">
 
