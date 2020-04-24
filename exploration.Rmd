@@ -243,6 +243,38 @@ pubs_cat_details %>%
   readr::write_csv("data/export_tables/repo_domain_category_counts.csv")
 ```
 
+Development of disciplinary repos:
+
+```{r}
+pubs_cat_details <- readr::read_csv("data/pubs_cat_details.csv")
+top_disc_repos <- pubs_cat_details %>%
+  filter(oa_category == "opendoar_subject") %>% 
+  mutate(domains = case_when(
+    is.na(pdf_domain) && is.na(landing_domain) ~ NA_character_,
+    is.na(pdf_domain) ~ landing_domain,
+    TRUE ~ pdf_domain
+  )) %>% 
+  group_by(domains) %>%
+  summarise(n = n_distinct(DOI)) %>%
+  arrange(desc(n)) %>% 
+  head(20) %>% 
+  select(domains)
+pubs_cat_details %>%
+  filter(oa_category == "opendoar_subject") %>% 
+  mutate(domains = case_when(
+    is.na(pdf_domain) && is.na(landing_domain) ~ NA_character_,
+    is.na(pdf_domain) ~ landing_domain,
+    TRUE ~ pdf_domain
+  )) %>% 
+  inner_join(top_disc_repos) %>% 
+  group_by(PUBYEAR, domains) %>%
+  summarise(n = n_distinct(DOI)) %>%
+  ggplot(aes(x = PUBYEAR, y = n)) +
+  geom_line() + 
+  facet_wrap(~ domains)
+```
+
+
 ```{r}
 repo_df %>% 
   distinct(url_domain, landing_domain) %>% 
@@ -294,6 +326,76 @@ pubs_cat_details %>%
  knitr::kable()
 ```
 
+```{r}
+pubs_cat_details <- readr::read_csv("data/pubs_cat_details.csv")
+pubs_cat_details %>% 
+  filter(sector == "Max-Planck-Gesellschaft",
+#         host_type == "repository") %>% 
+         oa_category == "opendoar_other") %>% 
+  mutate(domains = case_when(
+    is.na(pdf_domain) && is.na(landing_domain) ~ NA_character_,
+    is.na(pdf_domain) ~ landing_domain,
+    TRUE ~ pdf_domain
+  )) %>% 
+  group_by(pdf_domain) %>%
+  summarise(n = n()) %>%
+  mutate(prop = n / sum(n) * 100) %>%
+  arrange(desc(n)) %>%
+ head(20) %>%
+ knitr::kable()
+```
+
+```{r}
+library(bigrquery)
+con_bq <- dbConnect(
+  bigrquery::bigquery(),
+  project = "api-project-764811344545",
+  dataset = "oadoi_full"
+)
+pubs_cat <- readr::read_csv("data/pubs_cat.csv")
+mpg_dois <- pubs_cat %>% 
+  filter(oa_category == "other_oa_journal") %>% 
+  select(DOI) %>% 
+  distinct()
+schema <- data_frame("DOI" = character())
+bq_dois <- bigrquery::bq_table(project = "api-project-764811344545",
+                            dataset = "oadoi_full",
+                            table = "mpg_dois")
+## publishers
+bq_mpg_dois <- bq_table_create(
+  bq_dois,
+  fields = schema
+)
+bq_table_upload(bq_mpg_dois, mpg_dois)
+cr_publisher_mpg_bq <- bigrquery::bq_project_query("api-project-764811344545", query = "SELECT publisher, c.doi FROM `cr_dump_march_20.cr_08_20` c inner join `oadoi_full.mpg_dois` u on c.doi = u.DOI", destination_table = "api-project-764811344545.oadoi_full.cr_publisher_mpg")
+cr_top_publisher_mpg_bq <- bigrquery::bq_project_query("api-project-764811344545", query = "SELECT publisher, count(distinct c.doi) as n FROM `cr_dump_march_20.cr_08_20` c inner join `oadoi_full.mpg_dois` u on c.doi = u.DOI group by publisher order by n desc LIMIT 20", destination_table = "api-project-764811344545.oadoi_full.cr_top_publisher_mpg")
+cr_dois_top_publisher_bq <- bigrquery::bq_project_query("api-project-764811344545", query = "SELECT c.publisher, doi FROM `oadoi_full.cr_publisher_mpg` c inner join `oadoi_full.cr_top_publisher_mpg` t on c.publisher = t.publisher")
+cr_publisher_mpg <- bq_table_download(cr_dois_top_publisher_bq)
+bq_table_delete(cr_top_publisher_mpg_bq)
+bq_table_delete(cr_publisher_mpg_bq)
+
+pubs_cat %>% 
+  inner_join(cr_publisher_mpg, by = c("DOI" = "doi")) %>% 
+  group_by(publisher) %>% 
+  summarise(n = n_distinct(DOI)) %>%
+  arrange(desc(n)) %>% 
+  readr::write_csv("data/export_tables/publishers_mpg_other_oa_journal.csv")
+
+## journals
+cr_journal_mpg_bq <- bigrquery::bq_project_query("api-project-764811344545", query = "SELECT container_title, publisher, c.doi FROM `cr_dump_march_20.cr_08_20` c inner join `oadoi_full.mpg_dois` u on c.doi = u.DOI", destination_table = "api-project-764811344545.oadoi_full.cr_journal_mpg")
+cr_top_journal_mpg_bq <- bigrquery::bq_project_query("api-project-764811344545", query = "SELECT container_title, publisher, count(distinct c.doi) as n FROM `cr_dump_march_20.cr_08_20` c inner join `oadoi_full.mpg_dois` u on c.doi = u.DOI group by container_title, publisher order by n desc LIMIT 30", destination_table = "api-project-764811344545.oadoi_full.cr_top_journal_mpg")
+cr_dois_top_journal_bq <- bigrquery::bq_project_query("api-project-764811344545", query = "SELECT c.container_title, c.publisher, doi FROM `oadoi_full.cr_journal_mpg` c inner join `oadoi_full.cr_top_journal_mpg` t on c.container_title = t.container_title and c.publisher = t.publisher")
+cr_journal_mpg <- bq_table_download(cr_dois_top_journal_bq)
+bq_table_delete(cr_top_journal_mpg_bq)
+bq_table_delete(cr_journal_mpg_bq)
+
+pubs_cat %>% 
+  inner_join(cr_journal_mpg, by = c("DOI" = "doi")) %>% 
+  group_by(container_title, publisher) %>% 
+  summarise(n = n_distinct(DOI)) %>%
+  arrange(desc(n)) %>% 
+  readr::write_csv("data/export_tables/journals_mpg_other_oa_journal.csv")
+```
 
 ## Drop in other repo
 
@@ -329,9 +431,77 @@ pubs_cat_details %>%
   facet_wrap(~ domains)
   
 ```
+## rise in full OA journal
+
+
+```{r}
+library(bigrquery)
+con_bq <- dbConnect(
+  bigrquery::bigquery(),
+  project = "api-project-764811344545",
+  dataset = "oadoi_full"
+)
+pubs_cat <- readr::read_csv("data/pubs_cat.csv")
+full_dois <- pubs_cat %>% 
+  filter(oa_category == "full_oa_journal") %>% 
+  select(DOI) %>% 
+  distinct()
+schema <- data_frame("DOI" = character())
+bq_dois <- bigrquery::bq_table(project = "api-project-764811344545",
+                            dataset = "oadoi_full",
+                            table = "full_dois")
+bq_full_dois <- bq_table_create(
+  bq_dois,
+  fields = schema
+)
+bq_table_upload(bq_full_dois, full_dois)
+cr_publisher_full_bq <- bigrquery::bq_project_query("api-project-764811344545", query = "SELECT publisher, c.doi FROM `cr_dump_march_20.cr_08_20` c inner join `oadoi_full.full_dois` u on c.doi = u.DOI", destination_table = "api-project-764811344545.oadoi_full.cr_publisher_full")
+cr_top_publisher_full_bq <- bigrquery::bq_project_query("api-project-764811344545", query = "SELECT publisher, count(distinct c.doi) as n FROM `cr_dump_march_20.cr_08_20` c inner join `oadoi_full.full_dois` u on c.doi = u.DOI group by publisher order by n desc LIMIT 20", destination_table = "api-project-764811344545.oadoi_full.cr_top_publisher_full")
+cr_dois_top_publisher_bq <- bigrquery::bq_project_query("api-project-764811344545", query = "SELECT c.publisher, doi FROM `oadoi_full.cr_publisher_full` c inner join `oadoi_full.cr_top_publisher_full` t on c.publisher = t.publisher")
+cr_publisher_full <- bq_table_download(cr_dois_top_publisher_bq)
+bq_table_delete(cr_top_publisher_full_bq)
+bq_table_delete(cr_publisher_full_bq)
+bq_table_delete(bq_full_dois)
+
+pubs_cat %>% 
+  inner_join(cr_publisher_full, by = c("DOI" = "doi")) %>% 
+  group_by(PUBYEAR, publisher) %>% 
+  summarise(n = n_distinct(DOI)) %>% 
+  ggplot(aes(x=PUBYEAR, y = n)) +
+  geom_line() +
+  facet_wrap(~publisher)
+
+pubs_cat %>% 
+  inner_join(cr_publisher_full, by = c("DOI" = "doi")) %>% 
+  group_by(publisher) %>% 
+  summarise(n = n_distinct(DOI)) %>% 
+  arrange(desc(n))
+```
 
 
 ## Institutional details
+
+## Subject Uni wuppertal
+
+```{r}
+pubs_cat_details <- readr::read_csv("data/pubs_cat_details.csv")
+pubs_cat_details %>% 
+  filter(oa_category != "not_oa", INST_NAME == "Bergische Universität Wuppertal") %>% 
+  mutate(oa_host = fct_collapse(
+    oa_category,
+    journal = c("full_oa_journal", "other_oa_journal"),
+    repo = c(
+      "opendoar_inst",
+      "opendoar_subject",
+      "opendoar_other",
+      "other_repo"
+    )
+  )) %>%
+  group_by(oa_host, pdf_domain) %>% 
+  summarise(n = n_distinct(PK_ITEMS)) %>% 
+  arrange(desc(n)) %>% View()
+```
+
 
 ### Outliers with all OA publications
 
@@ -352,7 +522,7 @@ outliers %>%
   summarise(n = n_distinct(PK_ITEMS)) %>% 
   arrange(desc(n))
 ```
-Schloss Dagstuhl with just one publication, that is OA. 2nd one is Heidelberg Graduate School of Fundamental Physics with 56 publications, 55 of which are published in the journal Astronomy and Astrophysics. Most of these publications are tagged as publisher based OA but are also deposited in various repositories.
+Schloss Dagstuhl with just one publication, that is OA. 2nd one is Heidelberg Graduate School of Fundamental Physics with 56 publications, 55 of which are published in the journal Astronomy and Astrophysics. Most of these publications are tagged as journal based OA but are also deposited in various repositories.
 
 ### Highest / lowest OA shares
 
@@ -482,7 +652,7 @@ First, we look at the highest aggregation level, namely the national level. Here
 
 #### by host type
 
-The first figure shows the development over time of the total number of publications per host type, that is, we collate all articles where access is provided via a publisher based platform as `OA (publisher)`, all repository based OA is collated as `OA (repository)`, and all remaining articles are labelled as `Not OA`.
+The first figure shows the development over time of the total number of publications per host type, that is, we collate all articles where access is provided via a journal based platform as `OA (journal)`, all repository based OA is collated as `OA (repository)`, and all remaining articles are labelled as `Not OA`.
 
 ```{r}
 pubs_cat %>% 
@@ -498,7 +668,7 @@ pubs_cat %>%
     geom_col(aes(fill = oa_category), position = "dodge") +
     # geom_bar(aes(fill = oa_category), stat = "identity", position = "dodge") +
     #scale_color_viridis(end = 0.85, discrete = TRUE, direction = -1) +
-    scale_fill_viridis(end = 0.95, discrete = TRUE, direction = -1, name = "OA Categories", labels = c("OA (publisher)", "OA (repository)", "Not OA")) +
+    scale_fill_viridis(end = 0.95, discrete = TRUE, direction = -1, name = "OA Categories", labels = c("OA (journal)", "OA (repository)", "Not OA")) +
     labs(x = "Publication Year", y = "Number of Articles", title = "Number of Articles per OA host type (national level)") +
     theme(legend.position = "bottom")
 ```
@@ -524,7 +694,7 @@ pubs_cat %>%
     geom_col(data = all_articles, aes(color = "All Articles"), fill = "#b3b3b3", size = 0.05) +
     scale_color_manual(values = "#ffffff", name = "", labels = "All Articles") +
     geom_col(aes(fill = oa_category)) +
-    scale_fill_viridis(end = 0.95, discrete = TRUE, direction = -1, name = "", labels = c("OA (publisher)", "OA (repository)", "Not OA"))+
+    scale_fill_viridis(end = 0.95, discrete = TRUE, direction = -1, name = "", labels = c("OA (journal)", "OA (repository)", "Not OA"))+
     facet_wrap(~ oa_category, nrow = 1) +
     theme(strip.text.x = element_blank()) +
     labs(x = "Publication Year", y = "Number of Articles", title = "Number of Articles per OA host type (national level)") +
@@ -552,7 +722,7 @@ pubs_cat %>%
     geom_col(aes(fill = oa_category), position = "dodge") +
     # geom_bar(aes(fill = oa_category), stat = "identity", position = "dodge") +
     #scale_color_viridis(end = 0.85, discrete = TRUE, direction = -1) +
-    scale_fill_viridis(end = 0.95, discrete = TRUE, labels = c("OA (publisher)", "OA (repository)", "Not OA"), direction = -1) +
+    scale_fill_viridis(end = 0.95, discrete = TRUE, labels = c("OA (journal)", "OA (repository)", "Not OA"), direction = -1) +
     labs(x = "Publication Year", y = "Proportion of Articles (in %)", title = "Proportion of Articles per OA host type", fill = "OA Category") +
     theme(legend.position = "right") 
     # theme(axis.title = element_text(size = 16),
@@ -580,7 +750,7 @@ pubs_cat %>%
   ggplot(aes(x = PUBYEAR, y = prop)) +
     #geom_line(aes(color = oa_category)) +
     geom_col(aes(fill = oa_category)) +
-    scale_fill_viridis(end = 0.95, discrete = TRUE, labels = c("OA (publisher)", "OA (repository)", "Not OA"), direction = -1) +
+    scale_fill_viridis(end = 0.95, discrete = TRUE, labels = c("OA (journal)", "OA (repository)", "Not OA"), direction = -1) +
     facet_wrap(~ oa_category, nrow = 1) +
     theme(strip.text.x = element_blank()) +
     labs(x = "Publication Year", y = "Proportion of Articles (in %)", title = "Proportion of Articles per OA host type", fill = "OA Category") +
@@ -589,7 +759,7 @@ pubs_cat %>%
 
 #### by OA category
 
-The following figure shows very similar data as the one before - only that here, all OA categories from the schema are shown individually, that is, publisher based and repository based OA are further distinguished into subgroups.
+The following figure shows very similar data as the one before - only that here, all OA categories from the schema are shown individually, that is, journal based and repository based OA are further distinguished into subgroups.
 
 ```{r}
 pubs_cat %>% 
@@ -710,7 +880,7 @@ pubs_cat %>%
   ggplot(aes(x = PUBYEAR, y = number_of_articles)) +
     geom_col(aes(fill = oa_category), position = "dodge") +
     facet_wrap(~ sector, scales = "free", ncol = 2) +
-    scale_fill_viridis(end = 0.95, discrete = TRUE, direction = -1, name = "OA category", labels = c("OA (publisher)", "OA (repository)", "Not OA")) +
+    scale_fill_viridis(end = 0.95, discrete = TRUE, direction = -1, name = "OA category", labels = c("OA (journal)", "OA (repository)", "Not OA")) +
     labs(x = "Publication Year", y = "Number of Articles", title = "Number of Articles per OA host type (level of sectors)", color = "oa_category") +
     theme(legend.position = "right")
 ```
@@ -734,7 +904,7 @@ pubs_cat %>%
   ggplot(aes(x = PUBYEAR, y = prop)) +
     geom_col(aes(fill = oa_category), position = "dodge") +
     facet_wrap(~ sector, scales = "free") +
-    scale_fill_viridis(end = 0.95, discrete = TRUE, direction = -1, name = "OA category", labels = c("OA (publisher)", "OA (repository)", "Not OA")) +
+    scale_fill_viridis(end = 0.95, discrete = TRUE, direction = -1, name = "OA category", labels = c("OA (journal)", "OA (repository)", "Not OA")) +
     labs(x = "Publication Year", y = "Proportion of Articles (in %)", title = "Proportion of Articles per OA host type (level of sectors)", color = "oa_category") +
     theme(legend.position = "bottom")
 ```
@@ -769,7 +939,7 @@ pubs_cat_abbr %>%
     geom_col(aes(fill = oa_category)) +
     facet_grid(sector ~ oa_category) +
     theme(strip.text.x = element_blank()) +
-    scale_fill_viridis(end = 0.95, discrete = TRUE, direction = -1, name = "OA category", labels = c("OA (publisher)", "OA (repository)", "Not OA")) +
+    scale_fill_viridis(end = 0.95, discrete = TRUE, direction = -1, name = "OA category", labels = c("OA (journal)", "OA (repository)", "Not OA")) +
     labs(x = "Publication Year", y = "Proportion of Articles (in %)", title = "Proportion of Articles per OA host type (level of sectors)", color = "oa_category") +
     theme(legend.position = "bottom")
 ```
