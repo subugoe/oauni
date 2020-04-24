@@ -113,7 +113,8 @@ pubs_oa_year <- pubs_cat %>%
   mutate(n_total_year = n_distinct(PK_ITEMS)) %>% 
   ungroup() %>% 
   group_by(PUBYEAR, oa_category, n_total_year) %>%
-  summarise(number_of_articles = n_distinct(PK_ITEMS))
+  summarise(number_of_articles = n_distinct(PK_ITEMS)) %>% 
+  ungroup()
 ```
  
  
@@ -194,10 +195,15 @@ pubs_cat %>%
            legend.justification = "right")
 ```
 
-In order to investigate the variability of OA publishing within the sectors, we now go one level deeper and examine OA shares of individual institutions, grouped by the sector they belong to. We only include institututions with a publication output of at least 100 publications in the observed time period of 9 years. Of the `r pubs_cat %>% summarise(n = n_distinct(INST_NAME)) %>% .$n` institutions in total, `r pubs_cat %>% group_by(INST_NAME) %>% mutate(n_total = n_distinct(PK_ITEMS)) %>% ungroup() %>% filter(n_total >= 100) %>% summarise(n = n_distinct(INST_NAME)) %>% .$n` fulfill this condition. This means, that in the following institution specific analyses, `r pubs_cat %>% group_by(INST_NAME) %>% mutate(n_total = n_distinct(PK_ITEMS)) %>% ungroup() %>% filter(n_total < 100) %>% summarise(n = n_distinct(INST_NAME)) %>% .$n` insitutions, or `r pubs_cat %>% group_by(INST_NAME) %>% mutate(n_total = n_distinct(PK_ITEMS)) %>% ungroup() %>% filter(n_total < 100) %>% summarise(n = n_distinct(PK_ITEMS)) %>% .$n` articles are not considered. Of the remaining institutions, we first calculate the individual OA shares.
+```{r}
+## exclusion for inst_level analysis
+exclude_from_inst_analysis <- readr::read_csv("data/exclude_from_inst_level_analysis.csv")
+```
+
+
+In order to investigate the variability of OA publishing within the sectors, we now go one level deeper and examine OA shares of individual institutions, grouped by the sector they belong to. We only include institututions with a publication output of at least 100 publications in the observed time period of 9 years. Of the `r pubs_cat %>% summarise(n = n_distinct(INST_NAME)) %>% .$n` institutions in total, `r pubs_cat %>% anti_join(exclude_from_inst_analysis, by = c("INST_NAME" = "NAME")) %>% group_by(INST_NAME) %>% mutate(n_total = n_distinct(PK_ITEMS)) %>% ungroup() %>% filter(n_total >= 100) %>% summarise(n = n_distinct(INST_NAME)) %>% .$n` fulfill this condition. This means, that in the following institution specific analyses, `r pubs_cat %>% left_join(exclude_from_inst_analysis, by = c("INST_NAME" = "NAME")) %>% group_by(INST_NAME) %>% mutate(n_total = n_distinct(PK_ITEMS)) %>% ungroup() %>% filter(n_total < 100 | !is.na(PK_KB_INST)) %>% summarise(n = n_distinct(INST_NAME)) %>% .$n` insitutions, or `r pubs_cat %>% left_join(exclude_from_inst_analysis, by = c("INST_NAME" = "NAME")) %>% group_by(INST_NAME) %>% mutate(n_total = n_distinct(PK_ITEMS)) %>% ungroup() %>% filter(n_total < 100 | !is.na(PK_KB_INST)) %>% summarise(n = n_distinct(PK_ITEMS)) %>% .$n` articles are not considered. Of the remaining institutions, we first calculate the individual OA shares.
 
 ```{r}
-exclude_from_inst_analysis <- readr::read_csv("data/exclude_from_inst_level_analysis.csv")
 oa_shares_inst <- pubs_cat %>%
   anti_join(exclude_from_inst_analysis, by = c("INST_NAME" = "NAME")) %>% 
   mutate(oa_category = fct_collapse(
@@ -814,6 +820,38 @@ for(secname in unique(pubs_cat$sec_abbr)){
     readr::write_csv(paste0("data/export_tables/table_oa_cat_inst_", secname,".csv"))
 }
 
+## numbers overlap hosttype
+ pubs_cat %>%
+  filter(oa_category != "not_oa") %>% 
+  mutate(PUBYEAR = lubridate::ymd(paste0(PUBYEAR, "-01-01"))) %>% 
+  left_join(host_overlap, by = "PK_ITEMS") %>% 
+  mutate(oa_host = case_when(
+    oa_host == "journal" ~ "Journal only",
+    oa_host == "repository" ~ "Repository only",
+    oa_host == "journal&repository" ~ "Journal &\n Repository"
+  )) %>% 
+  mutate(oa_host = factor(oa_host, levels = c("Journal only", "Journal &\n Repository", "Repository only"))) %>% 
+   group_by(oa_host) %>% 
+   mutate(n_host = n_distinct(PK_ITEMS)) %>% 
+   ungroup() %>% 
+   mutate(n_total = n_distinct(PK_ITEMS)) %>% 
+   group_by(oa_host, PUBYEAR, n_total, n_host) %>% 
+   summarise(n = n_distinct(PK_ITEMS)) %>%
+   ungroup() %>% 
+   pivot_wider(names_from = PUBYEAR, values_from = n) %>% 
+   pivot_longer(cols = c(3:12), names_to = "PUBYEAR", values_to = "n") %>% 
+   mutate(PUBYEAR = lubridate::ymd(PUBYEAR)) %>% 
+   left_join(select(filter(pubs_oa_year, oa_category == "is_oa"), PUBYEAR, number_of_articles), by = "PUBYEAR") %>% 
+   mutate(number_of_articles = ifelse(is.na(PUBYEAR), n_total, number_of_articles)) %>% 
+   pivot_wider(names_from = oa_host, values_from = n) %>% 
+   mutate(PUBYEAR = ifelse(is.na(PUBYEAR), "All years", as.character(lubridate::year(PUBYEAR)))) %>% 
+   rename(`Total OA articles` = number_of_articles) %>% 
+   select(-n_total) %>% 
+   mutate(`Proportion\n Journal only` = `Journal only` / `Total OA articles`,
+          `Proportion\n Journal &\n Repository` = `Journal &\n Repository` / `Total OA articles`,
+          `Proportion\n Repository only` = `Repository only` / `Total OA articles`) %>% 
+  readr::write_csv("data/export_tables/overlap_hosttype_per_year.csv")
+
 ## which categories are dominant in the overlapping host type plot?
  pubs_cat %>%
   filter(oa_category != "not_oa") %>% 
@@ -825,20 +863,25 @@ for(secname in unique(pubs_cat$sec_abbr)){
     oa_host == "journal&repository" ~ "Journal &\n Repository"
   )) %>% 
   mutate(oa_host = factor(oa_host, levels = c("Journal only", "Journal &\n Repository", "Repository only"))) %>% 
-    mutate(oa_host_non_overlap = fct_collapse(oa_category,
-      journal = c("full_oa_journal", "other_oa_journal"),
-      repository = c(
-        "opendoar_inst",
-        "opendoar_subject",
-        "opendoar_other",
-        "other_repo"
-      ))) %>% 
-    group_by(oa_host, oa_category, oa_host_non_overlap) %>% 
+    # mutate(oa_host_non_overlap = fct_collapse(oa_category,
+    #   journal = c("full_oa_journal", "other_oa_journal"),
+    #   repository = c(
+    #     "opendoar_inst",
+    #     "opendoar_subject",
+    #     "opendoar_other",
+    #     "other_repo"
+    #   ))) %>% 
+    # group_by(oa_host, oa_category, oa_host_non_overlap) %>% 
+   group_by(oa_host) %>% 
+   mutate(n_total = n_distinct(PK_ITEMS)) %>% 
+   ungroup() %>% 
+   group_by(oa_host, oa_category, n_total) %>% 
     summarise(n = n_distinct(PK_ITEMS)) %>% 
-    group_by(oa_host, oa_host_non_overlap) %>% 
-    mutate(prop_per_host = n/sum(n)) %>% 
-  select(-n) %>% 
-  pivot_wider(names_from = oa_host, values_from = prop_per_host, values_fill = list(prop_per_host = 0)) %>%
+    # group_by(oa_host, oa_host_non_overlap) %>% 
+    # mutate(prop_per_host = n/sum(n)) %>% 
+  mutate(prop = n/n_total) %>% 
+  select(-n, -n_total) %>% 
+  pivot_wider(names_from = oa_host, values_from = prop, values_fill = list(prop = 0)) %>%
   readr::write_csv("data/export_tables/overlap_hosttype_per_category.csv")
 
 ```
