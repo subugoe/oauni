@@ -3,9 +3,9 @@ title: "Analysis of German publication output"
 author: "Anne Hobert"
 date: "3/6/2020"
 output:
-  github_document:
   word_document:
     fig_caption: yes
+  github_document:
   html_document:
     fig_caption: yes
     keep_md : true
@@ -46,10 +46,10 @@ pubs_cat <- pubs_cat %>%
   mutate(sec_abbr = case_when(
             sector == "Hochschulen" ~ "UNI",
             sector == "Helmholtz-Gemeinschaft" ~ "HGF",
-            sector == "Max-Planck-Gesellschaft" ~ "MPG",
+            sector == "Max-Planck-Gesellschaft" ~ "MPS",
             sector == "Leibniz-Gemeinschaft" ~ "WGL",
-            sector == "Fraunhofer-Gesellschaft" ~ "FhG",
-            sector == "Ressortforschung" ~ "ReF"
+            sector == "Fraunhofer-Gesellschaft" ~ "FhS",
+            sector == "Ressortforschung" ~ "GRA"
           ),
         sector = case_when(
             sector == "Hochschulen" ~ "Universities",
@@ -57,7 +57,7 @@ pubs_cat <- pubs_cat %>%
             sector == "Max-Planck-Gesellschaft" ~ "Max Planck Society",
             sector == "Leibniz-Gemeinschaft" ~ "Leibniz Association",
             sector == "Fraunhofer-Gesellschaft" ~ "Fraunhofer Society",
-            sector == "Ressortforschung" ~ "Ressortforschung"
+            sector == "Ressortforschung" ~ "Government Research\n Agencies"
         ),
         oa_category = factor(
            oa_category,
@@ -260,6 +260,7 @@ oa_shares_inst_sector <- pubs_cat %>%
     INST_NAME == "Kiepenheuer-Institut für Sonnenphysik (KIS)" ~ "KIS",
     INST_NAME == "Robert Koch-Institut" ~ "RKI",
     INST_NAME == "Deutscher Wetterdienst" ~ "DWD",
+    INST_NAME == "Fraunhofer-Institut für Zelltherapie und Immunologie" ~ "IZI",
     TRUE ~ ""
   ))
 
@@ -316,14 +317,15 @@ oa_shares_inst_sector %>%
     theme_minimal_grid() +
     theme(legend.position = "none") +
     # bold facet labels
-    theme(strip.text = element_text(face = "bold"))
+    theme(strip.text = element_text(face = "bold"))+
+  theme(axis.text=element_text(size=10))
 ```
 The most striking observations from this figure are the high OA shares of most of the Max-Planck and Helmholtz institutes and the very low OA fractions of almost all of the state and federal institutes as well as the ones from the Fraunhofer Society. Universities and Leibniz-Society have many institutes with OA shares close to one half. We can further see very well that the universities have by far the largest publication volumes, followed by the Helmholtz-Society. The linear trend of higher publication volume implying higher OA shares is most distinctive for the university sector (narrowest confidence bands). 
 
 
 The following box plot quantifies the observations regarding the variability of OA shares within sectors made before.
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, eval=FALSE}
 ## some functions for inferring significance
 get_ci_lims <- function(sec_data, grouped = FALSE){
   if(grouped){
@@ -368,16 +370,16 @@ get_ci_lims <- function(sec_data, grouped = FALSE){
       mutate(
         sector_cat = case_when(
           sec_abbr == "UNI" ~ "Universities",
-          sec_abbr %in% c("MPG", "HGF") ~ "Research-oriented",
-          sec_abbr == "WGL" ~ "Varying focuses",
-          sec_abbr %in% c("FhG", "ReF") ~ "Practise-oriented"
+          sec_abbr %in% c("MPS", "HGF") ~ "Research-oriented",
+          sec_abbr == "WGL" ~ "Diverse missions",
+          sec_abbr %in% c("FhS", "GRA") ~ "Practise-oriented"
         )
       ) %>%
       mutate(sector_cat = factor(
         sector_cat,
         levels = c("Universities",
                    "Research-oriented",
-                   "Varying focuses",
+                   "Diverse missions",
                    "Practise-oriented"
                    )
       ))
@@ -422,16 +424,16 @@ oa_shares_inst_sec_boxplot <- pubs_cat %>%
     n_sector = n_distinct(PK_ITEMS),
     sector_cat = case_when(
       sec_abbr == "UNI" ~ "Universities",
-      sec_abbr %in% c("MPG", "HGF") ~ "Research-oriented",
-      sec_abbr == "WGL" ~ "Varying focuses",
-      sec_abbr %in% c("FhG", "ReF") ~ "Practise-oriented"
+      sec_abbr %in% c("MPS", "HGF") ~ "Research-oriented",
+      sec_abbr == "WGL" ~ "Diverse missions",
+      sec_abbr %in% c("FhS", "GRA") ~ "Practise-oriented"
     )
   ) %>%
   mutate(sector_cat = factor(
     sector_cat,
     levels = c("Universities",
                "Research-oriented",
-               "Varying focuses",
+               "Diverse missions",
                "Practise-oriented"
                )
   )) %>%
@@ -449,7 +451,13 @@ oa_shares_inst_sec_boxplot <- pubs_cat %>%
 
 ggplot(data = oa_shares_inst_sec_boxplot, aes(x = fct_rev(fct_reorder(sec_abbr, n_sector)), y = oa_share)) +
   geom_boxplot(aes(color = sector_cat), varwidth = FALSE, size = 1, notch = TRUE) +
-  geom_jitter(alpha = 0.1) +
+  geom_jitter(data = filter(oa_shares_inst_sec_boxplot, !INST_NAME %in% c(
+    "Universität Konstanz",
+    "Fraunhofer-Institut für Zelltherapie und Immunologie",
+    "Max-Planck-Institut für ethnologische Forschung",
+    "Max-Planck-Institut zur Erforschung multireligiöser und multiethnischer Gesellschaften"
+  )),
+  alpha = 0.1) +
   scale_y_continuous(labels = scales::percent_format(accuracy = 5L),
                      expand = expansion(mult = c(0, 0.05)),
                      limits = c(0, 1)) +
@@ -469,7 +477,7 @@ ggplot(data = oa_shares_inst_sec_boxplot, aes(x = fct_rev(fct_reorder(sec_abbr, 
      legend.justification = "right") 
 ```
 
-Significance: HGF against all non-research oriented, MPG against all non-research oriented, FhG against all others
+Significance: HGF against all non-research oriented, MPS against all non-research oriented, FhS against all others
 Significance groups: research against all others, practise against all others, mixed not well separated from universities (maybe sector_cat classification should be inst_cat, i.e. on the level of institutions - would have to be manually at least for some sectors)
 
 ### Prevalences of OA categories
@@ -661,7 +669,7 @@ oa_shares_sector <-pubs_cat %>%
     TRUE ~  as.double(n_total)
   )) %>% 
   select(-share_cat, -n_total) %>% 
-  pivot_longer(cols = c("FhG", "HGF", "MPG", "ReF", "UNI", "WGL", "all_sec"),
+  pivot_longer(cols = c("FhS", "HGF", "MPS", "GRA", "UNI", "WGL", "all_sec"),
                names_to = "sec_abbr",
                values_to = "fig_val") %>% 
   pivot_wider(names_from = fig_type,
@@ -787,7 +795,7 @@ oa_shares_host_sec <-pubs_cat %>%
     TRUE ~  as.double(n_total)
   )) %>% 
   select(-share_host, -n_total) %>% 
-  pivot_longer(cols = c("FhG", "HGF", "MPG", "ReF", "UNI", "WGL", "all_sec"),
+  pivot_longer(cols = c("FhS", "HGF", "MPS", "GRA", "UNI", "WGL", "all_sec"),
                names_to = "sec_abbr",
                values_to = "fig_val") %>% 
   pivot_wider(names_from = fig_type,
