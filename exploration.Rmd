@@ -87,6 +87,41 @@ upw_evidence %>%
   count() %>% 
   mutate(prop = n / sum(.$n))
 ```
+
+```{r}
+pubs_cat_details <- readr::read_csv("data/pubs_cat_details.csv")
+excl_from_analysis <- readr::read_csv("data/exclude_from_analysis.csv")
+pubs_cat_details <- pubs_cat_details %>% 
+  anti_join(excl_from_analysis, by = c("INST_NAME" = "Universitäten"))
+rm(excl_from_analysis)
+
+pubs_cat_details %>% 
+  filter(!is.na(upw_doi)) %>% 
+  group_by(upw_doi) %>% 
+  summarise(n = n_distinct(PK_ITEMS)) %>% 
+  filter(n == 2) %>% 
+  count()
+
+  
+pubs_cat_details %>% 
+  filter(is_oa == TRUE) %>% 
+  mutate(n_total = n_distinct(PK_ITEMS)) %>% 
+  select(n_total, PK_ITEMS, url_for_landing_page, url_for_pdf, evidence) %>% 
+  distinct() %>% 
+  group_by(PK_ITEMS, n_total) %>% 
+  summarise(n_loc = n()) %>%  
+  group_by(n_loc > 1, n_total) %>% 
+  summarise(n_items = n()) %>% 
+  mutate(prop = n_items/n_total)
+
+pubs_cat_details %>% 
+  filter(oa_category =="not_oa") %>% 
+  group_by(PK_ITEMS) %>% 
+  mutate(n_loc = n()) %>% 
+  filter(n_loc > 1)
+```
+
+
 How many OA DOIs have more than one OA category according to our schema?
 
 ```{r}
@@ -442,6 +477,10 @@ con_bq <- dbConnect(
   dataset = "oadoi_full"
 )
 pubs_cat <- readr::read_csv("data/pubs_cat.csv")
+excl_from_analysis <- readr::read_csv("data/exclude_from_analysis.csv")
+pubs_cat <- pubs_cat %>% 
+  anti_join(excl_from_analysis, by = c("INST_NAME" = "Universitäten"))
+rm(excl_from_analysis)
 full_dois <- pubs_cat %>% 
   filter(oa_category == "full_oa_journal") %>% 
   select(DOI) %>% 
@@ -469,13 +508,47 @@ pubs_cat %>%
   summarise(n = n_distinct(DOI)) %>% 
   ggplot(aes(x=PUBYEAR, y = n)) +
   geom_line() +
-  facet_wrap(~publisher)
+  facet_wrap(~ publisher)
 
 pubs_cat %>% 
   inner_join(cr_publisher_full, by = c("DOI" = "doi")) %>% 
   group_by(publisher) %>% 
   summarise(n = n_distinct(DOI)) %>% 
   arrange(desc(n))
+
+pubs_cat %>% 
+  inner_join(cr_publisher_full, by = c("DOI" = "doi")) %>% 
+  filter(publisher == "Public Library of Science (PLoS)") %>% 
+  group_by(PUBYEAR) %>% 
+  summarise(n = n_distinct(DOI))
+
+```
+## Comparison Gold-list, Unpaywall
+
+```{r}
+pubs_cat_details <- readr::read_csv("data/pubs_cat_details.csv")
+excl_from_analysis <- readr::read_csv("data/exclude_from_analysis.csv")
+pubs_cat_details <- pubs_cat_details %>% 
+  anti_join(excl_from_analysis, by = c("INST_NAME" = "Universitäten"))
+rm(excl_from_analysis)
+
+# pubs in both
+pubs_cat_details %>%
+  filter(host_type == "publisher") %>% 
+  filter(issn_gold ==TRUE, journal_is_oa == TRUE) %>% 
+  select(`ISSN-L`) %>% 
+  distinct() -> both
+
+pubs_cat_details %>%
+  anti_join(both) %>%
+  filter(issn_gold == TRUE, host_type == "publisher") %>%
+  select(`ISSN-L`) %>% 
+  distinct() -> only_list
+pubs_cat_details %>%
+  anti_join(both) %>%
+  filter(journal_is_oa == TRUE, host_type == "publisher") %>%
+  select(`ISSN-L`) %>% 
+  distinct() -> only_upw
 ```
 
 
