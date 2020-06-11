@@ -211,8 +211,8 @@ opendoar <- readr::read_csv("data/opendoar_data_tidier.csv") %>%
 
 ```{r}
 repo_df %>% 
-  distinct(DOI, url_domain, landing_domain) %>% 
-  left_join(opendoar,  by = c("url_domain" = "repo_domain", "landing_domain" = "repo_domain")) %>% 
+  distinct(DOI, pdf_domain, landing_domain) %>% 
+  left_join(opendoar,  by = c("pdf_domain" = "repo_domain", "landing_domain" = "repo_domain")) %>% 
   ungroup() %>% 
   group_by(repo_type) %>% 
   summarise(n = n()) %>% 
@@ -225,9 +225,9 @@ without "pdfs.semanticscholar.org".
 
 ```{r}
 repo_df %>% 
-  distinct(DOI, url_domain, landing_domain) %>% 
-  filter(url_domain != "pdfs.semanticscholar.org") %>%
-  left_join(opendoar,  by = c("url_domain" = "repo_domain", "landing_domain" = "repo_domain")) %>% 
+  distinct(DOI, pdf_domain, landing_domain) %>% 
+  filter(pdf_domain != "pdfs.semanticscholar.org") %>%
+  left_join(opendoar,  by = c("pdf_domain" = "repo_domain", "landing_domain" = "repo_domain")) %>% 
   ungroup() %>% 
   group_by(repo_type) %>% 
   summarise(n = n()) %>% 
@@ -272,7 +272,7 @@ pubs_cat_details %>%
   group_by(oa_category) %>% 
 #  mutate(prop = round(n / sum(n) * 100)) %>%
   arrange(oa_category, desc(n)) %>%
-  pivot_wider(names_from = oa_category, values_from = n, values_fill = list(n = 0)) %>%
+  pivot_wider(names_from = oa_category, values_from = n, values_fill = list(n = 0)) %>% 
 #  head(20) %>%
 #  knitr::kable()
   readr::write_csv("data/export_tables/repo_domain_category_counts.csv")
@@ -312,12 +312,12 @@ pubs_cat_details %>%
 
 ```{r}
 repo_df %>% 
-  distinct(url_domain, landing_domain) %>% 
-  left_join(opendoar,  by = c("url_domain" = "repo_domain", "landing_domain" = "repo_domain"))
+  distinct(pdf_domain, landing_domain) %>% 
+  left_join(opendoar,  by = c("pdf_domain" = "repo_domain", "landing_domain" = "repo_domain"))
 
 repo_df %>% 
-  distinct(FK_ITEMS, DOI, url_domain, landing_domain) %>% 
-  left_join(opendoar,  by = c("url_domain" = "repo_domain", "landing_domain" = "repo_domain")) %>% 
+  distinct(FK_ITEMS, DOI, pdf_domain, landing_domain) %>% 
+  left_join(opendoar,  by = c("pdf_domain" = "repo_domain", "landing_domain" = "repo_domain")) %>% 
   ungroup() %>% 
   write_csv("data/german_unis_url_matching.csv")
 ```
