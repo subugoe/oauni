@@ -42,16 +42,16 @@ library(urltools)
 
 # Store personal authentication credentials as kb_user01 and kb_password01 in .Renviron file.
 # Open DB connection
-
-drv <-RJDBC::JDBC("oracle.jdbc.OracleDriver", classPath= "jdbc_driver/ojdbc8.jar")
-con_kb <- DBI::dbConnect(drv, "jdbc:oracle:thin:@//biblio-p-db01:1521/bibliodb01.fiz.karlsruhe", Sys.getenv("kb_user01"), Sys.getenv("kb_password01"))
-
-# connection to bigquery (restricted access)
-con_bq <- dbConnect(
-  bigrquery::bigquery(),
-  project = "api-project-764811344545",
-  dataset = "oadoi_full"
-)
+# 
+# drv <-RJDBC::JDBC("oracle.jdbc.OracleDriver", classPath= "jdbc_driver/ojdbc8.jar")
+# con_kb <- DBI::dbConnect(drv, "jdbc:oracle:thin:@//biblio-p-db01:1521/bibliodb01.fiz.karlsruhe", Sys.getenv("kb_user01"), Sys.getenv("kb_password01"))
+# 
+# # connection to bigquery (restricted access)
+# con_bq <- dbConnect(
+#   bigrquery::bigquery(),
+#   project = "api-project-764811344545",
+#   dataset = "oadoi_full"
+# )
 ```
 
 ## Introduction
@@ -247,9 +247,10 @@ Both types will be classified as `not_oa`, meaning that we don't have an OA loca
 ```{r}
 pubs_wos_upw_cat <- pubs_wos_upw_gold_repo %>% 
   mutate(oa_category = case_when(
+    issn_gold == TRUE & (is.na(host_type) | host_type == 'publisher') ~ 'full_oa_journal',
     is.na(upw_doi) ~ "not_oa",
     !is_oa ~ "not_oa",
-    host_type == 'publisher' & (issn_gold == TRUE | journal_is_oa == TRUE) ~ 'full_oa_journal',
+    host_type == 'publisher' & journal_is_oa == TRUE ~ 'full_oa_journal',
     host_type == 'publisher' ~ 'other_oa_journal',
     repo_type == 'institutional' ~ 'opendoar_inst',
     repo_type == 'disciplinary' ~ 'opendoar_subject',

@@ -3,9 +3,9 @@ title: "Analysis of German publication output"
 author: "Anne Hobert"
 date: "3/6/2020"
 output:
+  github_document:
   word_document:
     fig_caption: yes
-  github_document:
   html_document:
     fig_caption: yes
     keep_md : true
@@ -23,7 +23,7 @@ knitr::opts_chunk$set(
   fig.asp = 0.618,
   out.width = "90%",
   fig.align = "center",
-  dpi = 300
+  dpi = 600
 )
 ```
 
@@ -484,15 +484,15 @@ Significance groups: research against all others, practise against all others, m
 
 As mentioned in the previous chapters, there are several ways of providing open access to scientific journal articles. In this section, we want to investigate the prevalence of the most widespread OA routes: Green OA and Gold OA. We further distinguish these two main categories as described in the methodology section (see Table 1) according to whether the journal is fully OA (Gold OA), and into deposition on disciplinary, institutional, or OpenDOAR-listed repositories (Green OA). Note that, as mentioned before, the OA categories are not exclusive, that is, an article might be counted for several categories and numbers not necessarily sum up to the total number of articles published. As a preliminary step, we therefore illustrate the most common combinations of OA categories in our dataset.
 ```{r}
-# cat_overlap <- pubs_cat %>% 
-#   filter(oa_category != "not_oa") %>% 
-#   select(PK_ITEMS, oa_category) %>% 
-#   distinct() %>% 
-#   arrange(PK_ITEMS, oa_category) %>% 
-#   aggregate(oa_category ~ PK_ITEMS, data = ., paste, collapse = "&") %>% 
-#   group_by(oa_category) %>% 
-#   summarise(n = n_distinct(PK_ITEMS))
-# readr::write_csv(cat_overlap, "data/overlap_oa_categories.csv")
+cat_overlap <- pubs_cat %>%
+  filter(oa_category != "not_oa") %>%
+  select(PK_ITEMS, oa_category) %>%
+  distinct() %>%
+  arrange(PK_ITEMS, oa_category) %>%
+  aggregate(oa_category ~ PK_ITEMS, data = ., paste, collapse = "&") %>%
+  group_by(oa_category) %>%
+  summarise(n = n_distinct(PK_ITEMS))
+readr::write_csv(cat_overlap, "data/overlap_oa_categories.csv")
 ```
 
 ```{r}

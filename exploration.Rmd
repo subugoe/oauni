@@ -541,7 +541,7 @@ pubs_cat_details %>%
 
 pubs_cat_details %>%
   anti_join(both) %>%
-  filter(issn_gold == TRUE, host_type == "publisher") %>%
+  filter(issn_gold == TRUE & (host_type == "publisher"| is.na(host_type))) %>%
   select(`ISSN-L`) %>% 
   distinct() -> only_list
 pubs_cat_details %>%
