@@ -9,3 +9,12 @@ data/pubs_cat.csv
 data/pubs_wos.csv
 data/upw_evidence.csv
 data/pubs_cat_details.csv
+data/exclude_from_analysis.csv
+data/exlcude_from_inst_level_analysis.csv
+data/sample_manual_check_1.csv
+data/sample_manual_check_2.csv
+data/sample_manual_check_1_results.csv
+data/unmatched_dois_agency.csv
+data/unmatched_wos_dois.csv
+data_gathering_preprocessing/sample_manual_check.csv
+data_gathering_preprocessing/sample_manual_check_2.csv
