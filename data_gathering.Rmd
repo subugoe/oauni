@@ -130,10 +130,11 @@ if(file.exists("data/upw_evidence.csv")){
   #DBI::dbWriteTable(con_bq, "oa_german_inst_dois", dois_wos, overwrite = TRUE, fields =  dois_wos_bq_schema)
   
   ## match DOIs with Unpaywall dataset and download matched records
-  ## use create_*.sql to also create the table in BQ, gather_*.sql to just load the entries
+  ## use create_*.sql to also create the table in BQ (then also run delete table! before and after), gather_*.sql to just load the entries
   upw_evidence_bq <- bigrquery::bq_table(project = "api-project-764811344545",
                             dataset = "oadoi_full",
                             table = "oa_german_inst_upw_evidence")
+#  upw_evidence_bq %>% bigrquery::bq_table_delete()
   upw_evidence_bq_table <- bigrquery::bq_project_query("api-project-764811344545", query = read_file("data_gathering_preprocessing/gather_oa_german_inst_upw_evidence.sql")) 
   upw_evidence <- bq_table_download(upw_evidence_bq_table)
   ## alternatively with create table statement
@@ -144,6 +145,10 @@ if(file.exists("data/upw_evidence.csv")){
   #upw_evidence <- DBI::dbGetQuery(con_bq, read_file("gather_oa_german_inst_upw_evidence.sql"))
   
   readr::write_csv(upw_evidence, "data/upw_evidence.csv")
+  dois_wos_bq %>% 
+    bigrquery::bq_table_delete()
+  # upw_evidence_bq %>% 
+  #   bigrquery::bq_table_delete()
   rm(dois_wos, dois_wos_bq, dois_wos_bq_schema, upw_evidence_bq, upw_evidence_bq_table)
 }
 ```
