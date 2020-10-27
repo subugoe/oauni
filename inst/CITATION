@@ -1,0 +1,21 @@
+citHeader("To cite oauni in publications use:")
+
+citEntry(
+  entry = "Unpublished",
+  note  = "Preprint",
+  title = "Open Access Uptake in Germany 2010-18: Adoption in a diverse research landscape (preprint)",
+  author = personList(
+    as.person("Anne Hobert"),
+    as.person("Najko Jahn"),
+    as.person("Philipp Mayr"),
+    as.person("Birgit Schmidt"),
+    as.person("Niels Taubert")
+  ),
+  year = "2020",
+  doi  = "http://doi.org/10.5281/zenodo.3892951",
+  textVersion = paste(
+    "Hobert, Anne, Jahn, Najko, Mayr, Philipp, Schmidt, Birgit, & Taubert, Niels. (2020).",
+    "Open Access Uptake in Germany 2010-18: Adoption in a diverse research landscape.",
+    "http://doi.org/10.5281/zenodo.3892951[Preprint]"
+  )
+)

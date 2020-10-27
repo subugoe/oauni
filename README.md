@@ -1,23 +1,35 @@
-# OA shares of German research institutions
+# oauni
 
-This study is a collaboration of BMBF-funded projects OASE and OAUNI on the open access status of the publication output of German research institutions (universities, non-university research institutes, and federal and state institutions).
+<!-- badges: start -->
+[![Main](https://github.com/subugoe/oauni/workflows/.github/workflows/main.yaml/badge.svg)](https://github.com/subugoe/oauni/actions)
+[![CRAN
+status](https://www.r-pkg.org/badges/version/oauni)](https://CRAN.R-project.org/package=oauni)
+[![Codecov test
+coverage](https://codecov.io/gh/subugoe/oauni/branch/master/graph/badge.svg)](https://codecov.io/gh/subugoe/oauni)
+[![Lifecycle:
+experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
+[![Codecov test
+coverage](https://codecov.io/gh/subugoe/oauni/branch/master/graph/badge.svg)](https://codecov.io/gh/subugoe/oauni?branch=master)
+<!-- badges: end -->
 
-## Research Questions
+## Overview
 
-The goal is to answer the three research questions 
+oauni packages the code, data and publications associated with the eponymous research project on open-access publications from german universities.
 
-1) Has the OA fraction of the publication output of German universities and research institutions increased constantly over time?
-2) Can we observe differences between the research sectors of the German science system? Are there obvious explanations for this (like different missions or subject profiles?
-3) Which OA type is the most prevalent OA approach and can we identify different patterns of adoption to OA?
 
-The analyses we conducted are documented within this repository.
+## Installation
 
-## Structure of the repo
+```r
+remotes::install_github("subugoe/oauni")
+```
 
-The final analysis of the considered dataset is reported in [analysis.Rmd](analysis.Rmd)
 
-The document [data_gathering.Rmd](data_gathering.Rmd) describes how the data have been selected, pulled from the different sources, combined, preprocessed and classified according to our own schema. Relevant code for this step (sql and R scripts) is documented in the folder [data_gathering_preprocessing](data_gathering_preprocessing/).
+## Getting Started
 
-The folder [data](data/) contains datasets that we downloaded from external sources (like the ISSN to ISSN-L conversion list), as well as intermediate steps of the data gathering process (some of them generated and stored only locally, not here on Github).
+```r
+library(oauni)
+```
 
-Some preliminary descriptive analysis that we undertook to better understand the data is contained in [exploration.Rmd](exploration.Rmd) together with some plot-testing.
+You can start the dashboard locally, by running `runOAUNI()`.
+
+More functions and data will be exposed in the future for modular reuse.

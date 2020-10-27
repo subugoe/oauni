@@ -1,0 +1,26 @@
+---
+output:
+  github_document:
+    html_preview: FALSE
+---
+
+<div class="jumbotron">
+  <!-- for some weird reason, this has to be markdown, not html, will break otherwise -->
+
+# Open Access Uptake in Germany
+  <p>
+    Adoption in a diverse research landscape.
+    Period 2010-2018.
+  </p>
+  <p>
+    <a class="btn btn-danger btn-lg" href="articles/interactive.html" role="button">
+      Try out the interactive supplement.
+    </a>
+    <a class="btn btn-primary btn-lg" href="https://pub.uni-bielefeld.de/record/2943906" role="button">
+      Read the preprint.
+    </a>
+  </p>
+</div>
+
+```{r, child="../README.md"}
+```

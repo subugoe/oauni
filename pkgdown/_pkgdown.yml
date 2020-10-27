@@ -1,0 +1,45 @@
+url: https://subugoe.github.io/oauni/
+authors:
+  Najko Jahn:
+    href: https://www.sub.uni-goettingen.de/kontakt/personen-a-z/personendetails/person/najko-jahn/
+  Anne Hobert:
+    href: https://www.sub.uni-goettingen.de/kontakt/personen-a-z/personendetails/person/anne-hobert/
+  Maximilian Held:
+    href: https://www.maxheld.
+  Philipp Mayr:
+    href: https://www.gesis.org/institut/mitarbeiterverzeichnis/person/philipp.mayr
+  Birgit Schmidt:
+    href: https://www.sub.uni-goettingen.de/kontakt/personen-a-z/personendetails/person/birgit-schmidt/
+  Niels Taubert:
+    href: http://www.niels-taubert.de
+  Göttingen State and University Library:
+    href: https://www.sub.uni-goettingen.de/
+  Federal Ministry of Education and Research:
+    href: https://www.bmbf.de
+template:
+  package: subugoetheme
+  opengraph:
+    twitter:
+      site: "@subugoe"
+      card: summary_large_image
+navbar:
+  structure:
+    left: [dashboard]
+    right: [about, github]
+  components:
+    dashboard:
+      text: "Dashboard"
+      icon: "fa fa-tachometer"
+      href: articles/interactive.html
+    about:
+      text: "About"
+      menu:
+        - text: "English"
+        - text: "Project Description"
+          icon: "fa fa-external-link-alt"
+          href: https://www.sub.uni-goettingen.de/en/projects-research/project-details/projekt/oauni/
+        - text: ----
+        - text: "Deutsch"
+        - text: "Projektbeschreibung"
+          icon: "fa fa-external-link-alt"
+          href: https://www.sub.uni-goettingen.de/projekte-forschung/projektdetails/projekt/oauni/

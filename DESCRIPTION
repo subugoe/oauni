@@ -1,0 +1,77 @@
+Package: oauni
+Title: Open Access at Universities in Germany
+Version: 0.0.0.9000
+Authors@R:
+    c(
+      person(
+        given = "Najko",
+        family = "Jahn",
+        role = c("aut"),
+        email = "najko.jahn@gmail.com",
+        comment = c(ORCID = "0000-0001-5105-1463")
+      ),
+      person(
+        given = "Anne",
+        family = "Hobert",
+        role = c("aut"),
+        email = "hobert@sub.uni-goettingen.de",
+        comment = c(ORCID = "0000-0003-2429-2995")
+      ),
+      person(
+        given = "Maximilian",
+        family = "Held",
+        role = c("aut", "cre"),
+        email = "info@maxheld.de",
+        comment = c(ORCID = "0000-0002-4703-5388")
+      ),
+      person(
+        given = "Philipp",
+        family = "Mayr",
+        role = c("ctb"),
+        email = "philippmayr@gmail.com",
+        comment = c(ORCID = "0000-0002-6656-1658")
+      ),
+      person(
+        given = "Birgit",
+        family = "Schmidt",
+        role = c("ctb"),
+        email = "bschmidt@sub.uni-goettingen.de",
+        comment = c(ORCID = "0000-0001-8036-5859")
+      ),
+      person(
+        given = "Niels",
+        family = "Taubert",
+        role = c("ctb"),
+        email = "post@niels-taubert.de",
+        comment = c(ORCID = "0000-0002-2357-2648")
+      ),
+      person(
+        given = "Göttingen State and University Library",
+        role = c("cph", "fnd")
+      ),
+      person(
+        given = "Federal Ministry of Education and Research",
+        role = c("spn", "fnd")
+      )
+    )
+Description: Monitoring the uptake of open access in publications from German
+  research institutions.
+License: MIT + file LICENSE
+Imports:
+    rmarkdown (>= 2.3)
+Encoding: UTF-8
+LazyData: true
+Language: en
+RoxygenNote: 7.1.1
+Suggests:
+    testthat,
+    subugoetheme,
+    shinycaas
+Depends:
+    R (>= 4.0)
+Roxygen: list(markdown = TRUE)
+URL: https://subugoe.github.io/oauni, https://github.com/subugoe/oauni
+BugReports: https://github.com/subugoe/oauni/issues
+Remotes:
+    subugoe/subugoetheme@1.0.0,
+    subugoe/shinycaas@31684600b286d5da5639a430a4b83a04de36bd34

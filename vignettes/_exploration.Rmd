@@ -1,7 +1,6 @@
 ---
 title: "Some preliminary data exploration"
 author: "Anne Hobert"
-output: github_document
 ---
 
 ```{r, echo = FALSE, message = FALSE, warning = FALSE}
@@ -35,89 +34,89 @@ There are `r pubs_cat %>% summarise(n = n_distinct(PK_ITEMS)) %>% .$n` different
 
 Briefly evaluate the matching procedure of matching WoS and Unpaywall: The following table shows the number of articles from WoS that have no DOI information (`no_doi`), articles that have DOI information in WoS but could not be matched to any record in the Unpwaywall dataset we used (`unmatched`), articles matched to Unpaywall for which Unpaywall did not find any open version (`upw_closed`) and articles with OA evidence in Unpaywall (`OA`).
 ```{r}
-pubs_wos_upw %>% 
+pubs_wos_upw %>%
   mutate(matched_oa = case_when(
     is.na(DOI) ~ 'no_doi',
     is.na(upw_doi) ~ 'unmatched',
     !is_oa ~ 'upw_closed',
     TRUE ~ 'OA'
-  )) %>% 
-  group_by(matched_oa) %>% 
-  summarise(n = n_distinct(PK_ITEMS)) %>% 
-  # filter(!matched_oa %in% c('unmatched', 'no_doi')) %>% 
-  mutate(prop = n / sum(n))%>% 
+  )) %>%
+  group_by(matched_oa) %>%
+  summarise(n = n_distinct(PK_ITEMS)) %>%
+  # filter(!matched_oa %in% c('unmatched', 'no_doi')) %>%
+  mutate(prop = n / sum(n))%>%
   knitr::kable()
 ```
 
 Extract unmatched articles with DOI for checking against API:
 
 ```{r}
-pubs_wos_upw %>% 
-  filter(!is.na(DOI), is.na(upw_doi)) %>% 
+pubs_wos_upw %>%
+  filter(!is.na(DOI), is.na(upw_doi)) %>%
 #  summarise(n = n_distinct(DOI))
-  select(DOI) %>% 
-  distinct() %>% 
+  select(DOI) %>%
+  distinct() %>%
   readr::write_csv("data/unmatched_wos_dois.csv")
 ```
 
 
 ## Fulltext links occuring for multiple dois
 
-How many locations in total? 
+How many locations in total?
 
 ```{r}
-upw_evidence %>% 
-  filter(is_oa == TRUE) %>% 
-  group_by(url_for_landing_page, url_for_pdf) %>% 
-  summarise(n = n_distinct(upw_doi)) %>% 
+upw_evidence %>%
+  filter(is_oa == TRUE) %>%
+  group_by(url_for_landing_page, url_for_pdf) %>%
+  summarise(n = n_distinct(upw_doi)) %>%
   arrange(desc(n))
 
 ```
 
-## Number of Full-Text links per OA Article 
+## Number of Full-Text links per OA Article
 
 How many OA DOIs have more than one OA location?
 
 ```{r}
-upw_evidence %>% 
-  filter(is_oa == TRUE) %>% 
-  group_by(upw_doi) %>% 
-  summarise(n_oa_loc = n()) %>% 
-  group_by(n_oa_loc > 1) %>% 
-  count() %>% 
+upw_evidence %>%
+  filter(is_oa == TRUE) %>%
+  group_by(upw_doi) %>%
+  summarise(n_oa_loc = n()) %>%
+  group_by(n_oa_loc > 1) %>%
+  count() %>%
   mutate(prop = n / sum(.$n))
 ```
 
 ```{r}
 pubs_cat_details <- readr::read_csv("data/pubs_cat_details.csv")
 excl_from_analysis <- readr::read_csv("data/exclude_from_analysis.csv")
-pubs_cat_details <- pubs_cat_details %>% 
+pubs_cat_details <- pubs_cat_details %>%
   anti_join(excl_from_analysis, by = c("INST_NAME" = "Universitäten"))
 rm(excl_from_analysis)
 
-pubs_cat_details %>% 
-  filter(!is.na(upw_doi)) %>% 
-  group_by(upw_doi) %>% 
-  summarise(n = n_distinct(PK_ITEMS)) %>% 
-  filter(n == 2) %>% 
+pubs_cat_details %>%
+  filter(!is.na(upw_doi)) %>%
+  group_by(upw_doi) %>%
+  summarise(n = n_distinct(PK_ITEMS)) %>%
+  filter(n == 2) %>%
   count()
 
-  
-pubs_cat_details %>% 
-  filter(is_oa == TRUE) %>% 
-  mutate(n_total = n_distinct(PK_ITEMS)) %>% 
-  select(n_total, PK_ITEMS, url_for_landing_page, url_for_pdf, evidence) %>% 
-  distinct() %>% 
-  group_by(PK_ITEMS, n_total) %>% 
-  summarise(n_loc = n()) %>%  
-  group_by(n_loc > 1, n_total) %>% 
-  summarise(n_items = n()) %>% 
+
+pubs_cat_details %>%
+  filter(is_oa == TRUE) %>%
+  mutate(n_total = n_distinct(PK_ITEMS)) %>%
+  select(n_total, PK_ITEMS, url_for_landing_page, url_for_pdf, evidence) %>%
+  distinct() %>%
+  group_by(PK_ITEMS, n_total) %>%
+  summarise(n_loc = n()) %>%
+  group_by(n_loc > 1, n_total) %>%
+  summarise(n_items = n()) %>%
   mutate(prop = n_items/n_total)
 
-pubs_cat_details %>% 
-  filter(oa_category =="not_oa") %>% 
-  group_by(PK_ITEMS) %>% 
-  mutate(n_loc = n()) %>% 
+pubs_cat_details %>%
+  filter(oa_category =="not_oa") %>%
+  group_by(PK_ITEMS) %>%
+  mutate(n_loc = n()) %>%
   filter(n_loc > 1)
 ```
 
@@ -125,18 +124,18 @@ pubs_cat_details %>%
 How many OA DOIs have more than one OA category according to our schema?
 
 ```{r}
-pubs_cat %>% 
-  filter(oa_category != "not_oa") %>% 
-  group_by(DOI) %>% 
-  summarise(n_oa_cat = n_distinct(oa_category)) %>% 
-  group_by(n_oa_cat > 1) %>% 
-  count() %>% 
+pubs_cat %>%
+  filter(oa_category != "not_oa") %>%
+  group_by(DOI) %>%
+  summarise(n_oa_cat = n_distinct(oa_category)) %>%
+  group_by(n_oa_cat > 1) %>%
+  count() %>%
   mutate(prop = n / sum(.$n))
 ```
 
 
 ```{r}
-oa_fxt_count <- upw_evidence %>% 
+oa_fxt_count <- upw_evidence %>%
   filter(!is.na(host_type)) %>%
   group_by(upw_doi) %>%
   mutate(n_oa_versions = n()) %>%
@@ -165,20 +164,20 @@ oa_fxt_count %>%
 ```{r}
 # compute densities for full text numbers lengths
 oa_fxt_count %>%
-  #filter(!is.na(host_type)) %>% 
-  #distinct() %>% 
+  #filter(!is.na(host_type)) %>%
+  #distinct() %>%
   ggplot(aes(x = ftxt_n, fill = host_type, color = host_type)) +
   geom_histogram(binwidth = 1, alpha=0.5) +
   facet_grid(~ host_type, scales = "free_x") +
   theme_minimal_hgrid(12) +
   labs(x = "Number of Full-Text Links",
-       y = "German OA Articles") 
+       y = "German OA Articles")
 ```
 
 ## Number of OA Articles per Host Type
 
 ```{r}
-oa_fxt_count %>% 
+oa_fxt_count %>%
   group_by(DOI) %>%
   mutate(n_host_type = n()) %>%
   mutate(host_type = ifelse(n_host_type == 2, "publisher & repository", host_type)) %>%
@@ -194,7 +193,7 @@ oa_fxt_count %>%
 ```{r}
 excl_from_analysis <- readr::read_csv("data/exclude_from_analysis.csv")
 pubs_cat_details <- readr::read_csv("data/pubs_cat_details.csv")
- repo_df <- pubs_cat_details %>% 
+ repo_df <- pubs_cat_details %>%
   filter(host_type == "repository") %>%
    ## exclude some inst
   anti_join(excl_from_analysis, by = c("INST_NAME" = "Universitäten"))
@@ -210,13 +209,13 @@ opendoar <- readr::read_csv("data/opendoar_data_tidier.csv") %>%
 #### Number of self-archived full-texts by repository type
 
 ```{r}
-repo_df %>% 
-  distinct(DOI, pdf_domain, landing_domain) %>% 
-  left_join(opendoar,  by = c("pdf_domain" = "repo_domain", "landing_domain" = "repo_domain")) %>% 
-  ungroup() %>% 
-  group_by(repo_type) %>% 
-  summarise(n = n()) %>% 
-  arrange(desc(n)) %>% 
+repo_df %>%
+  distinct(DOI, pdf_domain, landing_domain) %>%
+  left_join(opendoar,  by = c("pdf_domain" = "repo_domain", "landing_domain" = "repo_domain")) %>%
+  ungroup() %>%
+  group_by(repo_type) %>%
+  summarise(n = n()) %>%
+  arrange(desc(n)) %>%
   mutate(prop = n / sum(n)) %>%
   knitr::kable()
 ```
@@ -224,14 +223,14 @@ repo_df %>%
 without "pdfs.semanticscholar.org".
 
 ```{r}
-repo_df %>% 
-  distinct(DOI, pdf_domain, landing_domain) %>% 
+repo_df %>%
+  distinct(DOI, pdf_domain, landing_domain) %>%
   filter(pdf_domain != "pdfs.semanticscholar.org") %>%
-  left_join(opendoar,  by = c("pdf_domain" = "repo_domain", "landing_domain" = "repo_domain")) %>% 
-  ungroup() %>% 
-  group_by(repo_type) %>% 
-  summarise(n = n()) %>% 
-  arrange(desc(n)) %>% 
+  left_join(opendoar,  by = c("pdf_domain" = "repo_domain", "landing_domain" = "repo_domain")) %>%
+  ungroup() %>%
+  group_by(repo_type) %>%
+  summarise(n = n()) %>%
+  arrange(desc(n)) %>%
   mutate(prop = n / sum(n)) %>%
   knitr::kable()
 ```
@@ -244,7 +243,7 @@ repo_df %>%
     is.na(pdf_domain) && is.na(landing_domain) ~ NA_character_,
     is.na(pdf_domain) ~ landing_domain,
     TRUE ~ pdf_domain
-  )) %>% 
+  )) %>%
   group_by(domains) %>%
   summarise(n = n_distinct(DOI)) %>%
   mutate(prop = n / sum(n) * 100) %>%
@@ -259,20 +258,20 @@ per category:
 ```{r}
 pubs_cat_details <- readr::read_csv("data/pubs_cat_details.csv")
 pubs_cat_details %>%
-    anti_join(excl_from_analysis, by = c("INST_NAME" = "Universitäten")) %>% 
-  filter(!oa_category %in% c("not_oa", "full_oa_journal", "other_oa_journal")) %>% 
+    anti_join(excl_from_analysis, by = c("INST_NAME" = "Universitäten")) %>%
+  filter(!oa_category %in% c("not_oa", "full_oa_journal", "other_oa_journal")) %>%
   mutate(domains = case_when(
     is.na(pdf_domain) && is.na(landing_domain) ~ NA_character_,
     is.na(pdf_domain) ~ landing_domain,
     TRUE ~ pdf_domain
-  )) %>% 
+  )) %>%
   group_by(oa_category, domains) %>%
   summarise(n = n()) %>%
-  ungroup() %>% 
-  group_by(oa_category) %>% 
+  ungroup() %>%
+  group_by(oa_category) %>%
 #  mutate(prop = round(n / sum(n) * 100)) %>%
   arrange(oa_category, desc(n)) %>%
-  pivot_wider(names_from = oa_category, values_from = n, values_fill = list(n = 0)) %>% 
+  pivot_wider(names_from = oa_category, values_from = n, values_fill = list(n = 0)) %>%
 #  head(20) %>%
 #  knitr::kable()
   readr::write_csv("data/export_tables/repo_domain_category_counts.csv")
@@ -283,57 +282,57 @@ Development of disciplinary repos:
 ```{r}
 pubs_cat_details <- readr::read_csv("data/pubs_cat_details.csv")
 top_disc_repos <- pubs_cat_details %>%
-  filter(oa_category == "opendoar_subject") %>% 
+  filter(oa_category == "opendoar_subject") %>%
   mutate(domains = case_when(
     is.na(pdf_domain) && is.na(landing_domain) ~ NA_character_,
     is.na(pdf_domain) ~ landing_domain,
     TRUE ~ pdf_domain
-  )) %>% 
+  )) %>%
   group_by(domains) %>%
   summarise(n = n_distinct(DOI)) %>%
-  arrange(desc(n)) %>% 
-  head(20) %>% 
+  arrange(desc(n)) %>%
+  head(20) %>%
   select(domains)
 pubs_cat_details %>%
-  filter(oa_category == "opendoar_subject") %>% 
+  filter(oa_category == "opendoar_subject") %>%
   mutate(domains = case_when(
     is.na(pdf_domain) && is.na(landing_domain) ~ NA_character_,
     is.na(pdf_domain) ~ landing_domain,
     TRUE ~ pdf_domain
-  )) %>% 
-  inner_join(top_disc_repos) %>% 
+  )) %>%
+  inner_join(top_disc_repos) %>%
   group_by(PUBYEAR, domains) %>%
   summarise(n = n_distinct(DOI)) %>%
   ggplot(aes(x = PUBYEAR, y = n)) +
-  geom_line() + 
+  geom_line() +
   facet_wrap(~ domains)
 ```
 
 
 ```{r}
-repo_df %>% 
-  distinct(pdf_domain, landing_domain) %>% 
+repo_df %>%
+  distinct(pdf_domain, landing_domain) %>%
   left_join(opendoar,  by = c("pdf_domain" = "repo_domain", "landing_domain" = "repo_domain"))
 
-repo_df %>% 
-  distinct(FK_ITEMS, DOI, pdf_domain, landing_domain) %>% 
-  left_join(opendoar,  by = c("pdf_domain" = "repo_domain", "landing_domain" = "repo_domain")) %>% 
-  ungroup() %>% 
+repo_df %>%
+  distinct(FK_ITEMS, DOI, pdf_domain, landing_domain) %>%
+  left_join(opendoar,  by = c("pdf_domain" = "repo_domain", "landing_domain" = "repo_domain")) %>%
+  ungroup() %>%
   write_csv("data/german_unis_url_matching.csv")
 ```
 ## Special role of MPG
 
 ```{r}
 pubs_cat_details <- readr::read_csv("data/pubs_cat_details.csv")
-pubs_cat_details %>% 
+pubs_cat_details %>%
   filter(sector == "Max-Planck-Gesellschaft",
-#         host_type == "repository") %>% 
-         oa_category == "opendoar_subject") %>% 
+#         host_type == "repository") %>%
+         oa_category == "opendoar_subject") %>%
   mutate(domains = case_when(
     is.na(pdf_domain) && is.na(landing_domain) ~ NA_character_,
     is.na(pdf_domain) ~ landing_domain,
     TRUE ~ pdf_domain
-  )) %>% 
+  )) %>%
   group_by(domains) %>%
   summarise(n = n()) %>%
   mutate(prop = n / sum(n) * 100) %>%
@@ -344,15 +343,15 @@ pubs_cat_details %>%
 
 ```{r}
 pubs_cat_details <- readr::read_csv("data/pubs_cat_details.csv")
-pubs_cat_details %>% 
+pubs_cat_details %>%
   filter(sector == "Max-Planck-Gesellschaft",
-#         host_type == "repository") %>% 
-         oa_category == "other_oa_journal") %>% 
+#         host_type == "repository") %>%
+         oa_category == "other_oa_journal") %>%
   mutate(domains = case_when(
     is.na(pdf_domain) && is.na(landing_domain) ~ NA_character_,
     is.na(pdf_domain) ~ landing_domain,
     TRUE ~ pdf_domain
-  )) %>% 
+  )) %>%
   group_by(pdf_domain) %>%
   summarise(n = n()) %>%
   mutate(prop = n / sum(n) * 100) %>%
@@ -363,15 +362,15 @@ pubs_cat_details %>%
 
 ```{r}
 pubs_cat_details <- readr::read_csv("data/pubs_cat_details.csv")
-pubs_cat_details %>% 
+pubs_cat_details %>%
   filter(sector == "Max-Planck-Gesellschaft",
-#         host_type == "repository") %>% 
-         oa_category == "opendoar_other") %>% 
+#         host_type == "repository") %>%
+         oa_category == "opendoar_other") %>%
   mutate(domains = case_when(
     is.na(pdf_domain) && is.na(landing_domain) ~ NA_character_,
     is.na(pdf_domain) ~ landing_domain,
     TRUE ~ pdf_domain
-  )) %>% 
+  )) %>%
   group_by(pdf_domain) %>%
   summarise(n = n()) %>%
   mutate(prop = n / sum(n) * 100) %>%
@@ -388,9 +387,9 @@ con_bq <- dbConnect(
   dataset = "oadoi_full"
 )
 pubs_cat <- readr::read_csv("data/pubs_cat.csv")
-mpg_dois <- pubs_cat %>% 
-  filter(oa_category == "other_oa_journal") %>% 
-  select(DOI) %>% 
+mpg_dois <- pubs_cat %>%
+  filter(oa_category == "other_oa_journal") %>%
+  select(DOI) %>%
   distinct()
 schema <- data_frame("DOI" = character())
 bq_dois <- bigrquery::bq_table(project = "api-project-764811344545",
@@ -409,11 +408,11 @@ cr_publisher_mpg <- bq_table_download(cr_dois_top_publisher_bq)
 bq_table_delete(cr_top_publisher_mpg_bq)
 bq_table_delete(cr_publisher_mpg_bq)
 
-pubs_cat %>% 
-  inner_join(cr_publisher_mpg, by = c("DOI" = "doi")) %>% 
-  group_by(publisher) %>% 
+pubs_cat %>%
+  inner_join(cr_publisher_mpg, by = c("DOI" = "doi")) %>%
+  group_by(publisher) %>%
   summarise(n = n_distinct(DOI)) %>%
-  arrange(desc(n)) %>% 
+  arrange(desc(n)) %>%
   readr::write_csv("data/export_tables/publishers_mpg_other_oa_journal.csv")
 
 ## journals
@@ -424,11 +423,11 @@ cr_journal_mpg <- bq_table_download(cr_dois_top_journal_bq)
 bq_table_delete(cr_top_journal_mpg_bq)
 bq_table_delete(cr_journal_mpg_bq)
 
-pubs_cat %>% 
-  inner_join(cr_journal_mpg, by = c("DOI" = "doi")) %>% 
-  group_by(container_title, publisher) %>% 
+pubs_cat %>%
+  inner_join(cr_journal_mpg, by = c("DOI" = "doi")) %>%
+  group_by(container_title, publisher) %>%
   summarise(n = n_distinct(DOI)) %>%
-  arrange(desc(n)) %>% 
+  arrange(desc(n)) %>%
   readr::write_csv("data/export_tables/journals_mpg_other_oa_journal.csv")
 ```
 
@@ -437,34 +436,34 @@ pubs_cat %>%
 ```{r}
 pubs_cat_details <- readr::read_csv("data/pubs_cat_details.csv")
 
-most_prev_doms <- pubs_cat_details %>% 
-  filter(oa_category == "other_repo") %>% 
+most_prev_doms <- pubs_cat_details %>%
+  filter(oa_category == "other_repo") %>%
   mutate(domains = case_when(
     is.na(pdf_domain) && is.na(landing_domain) ~ NA_character_,
     is.na(pdf_domain) ~ landing_domain,
     TRUE ~ pdf_domain
-  )) %>% 
+  )) %>%
   group_by(domains) %>%
   summarise(n = n()) %>%
   # mutate(prop = n / sum(n) * 100) %>%
-  arrange(desc(n)) %>% 
-  head(25) %>% 
+  arrange(desc(n)) %>%
+  head(25) %>%
   select(domains)
 
-pubs_cat_details %>% 
-  filter(oa_category == "other_repo") %>% 
+pubs_cat_details %>%
+  filter(oa_category == "other_repo") %>%
   mutate(domains = case_when(
     is.na(pdf_domain) && is.na(landing_domain) ~ NA_character_,
     is.na(pdf_domain) ~ landing_domain,
     TRUE ~ pdf_domain
-  )) %>% 
-  inner_join(most_prev_doms) %>% 
+  )) %>%
+  inner_join(most_prev_doms) %>%
   group_by(domains, PUBYEAR) %>%
-  summarise(n = n()) %>% 
+  summarise(n = n()) %>%
   ggplot(aes(x = PUBYEAR, y = n)) +
   geom_line()+
   facet_wrap(~ domains)
-  
+
 ```
 ## rise in full OA journal
 
@@ -478,12 +477,12 @@ con_bq <- dbConnect(
 )
 pubs_cat <- readr::read_csv("data/pubs_cat.csv")
 excl_from_analysis <- readr::read_csv("data/exclude_from_analysis.csv")
-pubs_cat <- pubs_cat %>% 
+pubs_cat <- pubs_cat %>%
   anti_join(excl_from_analysis, by = c("INST_NAME" = "Universitäten"))
 rm(excl_from_analysis)
-full_dois <- pubs_cat %>% 
-  filter(oa_category == "full_oa_journal") %>% 
-  select(DOI) %>% 
+full_dois <- pubs_cat %>%
+  filter(oa_category == "full_oa_journal") %>%
+  select(DOI) %>%
   distinct()
 schema <- data_frame("DOI" = character())
 bq_dois <- bigrquery::bq_table(project = "api-project-764811344545",
@@ -502,24 +501,24 @@ bq_table_delete(cr_top_publisher_full_bq)
 bq_table_delete(cr_publisher_full_bq)
 bq_table_delete(bq_full_dois)
 
-pubs_cat %>% 
-  inner_join(cr_publisher_full, by = c("DOI" = "doi")) %>% 
-  group_by(PUBYEAR, publisher) %>% 
-  summarise(n = n_distinct(DOI)) %>% 
+pubs_cat %>%
+  inner_join(cr_publisher_full, by = c("DOI" = "doi")) %>%
+  group_by(PUBYEAR, publisher) %>%
+  summarise(n = n_distinct(DOI)) %>%
   ggplot(aes(x=PUBYEAR, y = n)) +
   geom_line() +
   facet_wrap(~ publisher)
 
-pubs_cat %>% 
-  inner_join(cr_publisher_full, by = c("DOI" = "doi")) %>% 
-  group_by(publisher) %>% 
-  summarise(n = n_distinct(DOI)) %>% 
+pubs_cat %>%
+  inner_join(cr_publisher_full, by = c("DOI" = "doi")) %>%
+  group_by(publisher) %>%
+  summarise(n = n_distinct(DOI)) %>%
   arrange(desc(n))
 
-pubs_cat %>% 
-  inner_join(cr_publisher_full, by = c("DOI" = "doi")) %>% 
-  filter(publisher == "Public Library of Science (PLoS)") %>% 
-  group_by(PUBYEAR) %>% 
+pubs_cat %>%
+  inner_join(cr_publisher_full, by = c("DOI" = "doi")) %>%
+  filter(publisher == "Public Library of Science (PLoS)") %>%
+  group_by(PUBYEAR) %>%
   summarise(n = n_distinct(DOI))
 
 ```
@@ -528,26 +527,26 @@ pubs_cat %>%
 ```{r}
 pubs_cat_details <- readr::read_csv("data/pubs_cat_details.csv")
 excl_from_analysis <- readr::read_csv("data/exclude_from_analysis.csv")
-pubs_cat_details <- pubs_cat_details %>% 
+pubs_cat_details <- pubs_cat_details %>%
   anti_join(excl_from_analysis, by = c("INST_NAME" = "Universitäten"))
 rm(excl_from_analysis)
 
 # pubs in both
 pubs_cat_details %>%
-  filter(host_type == "publisher") %>% 
-  filter(issn_gold ==TRUE, journal_is_oa == TRUE) %>% 
-  select(`ISSN-L`) %>% 
+  filter(host_type == "publisher") %>%
+  filter(issn_gold ==TRUE, journal_is_oa == TRUE) %>%
+  select(`ISSN-L`) %>%
   distinct() -> both
 
 pubs_cat_details %>%
   anti_join(both) %>%
   filter(issn_gold == TRUE & (host_type == "publisher"| is.na(host_type))) %>%
-  select(`ISSN-L`) %>% 
+  select(`ISSN-L`) %>%
   distinct() -> only_list
 pubs_cat_details %>%
   anti_join(both) %>%
   filter(journal_is_oa == TRUE, host_type == "publisher") %>%
-  select(`ISSN-L`) %>% 
+  select(`ISSN-L`) %>%
   distinct() -> only_upw
 ```
 
@@ -558,8 +557,8 @@ pubs_cat_details %>%
 
 ```{r}
 pubs_cat_details <- readr::read_csv("data/pubs_cat_details.csv")
-pubs_cat_details %>% 
-  filter(oa_category != "not_oa", INST_NAME == "Bergische Universität Wuppertal") %>% 
+pubs_cat_details %>%
+  filter(oa_category != "not_oa", INST_NAME == "Bergische Universität Wuppertal") %>%
   mutate(oa_host = fct_collapse(
     oa_category,
     journal = c("full_oa_journal", "other_oa_journal"),
@@ -570,8 +569,8 @@ pubs_cat_details %>%
       "other_repo"
     )
   )) %>%
-  group_by(oa_host, pdf_domain) %>% 
-  summarise(n = n_distinct(PK_ITEMS)) %>% 
+  group_by(oa_host, pdf_domain) %>%
+  summarise(n = n_distinct(PK_ITEMS)) %>%
   arrange(desc(n)) %>% View()
 ```
 
@@ -584,15 +583,15 @@ Investigate, which institutions are the outliers with only open access articles.
 outliers <- pubs_cat %>%
   filter(INST_NAME %in% c("Heidelberg Graduate School of Fundamental Physics", "Schloss Dagstuhl - Leibniz-Zentrum für Informatik GmbH (LZI)"))
 outliers %>%
-  group_by(INST_NAME) %>% 
+  group_by(INST_NAME) %>%
   summarise(n = n_distinct(PK_ITEMS))
-outliers %>% 
-  group_by(INST_NAME, oa_category) %>% 
-  summarise(n = n_distinct(PK_ITEMS)) %>% 
+outliers %>%
+  group_by(INST_NAME, oa_category) %>%
+  summarise(n = n_distinct(PK_ITEMS)) %>%
   arrange(INST_NAME, desc(n))
 outliers %>%
   group_by(INST_NAME, url_domain, oa_category) %>%
-  summarise(n = n_distinct(PK_ITEMS)) %>% 
+  summarise(n = n_distinct(PK_ITEMS)) %>%
   arrange(desc(n))
 ```
 Schloss Dagstuhl with just one publication, that is OA. 2nd one is Heidelberg Graduate School of Fundamental Physics with 56 publications, 55 of which are published in the journal Astronomy and Astrophysics. Most of these publications are tagged as journal based OA but are also deposited in various repositories.
@@ -601,9 +600,9 @@ Schloss Dagstuhl with just one publication, that is OA. 2nd one is Heidelberg Gr
 
 Which institutions have the highest OA shares (apart from the two just discussed ones)?
 ```{r}
-oa_shares %>% 
+oa_shares %>%
   select(INST_NAME, oa_share) %>%
-  top_n(15) %>% 
+  top_n(15) %>%
   arrange(desc(oa_share))
 ```
 
@@ -612,16 +611,16 @@ Mostly (astro-)physics-related MP institutes, but also Leibniz-Institut für Ast
 Lowest shares?
 
 ```{r}
-oa_shares %>% 
-  select(INST_NAME, n_total, oa_share) %>% 
+oa_shares %>%
+  select(INST_NAME, n_total, oa_share) %>%
   filter(oa_share == 0)
 ```
-OA share zero mostly for institutions with few publications in data set (less then 10 in total), exceptions: "Staatliche Hochschule für Musik Freiburg im Breisgau" (39 pubs), "Herder-Institut für historische Ostmitteleuropaforschung"(14 pubs). 
+OA share zero mostly for institutions with few publications in data set (less then 10 in total), exceptions: "Staatliche Hochschule für Musik Freiburg im Breisgau" (39 pubs), "Herder-Institut für historische Ostmitteleuropaforschung"(14 pubs).
 
 Distribution of OA shares?
 
 ```{r}
-oa_shares %>% 
+oa_shares %>%
   ggplot(aes(x = oa_share)) +
     geom_histogram(binwidth = 1) +
     geom_vline(aes(xintercept = 7), col = "red")
@@ -631,16 +630,16 @@ oa_shares %>%
 
 Publication output of sectors/institutions?
 ```{r}
-pubs_cat %>% 
-  group_by(sector) %>% 
-  summarise(n = n_distinct(PK_ITEMS)) %>% 
+pubs_cat %>%
+  group_by(sector) %>%
+  summarise(n = n_distinct(PK_ITEMS)) %>%
   ggplot(aes(x = sector, y = n)) +
   theme(axis.text.x = element_text(angle = 30, hjust = 1)) +
   geom_col()
-pubs_cat %>% 
-  group_by(INST_NAME) %>% 
-  summarise(n = n_distinct(PK_ITEMS)) %>% 
-  filter(n < 10000) %>% 
+pubs_cat %>%
+  group_by(INST_NAME) %>%
+  summarise(n = n_distinct(PK_ITEMS)) %>%
+  filter(n < 10000) %>%
   ggplot(aes(x =n)) +
   geom_histogram(bins = 150) +
   # geom_vline(xintercept = 35000, color = "red")+
@@ -654,36 +653,36 @@ pubs_cat %>%
 Extract sample DOIs of the matched records in order to manually check the OA categorisation:
 
 ```{r}
-sample_rows <- pubs_cat_update %>% 
-  filter(upw_matched == TRUE) %>% 
-  select(upw_doi) %>% 
-  distinct() %>% 
+sample_rows <- pubs_cat_update %>%
+  filter(upw_matched == TRUE) %>%
+  select(upw_doi) %>%
+  distinct() %>%
   sample_n(100)
-sample_rows <- sample_rows %>% 
-  select(upw_doi) %>% 
-  distinct() %>% 
+sample_rows <- sample_rows %>%
+  select(upw_doi) %>%
+  distinct() %>%
   left_join(pubs_cat_update, by = "upw_doi")
 sample_rows %>% group_by(oa_category, oa_category_old) %>% summarise(n = n_distinct(upw_doi)) %>% arrange(desc(n))
-sample_rows %>% 
-  select(upw_doi) %>% 
-  distinct() %>% 
+sample_rows %>%
+  select(upw_doi) %>%
+  distinct() %>%
   readr::write_csv("data/sample_dois_manual.csv")
-sample_rows %>% 
-  select(upw_doi, oa_category, evidence, host_type, repository_institution, url_for_landing_page, url_for_pdf) %>% 
-  distinct() %>% 
+sample_rows %>%
+  select(upw_doi, oa_category, evidence, host_type, repository_institution, url_for_landing_page, url_for_pdf) %>%
+  distinct() %>%
   readr::write_csv("data/sample_manual_check_2.csv")
 ```
 
 Explore registration agencies of the unmatched DOIs:
 ```{r}
 unmatched_dois <- readr::read_csv("data/unmatched_dois_agency.csv")
-unmatched_dois %>% 
+unmatched_dois %>%
   ## update after exclusion of theological etc. universities
-  inner_join(distinct(select(pubs_cat, DOI)), by = c("doi" = "DOI")) %>% 
-  group_by(doi_agency_label) %>% 
-  summarise(n = n_distinct(doi)) %>% 
-  arrange(desc(n)) %>% 
-  mutate(doi_agency_label = replace_na(doi_agency_label, "No agency found")) %>% 
+  inner_join(distinct(select(pubs_cat, DOI)), by = c("doi" = "DOI")) %>%
+  group_by(doi_agency_label) %>%
+  summarise(n = n_distinct(doi)) %>%
+  arrange(desc(n)) %>%
+  mutate(doi_agency_label = replace_na(doi_agency_label, "No agency found")) %>%
   readr::write_csv("data/unmatched_dois_agency_counts.csv")
 ```
 
@@ -693,26 +692,26 @@ unmatched_dois %>%
 After the first validation we updated the matching strategy regarding OpenDOAR information. Here, we want to briefly investigate the effects of this change in procedure.
 
 ```{r}
-pubs_cat_update %>% 
-  mutate(new_cat = ifelse(oa_category == oa_category_old, FALSE, TRUE)) %>% 
-  group_by(new_cat) %>% 
-  summarise(n = n_distinct(PK_ITEMS))
-pubs_cat_update %>% 
+pubs_cat_update %>%
   mutate(new_cat = ifelse(oa_category == oa_category_old, FALSE, TRUE)) %>%
-  filter(new_cat == TRUE) %>% 
-  group_by(oa_category, oa_category_old) %>% 
+  group_by(new_cat) %>%
   summarise(n = n_distinct(PK_ITEMS))
-pubs_cat_update %>% 
+pubs_cat_update %>%
   mutate(new_cat = ifelse(oa_category == oa_category_old, FALSE, TRUE)) %>%
-  filter(new_cat == TRUE) %>% 
-  group_by(repository_institution, pdf_domain, landing_domain, oa_category, oa_category_old) %>% 
-  summarise(n = n_distinct(PK_ITEMS)) %>% 
+  filter(new_cat == TRUE) %>%
+  group_by(oa_category, oa_category_old) %>%
+  summarise(n = n_distinct(PK_ITEMS))
+pubs_cat_update %>%
+  mutate(new_cat = ifelse(oa_category == oa_category_old, FALSE, TRUE)) %>%
+  filter(new_cat == TRUE) %>%
+  group_by(repository_institution, pdf_domain, landing_domain, oa_category, oa_category_old) %>%
+  summarise(n = n_distinct(PK_ITEMS)) %>%
   arrange(desc(n)) %>% View()
-pubs_cat_update %>% 
+pubs_cat_update %>%
   mutate(new_cat = ifelse(oa_category == oa_category_old, FALSE, TRUE)) %>%
-  filter(new_cat == TRUE) %>% 
-  group_by(pdf_domain == landing_domain) %>% 
-  summarise(n = n_distinct(PK_ITEMS)) %>% 
+  filter(new_cat == TRUE) %>%
+  group_by(pdf_domain == landing_domain) %>%
+  summarise(n = n_distinct(PK_ITEMS)) %>%
   arrange(desc(n))
 ```
 
@@ -721,21 +720,21 @@ pubs_cat_update %>%
 
 ### National level
 
-First, we look at the highest aggregation level, namely the national level. Here, publications of all institutions of the selected sectors (5+2) are counted per year and category. 
+First, we look at the highest aggregation level, namely the national level. Here, publications of all institutions of the selected sectors (5+2) are counted per year and category.
 
 #### by host type
 
 The first figure shows the development over time of the total number of publications per host type, that is, we collate all articles where access is provided via a journal based platform as `OA (journal)`, all repository based OA is collated as `OA (repository)`, and all remaining articles are labelled as `Not OA`.
 
 ```{r}
-pubs_cat %>% 
-  mutate(oa_category = fct_relevel(factor(oa_category), "full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa")) %>% 
+pubs_cat %>%
+  mutate(oa_category = fct_relevel(factor(oa_category), "full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa")) %>%
   mutate(oa_category = fct_collapse(oa_category,
     journal_oa = c("full_oa_journal", "other_oa_journal"),
     repo_oa = c("opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo")
-  )) %>% 
-  group_by(PUBYEAR, oa_category) %>% 
-  summarise(number_of_articles = n_distinct(PK_ITEMS)) %>% 
+  )) %>%
+  group_by(PUBYEAR, oa_category) %>%
+  summarise(number_of_articles = n_distinct(PK_ITEMS)) %>%
   ggplot(aes(x = PUBYEAR, y = number_of_articles)) +
     #geom_line(aes(color = oa_category)) +
     geom_col(aes(fill = oa_category), position = "dodge") +
@@ -749,19 +748,19 @@ pubs_cat %>%
 In comparison to all articles published:
 
 ```{r}
-all_articles <- pubs_cat%>% 
-  group_by(PUBYEAR) %>% 
+all_articles <- pubs_cat%>%
+  group_by(PUBYEAR) %>%
   summarise(number_of_articles = n_distinct(PK_ITEMS))
 
-pubs_cat %>% 
-  mutate(oa_category = fct_relevel(factor(oa_category), "full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa")) %>% 
+pubs_cat %>%
+  mutate(oa_category = fct_relevel(factor(oa_category), "full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa")) %>%
   mutate(oa_category = fct_collapse(oa_category,
     journal_oa = c("full_oa_journal", "other_oa_journal"),
     repo_oa = c("opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo"),
     not_oa = "not_oa"
-  ))  %>% 
-  group_by(PUBYEAR, oa_category) %>% 
-  summarise(number_of_articles = n_distinct(PK_ITEMS)) %>% 
+  ))  %>%
+  group_by(PUBYEAR, oa_category) %>%
+  summarise(number_of_articles = n_distinct(PK_ITEMS)) %>%
 #  .$oa_category %>% levels()
   ggplot(aes(x = PUBYEAR, y = number_of_articles)) +
     geom_col(data = all_articles, aes(color = "All Articles"), fill = "#b3b3b3", size = 0.05) +
@@ -778,18 +777,18 @@ pubs_cat %>%
 Looking at proportions:
 
 ```{r}
-pubs_cat %>% 
-  group_by(PUBYEAR) %>% 
-  mutate(n_total = n_distinct(PK_ITEMS)) %>% 
-  ungroup() %>% 
-  mutate(oa_category = fct_relevel(factor(oa_category), "full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa")) %>% 
+pubs_cat %>%
+  group_by(PUBYEAR) %>%
+  mutate(n_total = n_distinct(PK_ITEMS)) %>%
+  ungroup() %>%
+  mutate(oa_category = fct_relevel(factor(oa_category), "full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa")) %>%
   mutate(oa_category = fct_collapse(oa_category,
     journal_oa = c("full_oa_journal", "other_oa_journal"),
     repo_oa = c("opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo")
-  )) %>% 
-  group_by(PUBYEAR, oa_category, n_total) %>% 
+  )) %>%
+  group_by(PUBYEAR, oa_category, n_total) %>%
   summarise(number_of_articles = n_distinct(PK_ITEMS)) %>%
-  mutate(prop = number_of_articles / n_total * 100) %>% 
+  mutate(prop = number_of_articles / n_total * 100) %>%
   ggplot(aes(x = PUBYEAR, y = prop)) +
     #geom_line(aes(color = oa_category)) +
     geom_col(aes(fill = oa_category), position = "dodge") +
@@ -797,7 +796,7 @@ pubs_cat %>%
     #scale_color_viridis(end = 0.85, discrete = TRUE, direction = -1) +
     scale_fill_viridis(end = 0.95, discrete = TRUE, labels = c("OA (journal)", "OA (repository)", "Not OA"), direction = -1) +
     labs(x = "Publication Year", y = "Proportion of Articles (in %)", title = "Proportion of Articles per OA host type", fill = "OA Category") +
-    theme(legend.position = "right") 
+    theme(legend.position = "right")
     # theme(axis.title = element_text(size = 16),
     #     plot.title = element_text(size = 24),
     #     axis.text = element_text(size = 14),
@@ -808,18 +807,18 @@ pubs_cat %>%
 As faceted graph:
 
 ```{r}
-pubs_cat %>% 
-  group_by(PUBYEAR) %>% 
-  mutate(n_total = n_distinct(PK_ITEMS)) %>% 
-  ungroup() %>% 
-  mutate(oa_category = fct_relevel(factor(oa_category), "full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa")) %>% 
+pubs_cat %>%
+  group_by(PUBYEAR) %>%
+  mutate(n_total = n_distinct(PK_ITEMS)) %>%
+  ungroup() %>%
+  mutate(oa_category = fct_relevel(factor(oa_category), "full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa")) %>%
   mutate(oa_category = fct_collapse(oa_category,
     journal_oa = c("full_oa_journal", "other_oa_journal"),
     repo_oa = c("opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo")
-  )) %>% 
-  group_by(PUBYEAR, oa_category, n_total) %>% 
+  )) %>%
+  group_by(PUBYEAR, oa_category, n_total) %>%
   summarise(number_of_articles = n_distinct(PK_ITEMS)) %>%
-  mutate(prop = number_of_articles / n_total * 100) %>% 
+  mutate(prop = number_of_articles / n_total * 100) %>%
   ggplot(aes(x = PUBYEAR, y = prop)) +
     #geom_line(aes(color = oa_category)) +
     geom_col(aes(fill = oa_category)) +
@@ -835,10 +834,10 @@ pubs_cat %>%
 The following figure shows very similar data as the one before - only that here, all OA categories from the schema are shown individually, that is, journal based and repository based OA are further distinguished into subgroups.
 
 ```{r}
-pubs_cat %>% 
-  group_by(PUBYEAR, oa_category) %>% 
-  summarise(number_of_articles = n_distinct(PK_ITEMS)) %>% 
-  mutate(oa_category = fct_relevel(factor(oa_category), "full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa")) %>% 
+pubs_cat %>%
+  group_by(PUBYEAR, oa_category) %>%
+  summarise(number_of_articles = n_distinct(PK_ITEMS)) %>%
+  mutate(oa_category = fct_relevel(factor(oa_category), "full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa")) %>%
   ggplot(aes(x = PUBYEAR, y = number_of_articles)) +
     geom_line(aes(color = oa_category), size = 1) +
     #geom_col(aes(fill = oa_category), position = "dodge") +
@@ -852,14 +851,14 @@ pubs_cat %>%
 In comparison to all articles published:
 
 ```{r}
-all_articles <- pubs_cat%>% 
-  group_by(PUBYEAR) %>% 
+all_articles <- pubs_cat%>%
+  group_by(PUBYEAR) %>%
   summarise(number_of_articles = n_distinct(PK_ITEMS))
 
-pubs_cat %>% 
-  mutate(oa_category = fct_relevel(factor(oa_category), "full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa")) %>% 
-  group_by(PUBYEAR, oa_category) %>% 
-  summarise(number_of_articles = n_distinct(PK_ITEMS)) %>% 
+pubs_cat %>%
+  mutate(oa_category = fct_relevel(factor(oa_category), "full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa")) %>%
+  group_by(PUBYEAR, oa_category) %>%
+  summarise(number_of_articles = n_distinct(PK_ITEMS)) %>%
 #  .$oa_category %>% levels()
   ggplot(aes(x = PUBYEAR, y = number_of_articles)) +
     geom_col(data = all_articles, aes(color = "All Articles"), fill = "#b3b3b3", size = 0.05) +
@@ -875,14 +874,14 @@ pubs_cat %>%
 Looking at proportions, we get:
 
 ```{r}
-pubs_cat %>% 
-  group_by(PUBYEAR) %>% 
-  mutate(n_total = n_distinct(PK_ITEMS)) %>% 
-  ungroup() %>% 
-  mutate(oa_category = fct_relevel(factor(oa_category), "full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa")) %>% 
-  group_by(PUBYEAR, oa_category, n_total) %>% 
-  summarise(number_of_articles = n_distinct(PK_ITEMS)) %>% 
-  mutate(prop = number_of_articles / n_total * 100) %>% 
+pubs_cat %>%
+  group_by(PUBYEAR) %>%
+  mutate(n_total = n_distinct(PK_ITEMS)) %>%
+  ungroup() %>%
+  mutate(oa_category = fct_relevel(factor(oa_category), "full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa")) %>%
+  group_by(PUBYEAR, oa_category, n_total) %>%
+  summarise(number_of_articles = n_distinct(PK_ITEMS)) %>%
+  mutate(prop = number_of_articles / n_total * 100) %>%
   ggplot(aes(x = PUBYEAR, y = prop)) +
     #geom_line(aes(color = oa_category), size = 1) +
     geom_col(aes(fill = oa_category), position = "dodge") +
@@ -894,14 +893,14 @@ pubs_cat %>%
 As faceted graph:
 
 ```{r}
-pubs_cat %>% 
-  group_by(PUBYEAR) %>% 
-  mutate(n_total = n_distinct(PK_ITEMS)) %>% 
-  ungroup() %>% 
-  mutate(oa_category = fct_relevel(factor(oa_category), "full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa")) %>% 
-  group_by(PUBYEAR, oa_category, n_total) %>% 
+pubs_cat %>%
+  group_by(PUBYEAR) %>%
+  mutate(n_total = n_distinct(PK_ITEMS)) %>%
+  ungroup() %>%
+  mutate(oa_category = fct_relevel(factor(oa_category), "full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa")) %>%
+  group_by(PUBYEAR, oa_category, n_total) %>%
   summarise(number_of_articles = n_distinct(PK_ITEMS)) %>%
-  mutate(prop = number_of_articles / n_total * 100) %>% 
+  mutate(prop = number_of_articles / n_total * 100) %>%
   ggplot(aes(x = PUBYEAR, y = prop)) +
     #geom_line(aes(color = oa_category)) +
     geom_col(aes(fill = oa_category)) +
@@ -919,14 +918,14 @@ Next, we go one level down and look at how the separate sectors developed.
 Number of OA articles per sector in comparison to all articles published within the sector:
 
 ```{r, fig.asp=1}
-pubs_cat %>% 
-  mutate(oa_category = fct_relevel(factor(oa_category), "full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa")) %>% 
+pubs_cat %>%
+  mutate(oa_category = fct_relevel(factor(oa_category), "full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa")) %>%
   mutate(oa_category = fct_collapse(oa_category,
     is_oa = c("full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo"),
     not_oa = "not_oa"
   ))  %>%
-  group_by(sector, PUBYEAR, oa_category) %>% 
-  summarise(number_of_articles = n_distinct(PK_ITEMS)) %>% 
+  group_by(sector, PUBYEAR, oa_category) %>%
+  summarise(number_of_articles = n_distinct(PK_ITEMS)) %>%
   ggplot(aes(x = PUBYEAR, y = number_of_articles)) +
     geom_area(aes(fill = fct_rev(oa_category), group = fct_rev(oa_category)),  alpha = 0.8) +
     scale_fill_manual(values = c("#b3b3b3a0", "#56B4E9"), name = "Is OA?", labels = c("Not OA", "OA"))+
@@ -941,14 +940,14 @@ The first figure depicts the number of publications per host type category over 
 
 ```{r, fig.asp=1}
 #, fig.asp=1.5}
-pubs_cat %>% 
-  mutate(oa_category = factor(oa_category, levels = c("full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa"))) %>% 
+pubs_cat %>%
+  mutate(oa_category = factor(oa_category, levels = c("full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa"))) %>%
   mutate(oa_category = fct_collapse(oa_category,
     journal_oa = c("full_oa_journal", "other_oa_journal"),
     repo_oa = c("opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo"),
     not_oa = "not_oa"
-  )) %>% 
-  group_by(sector, PUBYEAR, oa_category) %>% 
+  )) %>%
+  group_by(sector, PUBYEAR, oa_category) %>%
   summarise(number_of_articles = n_distinct(PK_ITEMS)) %>%
   ggplot(aes(x = PUBYEAR, y = number_of_articles)) +
     geom_col(aes(fill = oa_category), position = "dodge") +
@@ -962,18 +961,18 @@ Looking at proportions:
 ```{r, fig.asp=1}
 #, fig.asp=1.5}
 pubs_cat %>%
-  group_by(PUBYEAR, sector) %>% 
-  mutate(n_total = n_distinct(PK_ITEMS)) %>% 
-  ungroup() %>% 
-  mutate(oa_category = factor(oa_category, levels = c("full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa"))) %>% 
+  group_by(PUBYEAR, sector) %>%
+  mutate(n_total = n_distinct(PK_ITEMS)) %>%
+  ungroup() %>%
+  mutate(oa_category = factor(oa_category, levels = c("full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa"))) %>%
   mutate(oa_category = fct_collapse(oa_category,
     journal_oa = c("full_oa_journal", "other_oa_journal"),
     repo_oa = c("opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo"),
     not_oa = "not_oa"
-  )) %>% 
-  group_by(sector, PUBYEAR, oa_category, n_total) %>% 
+  )) %>%
+  group_by(sector, PUBYEAR, oa_category, n_total) %>%
   summarise(number_of_articles = n_distinct(PK_ITEMS)) %>%
-  mutate(prop = number_of_articles / n_total *100) %>% 
+  mutate(prop = number_of_articles / n_total *100) %>%
   ggplot(aes(x = PUBYEAR, y = prop)) +
     geom_col(aes(fill = oa_category), position = "dodge") +
     facet_wrap(~ sector, scales = "free") +
@@ -985,7 +984,7 @@ pubs_cat %>%
 Facet grid:
 
 ```{r, fig.asp=1}
-pubs_cat_abbr <- pubs_cat %>% 
+pubs_cat_abbr <- pubs_cat %>%
   mutate(sector = case_when(
     sector == "Hochschulen" ~ "HS",
     sector == "Leibniz-Gemeinschaft" ~ "LG",
@@ -996,18 +995,18 @@ pubs_cat_abbr <- pubs_cat %>%
     sector == "Fraunhofer-Gesellschaft" ~ "FG"
   ))
 pubs_cat_abbr %>%
-  group_by(PUBYEAR, sector) %>% 
-  mutate(n_total = n_distinct(PK_ITEMS)) %>% 
-  ungroup() %>% 
+  group_by(PUBYEAR, sector) %>%
+  mutate(n_total = n_distinct(PK_ITEMS)) %>%
+  ungroup() %>%
   mutate(oa_category = factor(oa_category, levels = c("full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa"))) %>%
     mutate(oa_category = fct_collapse(oa_category,
     journal_oa = c("full_oa_journal", "other_oa_journal"),
     repo_oa = c("opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo"),
     not_oa = "not_oa"
-  )) %>% 
-  group_by(sector, PUBYEAR, oa_category, n_total) %>% 
+  )) %>%
+  group_by(sector, PUBYEAR, oa_category, n_total) %>%
   summarise(number_of_articles = n_distinct(PK_ITEMS)) %>%
-  mutate(prop = number_of_articles / n_total * 100) %>% 
+  mutate(prop = number_of_articles / n_total * 100) %>%
   ggplot(aes(x = PUBYEAR, y = prop)) +
     geom_col(aes(fill = oa_category)) +
     facet_grid(sector ~ oa_category) +
@@ -1023,8 +1022,8 @@ Distinguishing all the single OA categories:
 
 ```{r, fig.asp=1}
 pubs_cat %>%
-  mutate(oa_category = factor(oa_category, levels = c("full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa"))) %>% 
-  group_by(sector, PUBYEAR, oa_category) %>% 
+  mutate(oa_category = factor(oa_category, levels = c("full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa"))) %>%
+  group_by(sector, PUBYEAR, oa_category) %>%
   summarise(number_of_articles = n_distinct(PK_ITEMS)) %>%
   ggplot(aes(x = PUBYEAR, y = number_of_articles)) +
     geom_col(aes(fill = oa_category), position = "dodge") +
@@ -1038,13 +1037,13 @@ Looking at proportions:
 
 ```{r, fig.asp=1}
 pubs_cat %>%
-  group_by(PUBYEAR, sector) %>% 
-  mutate(n_total = n_distinct(PK_ITEMS)) %>% 
-  ungroup() %>% 
-  mutate(oa_category = factor(oa_category, levels = c("full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa"))) %>% 
-  group_by(sector, PUBYEAR, oa_category, n_total) %>% 
+  group_by(PUBYEAR, sector) %>%
+  mutate(n_total = n_distinct(PK_ITEMS)) %>%
+  ungroup() %>%
+  mutate(oa_category = factor(oa_category, levels = c("full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa"))) %>%
+  group_by(sector, PUBYEAR, oa_category, n_total) %>%
   summarise(number_of_articles = n_distinct(PK_ITEMS)) %>%
-  mutate(prop = number_of_articles / n_total * 100) %>% 
+  mutate(prop = number_of_articles / n_total * 100) %>%
   ggplot(aes(x = PUBYEAR, y = prop)) +
     geom_col(aes(fill = oa_category), position = "dodge") +
     facet_wrap(~ sector, scales = "free", ncol = 2) +
@@ -1057,7 +1056,7 @@ pubs_cat %>%
 Facet grid:
 
 ```{r, fig.asp=1.2}
-pubs_cat_abbr <- pubs_cat %>% 
+pubs_cat_abbr <- pubs_cat %>%
   mutate(sector = case_when(
     sector == "Hochschulen" ~ "HS",
     sector == "Leibniz-Gemeinschaft" ~ "LG",
@@ -1068,13 +1067,13 @@ pubs_cat_abbr <- pubs_cat %>%
     sector == "Fraunhofer-Gesellschaft" ~ "FG"
   ))
 pubs_cat_abbr %>%
-  group_by(PUBYEAR, sector) %>% 
-  mutate(n_total = n_distinct(PK_ITEMS)) %>% 
-  ungroup() %>% 
+  group_by(PUBYEAR, sector) %>%
+  mutate(n_total = n_distinct(PK_ITEMS)) %>%
+  ungroup() %>%
   mutate(oa_category = factor(oa_category, levels = c("full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa"))) %>%
-  group_by(sector, PUBYEAR, oa_category, n_total) %>% 
+  group_by(sector, PUBYEAR, oa_category, n_total) %>%
   summarise(number_of_articles = n_distinct(PK_ITEMS)) %>%
-  mutate(prop = number_of_articles / n_total * 100) %>% 
+  mutate(prop = number_of_articles / n_total * 100) %>%
   ggplot(aes(x = PUBYEAR, y = prop)) +
     geom_col(aes(fill = oa_category)) +
     facet_grid(sector ~ oa_category) +
@@ -1090,21 +1089,21 @@ Lastly, we go down to the institutional level. Since there are more than 400 ins
 
 ```{r}
 oa_shares <- pubs_cat %>%
-  mutate(oa_category = factor(oa_category, levels = c("full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa"))) %>% 
+  mutate(oa_category = factor(oa_category, levels = c("full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa"))) %>%
   mutate(oa_category = fct_collapse(oa_category,
     is_oa = c("full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo"),
     not_oa = "not_oa"
-  )) %>% 
-  group_by(INST_NAME) %>% 
-  mutate(n_total = n_distinct(PK_ITEMS)) %>% 
+  )) %>%
+  group_by(INST_NAME) %>%
+  mutate(n_total = n_distinct(PK_ITEMS)) %>%
   ungroup() %>%
-  group_by(INST_NAME, oa_category, n_total) %>% 
-  summarise(n_cat = n_distinct(PK_ITEMS)) %>% 
+  group_by(INST_NAME, oa_category, n_total) %>%
+  summarise(n_cat = n_distinct(PK_ITEMS)) %>%
   pivot_wider(names_from = oa_category,
               values_from = n_cat,
-              values_fill = list(n_cat = 0)) %>% 
+              values_fill = list(n_cat = 0)) %>%
   mutate(oa_share = is_oa/n_total *100) %>%
-  rename(n_oa = is_oa, n_not_oa = not_oa) %>% 
+  rename(n_oa = is_oa, n_not_oa = not_oa) %>%
   ungroup()
 ```
 
@@ -1112,18 +1111,18 @@ We now display the variability among institutions per sector with respect to the
 
 ```{r, fig.asp=1}
 pubs_cat %>%
-  mutate(oa_category = factor(oa_category, levels = c("full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa"))) %>% 
+  mutate(oa_category = factor(oa_category, levels = c("full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo", "not_oa"))) %>%
   mutate(oa_category = fct_collapse(oa_category,
     journal_oa = c("full_oa_journal", "other_oa_journal"),
     repo_oa = c("opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo"),
     not_oa = "not_oa"
-  )) %>% 
-  left_join(oa_shares, by = 'INST_NAME') %>% 
+  )) %>%
+  left_join(oa_shares, by = 'INST_NAME') %>%
   group_by(sector, INST_NAME, n_total, oa_share) %>%
-  summarise() %>% 
+  summarise() %>%
   ggplot(aes(x = n_total, y = oa_share)) +
-    geom_point(aes(color = sector)) + 
-    scale_x_log10() + 
+    geom_point(aes(color = sector)) +
+    scale_x_log10() +
     scale_color_viridis(end = 0.95, direction = -1, option = "plasma", discrete = TRUE, name = "Sectors")+
     facet_wrap(~ sector, ncol = 2) +
     labs(x = "Total publication output (logarithmic scale)", y = "OA share (in %)", title = "Open Access shares of research institutions in Germany") +
@@ -1135,10 +1134,10 @@ Sectorwise comparison of OA shares
 ```{r, fig.asp=0.8}
 pubs_cat %>%
   left_join(oa_shares, by = 'INST_NAME') %>%
-  group_by(INST_NAME, sector, oa_share, n_total) %>% 
-  summarise() %>% 
-  group_by(sector) %>% 
-  summarise_at(vars(n_total, oa_share), funs(min, max, mean, median,sd)) %>% 
+  group_by(INST_NAME, sector, oa_share, n_total) %>%
+  summarise() %>%
+  group_by(sector) %>%
+  summarise_at(vars(n_total, oa_share), funs(min, max, mean, median,sd)) %>%
   select(sector, starts_with('oa_share'), starts_with('n_total'))
 
 n_fun <- function(x){
@@ -1147,18 +1146,18 @@ n_fun <- function(x){
 }
 
 pubs_cat %>%
-  group_by(sector) %>% 
+  group_by(sector) %>%
   mutate(n_sector = n_distinct(PK_ITEMS),
          sector_cat = case_when(
            n_sector > 500000 ~ 'high_n_pubs',
            n_sector > 50000 ~ 'middle_n_pubs',
            TRUE ~ 'low_n_pubs'
-         )) %>% 
-  ungroup() %>% 
+         )) %>%
+  ungroup() %>%
   left_join(oa_shares, by = 'INST_NAME') %>%
-  group_by(INST_NAME, sector, oa_share, sector_cat) %>% 
-  summarise() %>% 
-  ggplot(aes(x = sector, y = oa_share)) + 
+  group_by(INST_NAME, sector, oa_share, sector_cat) %>%
+  summarise() %>%
+  ggplot(aes(x = sector, y = oa_share)) +
     geom_boxplot(aes(color = sector_cat), varwidth = TRUE, size = 1) +
 #    geom_boxplot() +
  #   stat_summary(fun.data = n_fun, geom = "text", hjust = 0.5) +
@@ -1166,11 +1165,10 @@ pubs_cat %>%
     scale_color_viridis(end = 0.8, labels = c("high", "medium", "low"), discrete = TRUE, direction = -1, option = "plasma")+
     theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
     labs(title = "OA shares of institutions per sector", x = "", y = "OA share (in %)", color = "Publication output",
-         caption = "Widths of the boxes corresponds to the number of institutions per sector,\n gray points display oa shares for individual institutions.") 
+         caption = "Widths of the boxes corresponds to the number of institutions per sector,\n gray points display oa shares for individual institutions.")
       # theme(axis.title = element_text(size = 24),
       #   plot.title = element_text(size = 36),
       #   axis.text = element_text(size = 21),
       #   legend.text = element_text(size = 21),
       #   legend.title = element_text(size = 24))
 ```
-

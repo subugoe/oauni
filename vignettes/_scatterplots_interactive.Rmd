@@ -1,11 +1,6 @@
 ---
 title: "OA percentage of German reserach institutions by sector"
 author: "Anne Hobert"
-output:
-  html_document:
-    fig_caption: yes
-    keep_md : true
-  urlcolor: blue
 ---
 
 ```{r, echo = FALSE, message = FALSE, warning = FALSE}
@@ -167,5 +162,3 @@ oa_shares_inst_sector %>%
   theme(strip.text = element_text(face = "bold")) -> plot_oa_inst_sec
 plotly::ggplotly(plot_oa_inst_sec, tooltip = c("label", "y", "x"))
 ```
-
-

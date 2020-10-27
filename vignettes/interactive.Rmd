@@ -1,0 +1,7 @@
+---
+title: "Interactive Dashboard"
+---
+
+```{r echo=FALSE}
+shinycaas::include_app2("https://subugoe.shinyapps.io/oauni_10_18/")
+```
