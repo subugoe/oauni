@@ -3,5 +3,4 @@ output:
     toc: true
     number_sections: false
     df_print: paged
-    code_folding: hide
     section_divs: false
