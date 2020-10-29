@@ -24,7 +24,7 @@ keywords:
 - German research landscape
 - Open access classification
 abstract: |
-  This study investigates the development of open access (OA) to journal articles from authors affiliated with German universities and non-university research institutions in the period 2010-2018.
+  This study investigates the development of open access (OA) to journal articles from authors affiliated with German universities and non-university research institutions in the period 2010--2018.
   Beyond determining the overall share of openly available articles, a systematic classification of distinct categories of OA publishing allows to identify different patterns of adoption to OA.
   Taking into account the particularities of the German research landscape, variations in terms of productivity, OA uptake and approaches to OA are examined at the meso-level and possible explanations are discussed.
   The development of the OA uptake is analysed for the different research sectors in Germany (universities, non-university research institutes of the Helmholtz Association, Fraunhofer Society, Max Planck Society, Leibniz Association, and government research agencies).
@@ -35,6 +35,44 @@ abstract: |
   Enabling data-driven decision-making regarding OA implementation in Germany at the institutional level, the results of this study furthermore can serve as a baseline to assess the impact recent transformative agreements with major publishers will likely have on scholarly communication.
 ---
 
+
+## Declarations {.alert .alert-primary .unnumbered .unlisted}
+
+### Funding
+
+This work was supported by the German Federal Ministry of Education and Research within the funding stream “Quantitative research on the science sector”, projects OASE (grant number 01PU17005A) and [OAUNI](https://www.sub.uni-goettingen.de/en/projects-research/project-details/projekt/oauni/) (grant numbers 01PU17023A and 01PU17023B).
+
+### Conflicts of Interest
+
+The authors declare that they have no conflict of interest.
+
+### Availability of data and material
+
+Article level data is proprietary and can therefore not be published.
+Aggregated data will be made available within a Github repository.
+Supplementary material will be made available on Zenodo via the DOI 10.5281/zenodo.3892951.
+It consists of three .xlsx files.
+The file 'S1 Yearly OA shares.xlsx' contains the yearly numbers and proportions of OA articles on the national level and per sector as well as per hosttype (journal or repository provided OA).
+The file 'S2 Institutional OA shares.xlsx' lists all examined institutions grouped by sector and displays the overall OA percentage, as well as shares of distinct OA approaches for each individual institution.
+It also contains an overview spreadsheet collating these numbers per research sector.
+]The file 'S3 Data exploration.xlsx' contains additional information on the prevalence of repository domains, unmatched DOIs and distribution of OA categories per hosttype.
+Code availability All codes, scripts and database queries used for data gathering and analysis will be made openly available in a Github repository by the time of publication.
+
+### Authors' Contributions
+
+- Conceptualisation and Methodology: Anne Hobert, Najko Jahn, Philipp Mayr and Niels Taubert
+- Formal analysis: Anne Hobert and Najko Jahn; Data Curation: Anne Hobert, Najko Jahn and Niels Taubert
+- Funding acquisition: Najko Jahn, Philipp Mayr, Birgit Schmidt and Niels Taubert
+- Writing - original draft, review and editing: Anne Hobert, Najko Jahn, Philipp Mayr, Birgit Schmidt, Niels Taubert.
+
+Authors are listed in alphabetical order.
+
+
+## Acknowledgements {.alert .alert-info .unnumbered .unlisted}
+
+Open Access funding provided by project DEAL.
+We are thankful to Neda Abediyarandi, Masoud Davari and Nick Haupka for their assistance with preparing and validating the data and to Nicholas Fraser for helpful comments on the manuscript.
+A preprint of the manuscript will be submitted to Zenodo and will be available via the DOI 10.5281/zenodo.3892951.
 
 ## Introduction
 
@@ -274,7 +312,7 @@ First, article-level data was obtained from the Web of Science in-house database
 Next, fully OA journals were identified using the ISSN Gold-OA 3.0 list.
 Table 2 presents the study's OA classification and operationalisation methodology.
 
-```{r study-design, fig.cap="Study design: schematic display of gathering, matching, and preprocessing of data (read from left to right)", fig.subcap="foo", echo=FALSE}
+```{r study-design, fig.cap="Study design: schematic display of gathering, matching, and preprocessing of data (read from left to right)"}
 knitr::include_graphics(path = "../man/figures/study_design.png")
 ```
 Article-level OA evidence from Unpaywall (data snapshot from February 2020) was added by DOI matching.
@@ -377,7 +415,7 @@ For both of the main OA routes (Gold and Green OA), the categorisation into subt
 The analysis was carried out in March 2020 using the most current datasets available at that time.
 We selected the document types "articles" and "reviews" from the Web of Science database editions Science Citation Index Expanded (SCIE), Social Science Citation Index (SSCI), and Arts and Humanities Citation Index (A&HCI).
 We applied full counting of all authors, meaning that articles affiliated with authors from multiple institutions were counted once for each associated institution.
-<---TODO these should be inline r calls--->
+<!---TODO these should be inline r calls--->
 In total, 871,922 articles from WoS-KB met our selection criteria.
 Of those, 95% had DOIs and 94% were matched to articles in Unpaywall.
 5,966 DOIs in our WoS-KB sample could not be matched.
@@ -399,7 +437,7 @@ This finding is in line with results from Robinson-Garcia et al.
 Piwowar et al.
 (2018) reported a slightly lower OA percentage of 36% for a sample of 100,000 articles registered within the Web of Science that were published between 2009 and 2015.
 
-<-- TODO should be chunk https://github.com/subugoe/oauni/issues/32 -->
+<!-- TODO should be chunk https://github.com/subugoe/oauni/issues/32 -->
 ![](media/image2.png){width="6.5in" height="4.013888888888889in"}**Fig. 2** Open access to journal articles from German research institutions by year.[^22]
 
 [^22]: See *Table S.1.1* in the supplementary material for the explicit numbers.
@@ -415,7 +453,7 @@ As an answer to research question RQ1, we were able to establish that the OA fra
 In a next step, the development of the OA shares are analyzed for the different sectors (universities, non-university research institutes like MPS or WGL institutes, and government research agencies) of the German research system separately.
 The results are displayed in Figure 3.
 
-<-- TODO should be chunk https://github.com/subugoe/oauni/issues/32 -->
+<!-- TODO should be chunk https://github.com/subugoe/oauni/issues/32 -->
 ![](media/image3.png){width="6.5in" height="6.5in"}**Fig. 3** Development of the number of OA/closed access articles, by sectors (2010-2018).[^23] Note that scales for the vertical axes differ, since the total publication output varies significantly among sectors.
 
 [^23]: The exact numbers for each sector and year can be found in *Table S.1.2* in the supplementary material.
@@ -437,7 +475,7 @@ Of the 444 institutions in total, 320 meet these conditions, while 124 instituti
 [^24]: For the aggregated data of all individual institutes and categories, see *Tables S.2.2 - S.2.7* in the supplementary material.
 
 Figure 4 displays the results.
-<-- TODO should be chunk https://github.com/subugoe/oauni/issues/32 -->
+<!-- TODO should be chunk https://github.com/subugoe/oauni/issues/32 -->
 ![](media/image4.png){width="6.5in" height="6.5in"}
 
 **Fig. 4** OA shares and publication output of German research institutions with at least 100 publications in 2010-2018, grouped by sectors.
@@ -477,7 +515,7 @@ An interpretation of the results for the WGL and the GRA is less straightforward
 However, the disciplinary publication culture again seems to play a certain role also here.
 The two leading institutions in each sector, namely the Leibniz-Institute for Astrophysics Potsdam (AIP), the Leibniz Institute for Solar Physics (KIS), the Robert Koch Institute (RKI), and the Deutscher Wetterdienst (DWD) can all be attributed to the natural sciences, and physics in particular, as well as to the life sciences.
 
-<-- TODO should be chunk https://github.com/subugoe/oauni/issues/32 -->
+<!-- TODO should be chunk https://github.com/subugoe/oauni/issues/32 -->
 
 ![](media/image5.png){width="6.5in" height="4.013888888888889in"}**Fig. 5** OA shares of German research institutions with at least 100 publications in 2010-2018, grouped by sectors.
 The color of the boxes groups sectors into universities with a typically high total journal publication output and diverse subject profile, research-oriented institutes with a medium journal publication output and often a specific disciplinary focus, practise oriented institutions with a comparatively low journal publication output, as well as sectors with diverse missions of their institutions.
@@ -510,7 +548,7 @@ Articles were fully counted in every category they appear in.
 Hence, numbers do not sum up to the total number of articles considered in this study, and percentages do not sum up to one hundred per cent.
 
 As a first step, the relevance of the two main OA types is analysed in Figure 6.
-<-- TODO should be chunk https://github.com/subugoe/oauni/issues/32 -->
+<!-- TODO should be chunk https://github.com/subugoe/oauni/issues/32 -->
 ![](media/image6.png){width="6.5in" height="2.5972222222222223in"}**Fig. 6** Development of the number of articles per OA-type and their overlap.
 Highlighted in blue are the number of articles per OA host type ('by Host') with articles made available only via a journal on the left, articles available only in repositories on the right and the overlap, that is, articles openly accessible via both a journal and a repository, in the middle.
 Grey area shows the remaining OA articles. [^25]
@@ -535,7 +573,7 @@ Institutional repositories (around 40%) as well as other OpenDOAR registered rep
 
 [^26]: For details see *Table S.3.3* in the supplementary material.
 
-<-- TODO should be chunk https://github.com/subugoe/oauni/issues/32 -->
+<!-- TODO should be chunk https://github.com/subugoe/oauni/issues/32 -->
 ![](media/image7.png){width="6.5in" height="4.333333333333333in"}**Fig. 7** Development of the percentage of journal articles per OA category.
 Categories are non-exclusive, that is articles may be counted for more than one category.
 Grey area displays the total percentage of the major OA type (journal or repository).[^27]
@@ -567,7 +605,7 @@ Third, the remaining category opendoar_other shows a continuous increase, which 
 In the next step, we analysed if the sectors differ regarding the adoption of OA (see research question RQ3).
 To explore this, OA percentages per category were calculated for each sector.
 Figure 8 displays the results.
-<-- TODO should be chunk https://github.com/subugoe/oauni/issues/32 -->
+<!-- TODO should be chunk https://github.com/subugoe/oauni/issues/32 -->
 ![](media/image8.png){width="6.5in" height="6.5in"}**Fig. 8** OA shares per category and sector of articles published between 2010 and 2018.
 Coloring and size of the points displays the percentage in the respective category.
 Grey numbers display the percentage value.
@@ -601,7 +639,7 @@ As noted before, our categories are non-exclusive, i.e.
 articles that are openly accessible through different means were counted once in each of the categories.
 In order to quantify this overlap, Figure 9 displays the most common combinations of OA categories found.
 
-<-- TODO should be chunk https://github.com/subugoe/oauni/issues/32 -->
+<!-- TODO should be chunk https://github.com/subugoe/oauni/issues/32 -->
 
 ![](media/image9.png){width="6.5in" height="4.083333333333333in"}
 
@@ -675,46 +713,9 @@ If these transformative agreements mandate open and standardised scholarly data 
 Overall, our results enable data-driven decision-making in the context of OA in Germany at the level of institutions.
 Against the background of the ongoing OA adoption in general and the negotiation of transformative agreements in particular, our empirical findings can serve as a baseline to assess the impact of this new publishing model in the future.
 
-## Declarations
+## References
 
-### Funding
-
-This work was supported by the German Federal Ministry of Education and Research within the funding stream “Quantitative research on the science sector”, projects OASE (grant number 01PU17005A) and [OAUNI](https://www.sub.uni-goettingen.de/en/projects-research/project-details/projekt/oauni/) (grant numbers 01PU17023A and 01PU17023B).
-
-### Conflicts of Interest
-
-The authors declare that they have no conflict of interest.
-
-### Availability of data and material
-
-Article level data is proprietary and can therefore not be published.
-Aggregated data will be made available within a Github repository.
-Supplementary material will be made available on Zenodo via the DOI 10.5281/zenodo.3892951.
-It consists of three .xlsx files.
-The file 'S1 Yearly OA shares.xlsx' contains the yearly numbers and proportions of OA articles on the national level and per sector as well as per hosttype (journal or repository provided OA).
-The file 'S2 Institutional OA shares.xlsx' lists all examined institutions grouped by sector and displays the overall OA percentage, as well as shares of distinct OA approaches for each individual institution.
-It also contains an overview spreadsheet collating these numbers per research sector.
-]The file 'S3 Data exploration.xlsx' contains additional information on the prevalence of repository domains, unmatched DOIs and distribution of OA categories per hosttype.
-Code availability All codes, scripts and database queries used for data gathering and analysis will be made openly available in a Github repository by the time of publication.
-
-### Authors' Contributions
-
-- Conceptualisation and Methodology: Anne Hobert, Najko Jahn, Philipp Mayr and Niels Taubert
-- Formal analysis: Anne Hobert and Najko Jahn; Data Curation: Anne Hobert, Najko Jahn and Niels Taubert
-- Funding acquisition: Najko Jahn, Philipp Mayr, Birgit Schmidt and Niels Taubert
-- Writing - original draft, review and editing: Anne Hobert, Najko Jahn, Philipp Mayr, Birgit Schmidt, Niels Taubert.
-
-Authors are listed in alphabetical order.
-
-## Acknowledgements
-
-Open Access funding provided by project DEAL.
-We are thankful to Neda Abediyarandi, Masoud Davari and Nick Haupka for their assistance with preparing and validating the data and to Nicholas Fraser for helpful comments on the manuscript.
-A preprint of the manuscript will be submitted to Zenodo and will be available via the DOI 10.5281/zenodo.3892951.
-
-# References
-
-<-- TODO should come from bib and citeproc https://github.com/subugoe/oauni/issues/29 -->
+<!--  TODO should come from bib and citeproc https://github.com/subugoe/oauni/issues/29 -->
 
 > Abediyarandi, N., & Mayr, P. (2019). The State of Open Access in Germany: An Analysis of the Publication Output of German Universities. *ArXiv:1905.00011*. [[http://arxiv.org/abs/1905.00011]{.ul}](http://arxiv.org/abs/1905.00011)
 >

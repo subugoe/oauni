@@ -1,5 +1,7 @@
 output:
   bookdown::html_document2:
+    toc: true
     number_sections: false
     df_print: paged
-    toc: yes
+    code_folding: hide
+    section_divs: false
