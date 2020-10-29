@@ -1,5 +1,5 @@
 ---
-title: "Interactive Dashboard"
+title: "Interactive Supplement"
 ---
 
 ```{r echo=FALSE}

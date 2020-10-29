@@ -10,14 +10,13 @@ output:
 # Open Access Uptake in Germany
   <p>
     Adoption in a diverse research landscape.
-    Period 2010-2018.
   </p>
   <p>
-    <a class="btn btn-danger btn-lg" href="articles/interactive.html" role="button">
-      Try out the interactive supplement.
+    <a class="btn btn-danger btn-lg" href="articles/supplement.html" role="button">
+      Try out the interactive supplement
     </a>
-    <a class="btn btn-primary btn-lg" href="https://pub.uni-bielefeld.de/record/2943906" role="button">
-      Read the preprint.
+    <a class="btn btn-primary btn-lg" href="articles/uptake" role="button">
+      Read the preprint
     </a>
   </p>
 </div>
