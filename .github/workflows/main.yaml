@@ -34,8 +34,6 @@ jobs:
         run: covr::codecov()
       - name: Build Package Website
         run: |
-          # extra step is necessary to build index.md to integrate readme and landing page
-          rmarkdown::render("pkgdown/index.Rmd")
           pkgdown::build_site(override = list(new_process = FALSE))
       - name: Build Buildtime Image
         uses: docker/build-push-action@v1

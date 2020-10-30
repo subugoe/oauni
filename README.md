@@ -1,5 +1,3 @@
-# oauni
-
 <!-- badges: start -->
 [![Main](https://github.com/subugoe/oauni/workflows/.github/workflows/main.yaml/badge.svg)](https://github.com/subugoe/oauni/actions)
 [![CRAN
@@ -9,6 +7,21 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 [![Codecov test
 coverage](https://codecov.io/gh/subugoe/oauni/branch/master/graph/badge.svg)](https://codecov.io/gh/subugoe/oauni?branch=master)
 <!-- badges: end -->
+
+<div class="jumbotron">
+  <h1>Open Access Uptake in Germany</h1>
+  <p>
+    Adoption in a diverse research landscape.
+  </p>
+  <p>
+    <a class="btn btn-danger btn-lg" href="articles/supplement.html" role="button">
+      Try out the interactive supplement
+    </a>
+    <a class="btn btn-primary btn-lg" href="articles/uptake" role="button">
+      Read the preprint
+    </a>
+  </p>
+</div>
 
 ## Overview
 
