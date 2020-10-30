@@ -35,44 +35,8 @@ abstract: |
   Enabling data-driven decision-making regarding OA implementation in Germany at the institutional level, the results of this study furthermore can serve as a baseline to assess the impact recent transformative agreements with major publishers will likely have on scholarly communication.
 ---
 
-
-## Declarations {.alert .alert-primary .unnumbered .unlisted}
-
-### Funding
-
-This work was supported by the German Federal Ministry of Education and Research within the funding stream “Quantitative research on the science sector”, projects OASE (grant number 01PU17005A) and [OAUNI](https://www.sub.uni-goettingen.de/en/projects-research/project-details/projekt/oauni/) (grant numbers 01PU17023A and 01PU17023B).
-
-### Conflicts of Interest
-
-The authors declare that they have no conflict of interest.
-
-### Availability of data and material
-
-Article level data is proprietary and can therefore not be published.
-Aggregated data will be made available within a Github repository.
-Supplementary material will be made available on Zenodo via the DOI 10.5281/zenodo.3892951.
-It consists of three .xlsx files.
-The file 'S1 Yearly OA shares.xlsx' contains the yearly numbers and proportions of OA articles on the national level and per sector as well as per hosttype (journal or repository provided OA).
-The file 'S2 Institutional OA shares.xlsx' lists all examined institutions grouped by sector and displays the overall OA percentage, as well as shares of distinct OA approaches for each individual institution.
-It also contains an overview spreadsheet collating these numbers per research sector.
-]The file 'S3 Data exploration.xlsx' contains additional information on the prevalence of repository domains, unmatched DOIs and distribution of OA categories per hosttype.
-Code availability All codes, scripts and database queries used for data gathering and analysis will be made openly available in a Github repository by the time of publication.
-
-### Authors' Contributions
-
-- Conceptualisation and Methodology: Anne Hobert, Najko Jahn, Philipp Mayr and Niels Taubert
-- Formal analysis: Anne Hobert and Najko Jahn; Data Curation: Anne Hobert, Najko Jahn and Niels Taubert
-- Funding acquisition: Najko Jahn, Philipp Mayr, Birgit Schmidt and Niels Taubert
-- Writing - original draft, review and editing: Anne Hobert, Najko Jahn, Philipp Mayr, Birgit Schmidt, Niels Taubert.
-
-Authors are listed in alphabetical order.
-
-
-## Acknowledgements {.alert .alert-info .unnumbered .unlisted}
-
-Open Access funding provided by project DEAL.
-We are thankful to Neda Abediyarandi, Masoud Davari and Nick Haupka for their assistance with preparing and validating the data and to Nicholas Fraser for helpful comments on the manuscript.
-A preprint of the manuscript will be submitted to Zenodo and will be available via the DOI 10.5281/zenodo.3892951.
+```{r, child="uptake/frontmatter.Rmd"}
+```
 
 ## Introduction
 

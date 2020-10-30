@@ -2,5 +2,5 @@ output:
   bookdown::html_document2:
     toc: true
     number_sections: false
+    theme: null
     df_print: paged
-    section_divs: false
