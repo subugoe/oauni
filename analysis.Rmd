@@ -287,11 +287,15 @@ point_sizes <- oa_shares_inst_sector %>%
   filter(n_total >= 100) %>% 
   mutate(point_shape = ifelse(inst_label =="", 1.5, 2)) %>% 
   .$point_shape
+point_color <- oa_shares_inst_sector %>% 
+  filter(n_total >= 100) %>% 
+  mutate(point_color = ifelse(inst_label =="", "#56b4e9", "#490206")) %>% 
+  .$point_color
 oa_shares_inst_sector %>%
   filter(n_total >= 100) %>%
   left_join(oa_shares_inst_sector_stats, by = "sector") %>%
   ggplot(aes(x = n_total, y = oa_share, label = INST_NAME)) +
-    geom_point(color = "#56b4e9", alpha = .7, shape = point_shapes, size = point_sizes)  +
+    geom_point(color = point_color, alpha = .7, shape = point_shapes, size = point_sizes)  +
     scale_x_log10(labels = scales::number_format(big.mark = ","),
                   expand = expansion(mult = c(0.05, 0.1))) +
     scale_y_continuous(labels = scales::percent_format(accuracy = 5L),
