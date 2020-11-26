@@ -680,13 +680,14 @@ oa_shares_sector <-pubs_cat %>%
               values_from = fig_val) %>% 
   mutate(share_sec_cat = ifelse(oa_category == "not_oa", 1-share_sec_cat, share_sec_cat),
          oa_category = fct_recode(oa_category, all_oa = "not_oa")) %>% 
-  rename(share = share_sec_cat)
+  rename(share = share_sec_cat) %>%
+  mutate(text_color = ifelse(share > .3, "black", "#cccccc"))
 
 ggplot(oa_shares_sector, aes(x = fct_rev(fct_recode(fct_relevel(fct_reorder(sec_abbr, n_sec), "all_sec"), all = "all_sec")),
                              y = fct_rev(oa_category),
                              size = share, fill = share))+
   geom_point(shape = 21, color = "#666666") +
-  geom_text(aes(label = round(share*100)), color = "#cccccc", size = 4) +
+  geom_text(aes(label = round(share*100), colour = text_color), size = 4, show_guide = FALSE) +
   geom_vline(xintercept = 6.5, color = "black") +
   geom_hline(yintercept = 1.5, color = "black") +
   scale_size(name = "OA percentage",
@@ -699,6 +700,7 @@ ggplot(oa_shares_sector, aes(x = fct_rev(fct_recode(fct_relevel(fct_reorder(sec_
                       guide = guide_colorbar(frame.colour = "#666666", barwidth = 17)) +
   labs(x = "Sector", y = "OA Category") +
 #  coord_flip() +
+  scale_color_manual(values = c("black" = "black", "#cccccc" = "white")) +
   theme_minimal_grid() + 
   theme(legend.position = "top", legend.justification = "right") +
   theme(legend.direction = "horizontal", legend.box = "vertical") +
