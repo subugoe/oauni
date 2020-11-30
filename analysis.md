@@ -30,7 +30,7 @@ following figure displays the number of publications associated with one
 of the German research institutions we considered and highlights they
 part that is freely accessible online according to Unpaywall over the
 considered time period from 2010 until 2018. The total number of
-articles over the whole period is 871922 with an overall OA share of 44
+articles over the whole period is 871922 with an overall OA share of 45
 %.
 
 <div class="figure" style="text-align: center">
@@ -50,12 +50,12 @@ articles.
 
 As can be seen, the total number of articles, as well as the part that
 is OA increases constantly over time. The number of articles that are
-not openly available, is quite stable with a slow increase from 54492 in
-2010 to 56234 in 2013, and decreasing again continuously from that point
-onwards to 52103 publications in 2018. Since the number of OA articles
-increases continuously from 28975 publications in 2010 to 54976 in 2018,
-the relative proportion of OA articles rises significantly from 34.71 %
-in 2010 to 51.34 % in 2018.
+not openly available, is quite stable with a slow increase from 52803 in
+2010 to 54873 in 2013, and decreasing again continuously from that point
+onwards to 51430 publications in 2018. Since the number of OA articles
+increases continuously from 30664 publications in 2010 to 55649 in 2018,
+the relative proportion of OA articles rises significantly from 36.74 %
+in 2010 to 51.97 % in 2018.
 
 ### Differences between sectors
 
@@ -151,8 +151,8 @@ different.
 
 </div>
 
-Significance: HGF against all non-research oriented, MPG against all
-non-research oriented, FhG against all others Significance groups:
+Significance: HGF against all non-research oriented, MPS against all
+non-research oriented, FhS against all others Significance groups:
 research against all others, practise against all others, mixed not well
 separated from universities (maybe sector\_cat classification should be
 inst\_cat, i.e. on the level of institutions - would have to be manually
