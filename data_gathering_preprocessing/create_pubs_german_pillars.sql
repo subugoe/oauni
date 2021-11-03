@@ -1,4 +1,4 @@
-CREATE TABLE pubs_german_pillars AS
+CREATE TABLE pubs_german_pillars_update AS
 (SELECT
     items.pk_items,
     items.ut_eid,

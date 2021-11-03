@@ -1,0 +1,287 @@
+---
+title: "Gathering and preparation of data"
+author: "Anne Hobert"
+date: "3/11/2021"
+output:
+  pdf_document:
+    fig_caption: yes
+    keep_md: yes
+  github_document: default
+    fig_caption: yes
+  html_document:
+    fig_caption: yes
+    keep_md: yes
+urlcolor: blue
+bibliography: pubs.bib
+---
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+knitr::opts_chunk$set(
+  comment = "#>",
+  collapse = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  echo = FALSE,
+  fig.width = 6,
+  fig.asp = 0.618,
+  out.width = "70%",
+  fig.align = "center",
+  dpi = 300
+)
+
+
+# Call libraries
+
+library(tidyverse)
+library(RJDBC)
+library(DBI)
+library(dbplyr)
+library(viridis)
+library(bigrquery)
+library(urltools)
+
+# Store personal authentication credentials as kb_user01 and kb_password01 in .Renviron file.
+# Open DB connection
+# 
+ drv <-RJDBC::JDBC("oracle.jdbc.OracleDriver", classPath= "jdbc_driver/ojdbc8.jar")
+ con_kb <- DBI::dbConnect(drv, "jdbc:oracle:thin:@//biblio-p-db01:1521/bibliodb01.fiz.karlsruhe", Sys.getenv("kb_user01"), Sys.getenv("kb_password01"))
+# 
+# # connection to bigquery (restricted access)
+# con_bq <- dbConnect(
+#   bigrquery::bigquery(),
+#   project = "api-project-764811344545",
+#   dataset = "oadoi_full"
+# )
+```
+
+## Introduction
+
+The goal is to update the dataset in order to investigate changes due to recent developments, like, for example, transformative aggreements, Elsevier cancellations or the removal of Semantic Scholar as a data source from Unpaywall.
+We gathered the following publications indexed in the most recent bibliometric database in the WoS instance of the [German Competence Center for bibliometrics](http://www.bibliometrie.info/) (WoS-KB), which are associated with an institution belonging to one of the seven considered sectors:
+
+- Web of Science core collections SCI, SSCI and AHCI
+- document types `Article` and `Review`
+- publication years 2010 until 2020
+
+To identify German university affiliations in WoS, we used data from the Competence Centre for Bibliometrics, in particular the result of the project “Institutional address disambiguation” @rimmert_2017. Based on disambiguated addresses, this data categorizes the research institution according to Germany’s research landscape.
+
+Because publication years differ up to two years in a considerable number of cases (see our [report](https://github.com/nicholasmfraser/wos_unpaywall_matching/blob/master/report.md) on a matching strategy between WoS and Unpaywall), and since the Unpaywall table we work with contains records with year of publication from 2008 onwards, we restrict our analysis to publication years 2010 until 2020. 
+
+## Data gathering and matching
+
+The general outline of the steps undertaken for gathering the needed information is as follows:
+
+- Extract publications of German institutions (articles and reviews, publication years 2010 until 2020, institutions belonging to 5 pillars + 2) from WoS: [create_pubs_german_pillars.sql](data_gathering_preprocessing/create_pubs_german_pillars.sql), result: tibble `pubs_wos`
+- Collect relevant OA information from Unpaywall (recent snapshot from July 2021): [create_oa_german_inst_upw_evidence.sql](data_gathering_preprocessing/create_oa_german_inst_upw_evidence.sql), result: tibble `upw_evidence`
+- Repository information from OpenDOAR: [opendoar.R](data_gathering_preprocessing/opendoar.R), tidying: [opendoar_analysis.R](data_gathering_preprocessing/opendoar_analysis.R), result: [opendoar_data_tidier.csv](data/opendoar_data_tidier.csv)
+- ISSN to ISSN-L conversion list from [here](http://www.issn.org/wp-content/uploads/2014/03/issnltables.zip), result: [20191209.ISSN-to-ISSN-L.txt](data/20191209.ISSN-to-ISSN-L.txt)
+
+We now describe in more detail the procedure to obtain the updated dataset. The query used to collect all publications to be considered here from WoS-KB is stored as file [create_pubs_german_pillars.sql](data_gathering_preprocessing/create_pubs_german_pillars.sql). We load the data into a tibble. DOIs are converted to lowercase in order to facilitate matching with Unpaywall data later on. 
+
+```{r}
+if(file.exists("data/pubs_wos.csv")){
+  pubs_wos <- readr::read_csv("data/pubs_wos.csv", col_types = "dcccdcdccdc")
+} else {
+  pubs_wos <- DBI::dbGetQuery(con_kb, read_file("data_gathering_preprocessing/gather_pubs_german_pillars.sql"))
+  readr::write_csv(pubs_wos, "data/pubs_wos.csv")
+}
+
+pubs_wos <- pubs_wos %>% 
+  mutate(DOI = tolower(DOI))
+
+pubs_wos <- pubs_wos %>% 
+  mutate(sector = SECTOR) %>% 
+  select(-SECTOR, -SUBSECTOR) %>% 
+  distinct()
+```
+
+We then extract DOI information from this publication list in order to obtain the open access status from our instance of the most recent Unpaywall data dump from July 2021. We write the extracted doi list as a table into the BigQuery environment we use for OA information from Unpaywall. The schema has to be specified. We do it by predefining an (empty table) in BigQuery with fitting schema and calling this from BigQuery before writing dois. In order to then obtain the OA information for these articles that is contained in Unpaywall, we create a corresponding table in BigQuery by running [create_oa_german_inst_upw_evidence.sql](data_gathering_preprocessing/create_oa_german_inst_upw_evidence.sql). We then load the data and match it to the publication list drawn from WoS-KB. 
+
+```{r}
+if(file.exists("data/upw_evidence.csv")){
+  upw_evidence <- readr::read_csv("data/upw_evidence.csv", col_types = "ccllllccccclccc")
+} else {
+  ## extract DOIs from pubs_wos
+  dois_wos <- pubs_wos %>% 
+  select(DOI) %>%
+  filter(!is.na(DOI))%>% 
+  distinct()
+  
+  ## load DOIs into BQ environment for matching
+  dois_wos_bq <- bigrquery::bq_table(project = "subugoe-closed",
+                            dataset = "dois_for_matching",
+                            table = "oa_german_inst_dois")
+  dois_wos_bq_schema <- dois_wos_bq %>% 
+    bigrquery::bq_table_fields()
+  dois_wos_bq %>% 
+    bigrquery::bq_table_delete()
+  dois_wos_bq %>%
+    bigrquery::bq_table_upload(values = dois_wos, fields = dois_wos_bq_schema)
+  ## alternatively
+  #bigrquery::bq_table_upload("api-project-764811344545.oadoi_full.oa_german_inst_dois", values = dois_wos, fields = dois_wos_bq_schema)
+  ## or using DBI 
+  #DBI::dbWriteTable(con_bq, "oa_german_inst_dois", dois_wos, overwrite = TRUE, fields =  dois_wos_bq_schema)
+  
+  ## match DOIs with Unpaywall dataset and download matched records
+  ## use create_*.sql to also create the table in BQ (then also run delete table! before and after), gather_*.sql to just load the entries
+  upw_evidence_bq <- bigrquery::bq_table(project = "subugoe-closed",
+                            dataset = "dois_for_matching",
+                            table = "oa_german_inst_upw_evidence")
+#   upw_evidence_bq_table <- bigrquery::bq_project_query("api-project-764811344545", query = read_file("data_gathering_preprocessing/gather_oa_german_inst_upw_evidence.sql")) 
+  upw_evidence_bq %>%
+   bigrquery::bq_table_delete()
+  upw_evidence_bq_table <- bigrquery::bq_project_query("subugoe-closed", query = read_file("data_gathering_preprocessing/create_oa_german_inst_upw_evidence.sql"))
+  #   upw_evidence_bq_table <- bigrquery::bq_project_query("api-project-764811344545", query = read_file("data_gathering_preprocessing/gather_oa_german_inst_upw_evidence.sql")) 
+  upw_evidence <- bq_table_download(upw_evidence_bq_table)
+
+  
+  readr::write_csv(upw_evidence, "data/upw_evidence.csv")
+  dois_wos_bq %>% 
+    bigrquery::bq_table_delete()
+  upw_evidence_bq %>%
+    bigrquery::bq_table_delete()
+  rm(dois_wos, dois_wos_bq, dois_wos_bq_schema, upw_evidence_bq, upw_evidence_bq_table)
+}
+```
+
+We now join the tables from WoS and BigQuery and thereby add the OA information to the publication list of German research institutions obtained from WoS. We further eliminate the `r upw_evidence %>% filter(is_paratext ==TRUE) %>% summarise(n = n_distinct(upw_doi)) %>% .$n` documents which were identified as paratext by Unpaywall.
+
+```{r}
+pubs_wos_upw <- pubs_wos %>% 
+  left_join(upw_evidence, by = c("DOI" = "wos_doi"))
+pubs_wos_upw <- pubs_wos_upw %>% 
+  mutate(upw_matched = ifelse(is.na(upw_doi), FALSE, TRUE)) %>% 
+  filter(is_paratext == FALSE | is.na(is_paratext))
+  rm(pubs_wos, upw_evidence)
+```
+
+
+## Data preprocessing: OA classification
+
+We now classify the data with respect to their open access status according to the scheme from our [paper](https://docs.google.com/document/d/1GZtq2jrPcmU9Bab6pKOSay7f_u-XE5E0-T6ElyF4ZhI/edit#) (Methodology section). As a preparatory step, we add ISSN_L information. The Unpaywall dataset already contains this information, however, since some records could not be matched to Unpaywall, we still perform this step.
+
+```{r}
+#convert WoS ISSN to ISSN-L for matching with Bielefeld list
+issn_l <- readr::read_tsv("./data/20191209.ISSN-to-ISSN-L.txt") %>%
+  # manual fix Journal - American Water Works 
+  add_row(ISSN = "2164-4535", `ISSN-L` = "0003-150X")
+pubs_wos_upw_issnl <- pubs_wos_upw %>% 
+  left_join(issn_l, by = "ISSN") %>%
+  distinct()
+```
+
+As described in the paper, we follow the seminal work by @suber_2012 and distinguish between open access to journal articles provided by repositories, or journals. Additionally to the two major ways to open access for peer reviewed journal articles, namely publishing through a journal (Gold OA), for example, in pure OA journals, or archiving of article copies or manuscripts in repositories (Green OA), open access to publications can be also provided by other means at other web locations, for example, personal websites @bjork_2014. These are part of the category `other_repository` here. All remaining publications, for which no freely accessible full text was recorded in our data sources, are collated in the category `not_oa`. These include Toll Access articles published in journals that allow papers to be read by users with a subscription to the journal only @prosser_2003, but also articles for which we could not find a matching record in our Unpaywall dataset as well as articles, for which Unpaywall did not find the open copy. To identify articles in fully open access journals, we additionally consulted the ISSN-GOLD-OA 3.0 list (ref) generated and maintained by the University of Bielefeld in order to classify a journal as fully open access journal. For differentiation of repository-based OA (Green OA) we draw on repository data from OpenDOAR.
+
+### Distinction of journal based OA
+
+To further distinguish OA articles available via a journal, we check whether the journal is classified as fully OA by Unpaywall and whether the corresponding ISSN-L is contained in the Bielefeld ISSN-Gold-OA list. In either case, we will categorise the corresponding article as being published in a fully OA journal (`full_oa_journal`). All other journal based OA articles will be classified as `other_oa_journal`. To this end, after looking up ISSN-L for all extracted WoS records, we match with ISSN-Gold-list based on ISSN-L. The Unpaywall information on the journal is already contained in the previously loaded dataframe.
+
+```{r}
+# match with Bielefeld list
+u <- "https://pub.uni-bielefeld.de/download/2934907/2934908/ISSN_Gold-OA_3.0.csv"
+bie_oa <- readr::read_csv(u) %>%
+  # remove missing entries with missing ISSN_L
+  filter(!is.na(ISSN_L))
+# add oa info
+pubs_wos_upw_gold <- pubs_wos_upw_issnl %>%
+  mutate(issn_gold = `ISSN-L` %in% bie_oa$`ISSN_L`) %>% 
+  distinct()
+rm(issn_l, bie_oa, pubs_wos_upw_issnl, u, pubs_wos_upw)
+```
+
+As a result of matching with the ISSN-Gold-OA list we can compare the number of journals indexed as OA in Unpaywall, the ISSN-Gold-OA list, both, or none of them. This is done in the following table: Comparison of OA journals as Unpaywall-gold OA and ISSN-Gold-OA list
+
+```{r}
+pubs_wos_upw_gold %>% 
+  group_by(journal_is_oa, issn_gold) %>% 
+  summarise(n = n_distinct(`ISSN-L`)) %>% 
+  rename(upw_gold = journal_is_oa) %>% 
+  knitr::kable()
+```
+
+### Distinction of repository based OA
+
+In a second step, we also want to further distinguish OA articles where access is provided through a repository. The category of repository-based open access can be further divided according to the type of repository where a copy was deposited. We use OpenDOAR to differentiate between institutional repositories (collating all articles published by the authors associated with this institution), disciplinary repositories addressed at researchers from a certain field, other repositories registered in OpenDOAR and repositories not registered in OpenDOAR. We start out by loading the gathered OpenDOAR information and repository classification and matching it with our table of publications:
+
+```{r}
+opendoar <- readr::read_csv("data/opendoar_data_tidier.csv") %>%
+  mutate(repo_domain = domain(repo_url)) %>%
+  mutate(repo_domain = gsub("www.", "", repo_domain)) %>% 
+  filter(!is.na(repo_domain))
+repo_domain_df <- opendoar %>% 
+  mutate(r_domain = repo_domain) %>% 
+  select(r_domain, repo_domain) %>% 
+  distinct()
+```
+
+```{r}
+pubs_wos_upw_gold_repo <- pubs_wos_upw_gold %>% 
+  mutate(pdf_domain = domain(url_for_pdf)) %>%
+  mutate(pdf_domain = gsub("www.", "", pdf_domain)) %>%
+  mutate(landing_domain = domain(url_for_landing_page)) %>%
+  mutate(landing_domain = gsub("www.", "", landing_domain)) %>% 
+  left_join(repo_domain_df,  by = c("pdf_domain" = "r_domain")) %>%
+  left_join(repo_domain_df, by = c("landing_domain" = "r_domain")) %>% 
+  mutate(
+    repo_domain.x = ifelse(is.na(repo_domain.x), repo_domain.y, repo_domain.x),
+    repo_domain.y = ifelse(is.na(repo_domain.y), repo_domain.x, repo_domain.y)
+  ) %>% 
+  pivot_longer(cols = c(repo_domain.x, repo_domain.y), names_to = "n_join", values_to = "repo_domain") %>% 
+  select(-n_join) %>% 
+  distinct() %>% 
+  left_join(opendoar, by = "repo_domain")
+rm(opendoar, pubs_wos_upw_gold, repo_domain_df)
+```
+
+### Classification according to schema
+
+Having collected the necessary information we now want to proceed to assiging an OA category to each record in the publication dataset according to the schema described in the methodology section of our paper. 
+
+Entries without matching Unpaywall record can be identified by having `NA` in `upw_doi` field. Entries without open copy found can be identified by `is_oa` field taking the value `FALSE`.
+Both types will be classified as `not_oa`, meaning that we don't have an OA location for them (Positivnachweis): all entries with evidence are OA, others have unknown OA state (including articles which are not openly accessible but also records without DOI or articles, for which the open version was not found by Unpaywall). Remaining articles are OA and classified according to the schema in the paper.
+
+```{r}
+pubs_wos_upw_cat <- pubs_wos_upw_gold_repo %>% 
+  mutate(oa_category = case_when(
+    issn_gold == TRUE & (is.na(host_type) | host_type == 'publisher') ~ 'full_oa_journal',
+    is.na(upw_doi) ~ "not_oa",
+    !is_oa ~ "not_oa",
+    host_type == 'publisher' & journal_is_oa == TRUE ~ 'full_oa_journal',
+    host_type == 'publisher' ~ 'other_oa_journal',
+    repo_type == 'institutional' ~ 'opendoar_inst',
+    repo_type == 'disciplinary' ~ 'opendoar_subject',
+    !is.na(repo_type) ~ 'opendoar_other',
+    TRUE ~ 'other_repo'
+  )) %>% 
+  distinct()
+rm(pubs_wos_upw_gold_repo)
+#pubs_wos_upw_cat %>% 
+#  readr::write_csv("data/pubs_cat_details.csv")
+```
+A first validation of our results yielded issues with the OpenDOAR matching procedure. For details see the [report](data_gathering_preprocessing/upw_location_sample_analysis.ipynb). In order to improve the matching we designed a more elaborate matching using also Unpaywall's new field `repository_institution`. It is implemented in [003_match_opendoar_upw.R](data_gathering_preprocessing/opendoar_match/003_match_opendoar_upw.R), with the subsequent reclassification performed in [004_classify_matching_results.R](data_gathering_preprocessing/opendoar_match/004_classify_matching_results.R).
+
+Running these scripts now yields an additional matching table [opendoar_upw_match.csv](data/opendoar_upw_match.csv). We use this table to update the `oa_category`.
+
+```{r}
+opendoar_upw <- readr::read_csv("data/opendoar_upw_match.csv")
+pubs_cat_update <- pubs_wos_upw_cat %>% 
+  rename(oa_category_old = oa_category) %>%
+  # create ids for each full-text observation
+  group_by(PK_ITEMS) %>%
+  mutate(id = paste0(PK_ITEMS, "_", row_number())) %>%
+  ungroup() %>%
+  left_join(opendoar_upw, by = "id") %>% 
+  mutate(oa_category = ifelse(is.na(green_cat), oa_category_old, green_cat))
+pubs_cat_update %>% 
+  readr::write_csv("data/pubs_cat_details.csv")
+```
+
+Lastly, we extract the fields relevant for the analysis and generate the corresponding dataset `pubs_cat` used in [analysis.Rmd](analysis.Rmd).
+
+```{r}
+pubs_cat_update %>%
+  select(PK_ITEMS, id, DOI, PUBYEAR, INST_NAME, sector, upw_matched, oa_category) %>%
+  readr::write_csv("data/pubs_cat.csv")
+```
+
+
