@@ -259,6 +259,7 @@ pubs_wos_upw_cat <- pubs_wos_upw_gold_repo %>%
 rm(pubs_wos_upw_gold_repo)
 pubs_wos_upw_cat %>%
  readr::write_csv("data/pubs_cat_details.csv")
+#pubs_wos_upw_cat <- readr::read_csv("data/pubs_cat_details.csv")
 ```
 A first validation of our results yielded issues with the OpenDOAR matching procedure. For details see the [report](data_gathering_preprocessing/upw_location_sample_analysis.ipynb). In order to improve the matching we designed a more elaborate matching using also Unpaywall's new field `repository_institution`. It is implemented in [003_match_opendoar_upw.R](data_gathering_preprocessing/opendoar_match/003_match_opendoar_upw.R), with the subsequent reclassification performed in [004_classify_matching_results.R](data_gathering_preprocessing/opendoar_match/004_classify_matching_results.R).
 
