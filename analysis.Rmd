@@ -499,14 +499,14 @@ readr::write_csv(cat_overlap, "data/overlap_oa_categories.csv")
 ```
 
 ```{r}
-# library(UpSetR)
-# # list with counts
-# cat_overlap_list <- as.list(cat_overlap$n)
-# # categories as list names
-# names(cat_overlap_list) <- cat_overlap$oa_category
-# # convert to vector
-# cat_overlap_upset_expr <- unlist(cat_overlap_list)
-# upset(fromExpression(cat_overlap_upset_expr), sets = rev(c("full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo")), keep.order = TRUE, nintersects = 20, order.by = "freq", show.numbers = FALSE, set_size.angles = 25)
+library(UpSetR)
+# list with counts
+cat_overlap_list <- as.list(cat_overlap$n)
+# categories as list names
+names(cat_overlap_list) <- cat_overlap$oa_category
+# convert to vector
+cat_overlap_upset_expr <- unlist(cat_overlap_list)
+upset(fromExpression(cat_overlap_upset_expr), sets = rev(c("full_oa_journal", "other_oa_journal", "opendoar_inst", "opendoar_subject", "opendoar_other", "other_repo")), keep.order = TRUE, nintersects = 20, order.by = "freq", show.numbers = FALSE, set_size.angles = 25)
 ```
 
 

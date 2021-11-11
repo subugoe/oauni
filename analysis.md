@@ -30,7 +30,7 @@ following figure displays the number of publications associated with one
 of the German research institutions we considered and highlights they
 part that is freely accessible online according to Unpaywall over the
 considered time period from 2010 until 2018. The total number of
-articles over the whole period is 871922 with an overall OA share of 45
+articles over the whole period is 1113479 with an overall OA share of 49
 %.
 
 <div class="figure" style="text-align: center">
@@ -50,12 +50,12 @@ articles.
 
 As can be seen, the total number of articles, as well as the part that
 is OA increases constantly over time. The number of articles that are
-not openly available, is quite stable with a slow increase from 52803 in
-2010 to 54873 in 2013, and decreasing again continuously from that point
-onwards to 51430 publications in 2018. Since the number of OA articles
-increases continuously from 30664 publications in 2010 to 55649 in 2018,
-the relative proportion of OA articles rises significantly from 36.74 %
-in 2010 to 51.97 % in 2018.
+not openly available, is quite stable with a slow increase from 51899 in
+2010 to 55023 in 2013, and decreasing again continuously from that point
+onwards to 50190 publications in 2018. Since the number of OA articles
+increases continuously from 31593 publications in 2010 to 59362 in 2018,
+the relative proportion of OA articles rises significantly from 37.84 %
+in 2010 to 54.19 % in 2018.
 
 ### Differences between sectors
 
@@ -88,9 +88,9 @@ In order to investigate the variability of OA publishing within the
 sectors, we now go one level deeper and examine OA shares of individual
 institutions, grouped by the sector they belong to. We only include
 institututions with a publication output of at least 100 publications in
-the observed time period of 9 years. Of the 444 institutions in total,
-320 fulfill this condition. This means, that in the following
-institution specific analyses, 124 insitutions, or 6259 articles are not
+the observed time period of 9 years. Of the 473 institutions in total,
+347 fulfill this condition. This means, that in the following
+institution specific analyses, 126 insitutions, or 6351 articles are not
 considered. Of the remaining institutions, we first calculate the
 individual OA shares.
 
@@ -172,6 +172,8 @@ that is, an article might be counted for several categories and numbers
 not necessarily sum up to the total number of articles published. As a
 preliminary step, we therefore illustrate the most common combinations
 of OA categories in our dataset.
+
+<img src="analysis_files/figure-gfm/unnamed-chunk-10-1.png" width="90%" style="display: block; margin: auto;" />
 
 Keeping in mind that our categories are non-exclusive, as just shown, we
 now visualise the number of articles per category on the national level,
